@@ -1,0 +1,63 @@
+% \SetPicSubDir{ch-Rice}
+% \SetExpSubDir{ch-Rice}
+
+\chapter{Conclusion and Future Directions}
+\label{ch:conclu}
+\section{Conclusion}
+This thesis focuses on the design and optimization on permissioned blockchains with database techniques. 
+In light of the growing demand on blockchains as emerging transaction platforms, 
+our mission is to identify their bottlenecks and pain points for the improvement while preserving the security.
+This leads to a series of three works, the first as a survey-like investigation, the second as a utility enhancement, and the last as the performance speedup. 
+Throughout, we adopt the modularized methodology and ground all our implementation into {\fs}. 
+
+Firstly, we presented a comprehensive dichotomy between blockchains and distributed databases, viewing them as two different types of transactional distributed systems. We proposed a taxonomy consisting of four design dimensions: replication, concurrency, storage, and sharding. Using this taxonomy, we discussed how both system types make different design choices driven by their high-level goals (e.g., security for blockchains, and performance for databases). We then performed a quantitative performance comparison using five different systems covering a large area of the design space. Our results illustrated the effects of different design choices to the overall performance. Our work provides the first framework to explore future database-blockchain design fusions. 
+
+In second work, we showed how to build a fine-grained,
+secure and efficient provenance system on top of blockchains. 
+We implemented our techniques into {\fs}.
+The system efficiently captures provenance information during runtime and stores it in secure storage. 
+It exposes simple APIs to smart contracts, which enables a new class of provenance-dependent blockchain applications. 
+Provenance queries are efficient in {\fs}, thanks to a novel skip
+list index. We benchmarked it against several baselines. The results show the benefits of {\fs} in supporting rich,
+provenance-dependent applications. They demonstrate that
+provenance queries are efficient and that the system incurs
+small storage and performance overhead.
+
+Last but not the least, we proposed a novel solution to efficiently reduce the transaction abort rate in execute-order-validate blockchains by applying transactional
+analysis from optimistic-concurrency-control databases. We first draw theoretical parallelism between both blockchains and databases. Then,
+we introduced a fine-grained concurrency control method and
+implemented it in {\fs} and {\ffs} based on
+Fabric and FastFabric, respectively. 
+Our experimental analysis shows that both {\fs} and {\ffs} outperform other blockchain systems, including the vanilla Fabric,
+Fabric++, and FastFabric. Unlike databases that achieve high throughput, the blockchains’ limited throughput due to factors related to security opens up opportunities for precise transaction management.
+
+\section{Future Directions}
+\subsection{Blockchain Interoperability}
+While a growing number of blockchains proliferate, most of them operate in silos, with poor synchronization and coordination. 
+Such fragmentation of the landscape not only results into a waste of resources and data isolation, but it also runs counter to the very essence of the Internet, openness and freedom. 
+Even though we observe a number of research works with the special emphasis on the across-ledger token swap, their scope is mostly restricted to the cryptocurrency domain~\cite{herlihy2018atomic,robinson2019atomic,zakhary2019atomic}. 
+For wider applications, the community of blockchains should look forward to some more generic standards, just like TCP/IP to the Internet. 
+Promisingly, we notice that Interledger Protocol has taken on the initial attempt~\cite{interledger}. And we expect more will follow. 
+
+\subsection{Declarative Language for Smart Contracts}
+Even though we demonstrate the provenance support on blockchains in Chapter~\ref{ch:prov}, it still follows an imperative approach.
+To be specific, users are required to explicitly program \textit{how-to-do}, instead of implicitly declaring \textit{what-to-do} in the smart contract. 
+The high-level declarative language can not only allow users to work on a high abstraction level, saving efforts. 
+It also opens up a vast room for low-level tailored optimization. 
+We haven't observed any progress along with this direction.
+But according to the development roadmap of the database over the decades, we believe that such an easy-to-use and intuitive usage scheme is essential for the mass adoption of blockchains. 
+
+\subsection{Blockchain-like Verifiable Databases}
+The impact of blockchains comes from its revolutionary decentralization.
+But in reality, their byzantine tolerant consensus proves to be an overkill for most applications. 
+In light of this, there are a growing number of secure databases, which, unlike blockchains, completely eliminate distributed setup~\cite{arasu2017concerto,zhang2020spitz}. Despite the single point, these databases still support verifiability on the state storage. Some vendors simulate a ledger-structure to expose the data provenance with the integrity guarantee~\cite{qldb}. 
+We believe such blockchain-like verifiable databases are capable enough to satisfy most business applications, in which blockchains would prove redundant. 
+
+\subsection{Federated Learning on Blockchains}
+Considering their common decentralized nature of the federated learning and blockchains, it is not hard to image a number of literatures that pair both hot topics together~\cite{lu2019blockchain,kim2019blockchained,awan2019poster}. 
+The researchers have attempted to rely on blockchains to consolidate data from mutual distrusted users and collectively train for a shared model. 
+In their design, a blockchain serves a trust-building platform to regulate on data ownership and the model copyright. 
+But the challenge still comes in the way, as data privacy may be at odds with the blockchain transparency. 
+And it remains a open topic how to properly allocate the model ownership according to the heterogeneous data sources. 
+In the AI-driven future with the immense adoption of Internet-of-Things, we expect more such interdisciplinary proposals between blockchains and machine learning. 
+ 
