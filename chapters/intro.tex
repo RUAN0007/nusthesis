@@ -63,21 +63,20 @@ In the face of growing demand, permissioned blockchains call for more data proce
 
 \textbf{Performance. }
 Another challenge is the low processing volume of permissioned blockchain to accommodate the business load. 
-Researchers in BLOCKBENCH evaluated three blockchains with database workloads and drew their comparison with a database on the same testbed. 
-Their results are presented in Figure~\ref{}. 
-It is evident that in terms of throughput, blockchains lag far behind databases in around two magnitudes. 
+Researchers in BLOCKBENCH evaluated three blockchains with database workloads on the same testbed. 
+Their results show that blockchains lag far behind databases in around two magnitudes. 
 We believe the extra security properties of blockchains shall not solely account for such a huge performance gap. 
 There must exist abundant optimization room available for the speedup. 
 
 In the above, we lay out the optimization vision by showing vast similarities between permissioned blockchain and distributed databases. 
-And we have also motivated such necessity by pinpointing the pain points for the adoption of permissioned blockchains in the industry. 
+And we have also motivated such necessity by pinpointing the pain points for the adoption of blockchains in the industry. 
 We now explain the three principles that our enhancement follows:
 
 \begin{itemize}
-  \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical example is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. This principle can be manifested in the following two ways. Firstly, for security improvement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate a subsection in Chapter~\ref{ch:txn} on the security implication of the transaction reordering. 
+  \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis, this principle can be manifested in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate a subsection in Chapter~\ref{ch:txn} on the security implication of the transaction reordering. 
   \item We adopt the modularized approach. We decouple a complex system into individual layers for the separate optimization. Modularization allows for the separation of concerns for the ease of reasoning. It also facilitates interoperability with independent optimization. 
   We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{fig:arch}. 
-  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain, for the demonstration. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. In addition, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
+  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain, for the demonstration. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
 \end{itemize}
 
 \section{Optimization Basis}
@@ -103,9 +102,9 @@ According to each dimension in the taxonomy, we devise corresponding workloads f
 Our results reveal the implication of their design choices. 
 This comprehensive study sheds light on the optimization opportunities on permissioned blockchain with database techniques. 
 
-Chapter~\ref{ch:prov} demonstrates our optimization in terms of the utility. 
+Chapter~\ref{ch:prov} demonstrates our optimization for the utility. 
 We first explain the added business value when data provenance is exposed to smart contracts. 
-Then we introduce how data provenance in blockchains are captured, stored, and queried. 
+Then we introduce how lineage information in blockchains are captured, stored, and queried. 
 The greatest contribution of our proposal is to extend the integrity property for the entire data evolution history. 
 After implementing it into {\fs}, the empirical evaluation demonstrates the negligible performance and storage overhead with this additional feature. 
 
