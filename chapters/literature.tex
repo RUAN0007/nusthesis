@@ -48,10 +48,10 @@ Despite their implementation differences, the execution architecture of any bloc
 
 \begin{figure}
     \centering
-    \begin{subfigure}{0.95\textwidth}
+    \begin{subfigure}{0.8\textwidth}
       \includegraphics[width=0.99\textwidth]{diagram/literature/ox_arch.pdf}
     \end{subfigure}
-    \begin{subfigure}{0.95\textwidth}
+    \begin{subfigure}{0.8\textwidth}
       \includegraphics[width=0.99\textwidth]{diagram/literature/eov_arch.pdf}
     \end{subfigure}
     \caption{Comparison of  Order-execute and Execute-order-validate architecture. }
@@ -62,12 +62,12 @@ Despite their implementation differences, the execution architecture of any bloc
 \subsection{Order-execute Architecture}
 In the Order-execute architecture, each peer serially executes transactions, based on the established order according to the ledger by the consensus. 
 Bitcoin as well as all cryptocurrency-based blockchain adopts this concurrency-free design, simply because the consensus, rather than the execution layer, decides on the system performance. 
-Moreover, sequentiality makes it easy to reason about the transaction behavior. 
+Moreover, sequentiality makes it easy to reason about the system behavior. 
 
 Despite this, things still get convoluted when transactions deal with Turing-complete logic. For example, many security researchers have demonstrated that Solidity contracts in Ethereum are far more tricky than expected~\cite{luu2016making,parizi2018smart,atzei2017survey}. 
 Due to some subtle misunderstanding on operation semantics on EVM, flawed contracts can be exploited by adversaries to gain profits. 
 And the problem is further exaggerated given the transparency and the irreversibility of blockchains. 
-The concrete DAO hack shows that such an attack is not only a possibility in the theory but a true threat in reality finley201650. 
+The DAO hack shows that such an attack is not only a possibility in the theory but a true threat in reality~\cite{santos2018dao}.
 In the meantime, there come along a series of empirical guidelines and practical tools to aid the contract development~\cite{ducasse2019open,jeng2019step,bai2018formal,tikhomirov2018smartcheck}. 
 
 Through the Order-execute architecture takes on the sequential approach, it is never insulated from the concurrency topic. 
@@ -108,118 +108,63 @@ OXII relies on the core assumption that the dependency can be extracted by inspe
 In the same spirit, XOX architecture runs a patch-up code to streamline a contended transaction~\cite{gorenflo2020xox}. 
 The dependency captured during the transaction execution determines this snippet of code. 
 
+\section{Consensus Layer}
+Byzantine-tolerant consensus differentiates blockchains from other distributed systems. 
+Proof-of-work (PoW), initially proposed in Bitcoin, opens up a new horizon on the study of incentive-based protocols. 
+Meanwhile, the permissioned blockchains revitalize the interest of 
+state machine replication approach to address the arbitrary failure. 
 
-% \subsection{Others}
+\subsection{PoW and its Analysis}
+The essence of PoW is a hard-to-solve and easy-to-verify puzzle. 
+The protocol prescribes that the first solver has the privilege to broadcast a new block on the tip of the ledger. 
+By adjusting the puzzle difficulty such that the solving duration exceeds the maximum network delay,
+all blockchain participants can then sync up on the unique chain. 
+In Bitcoin, the puzzle solution is a nonce to make the block hash value prefixed with enough zeros. 
+The block proposer gets compensated for the hashing power with the newly-minted cryptocurrencies and the transaction fee. 
 
-% \section{Consensus Layer}
-% \subsection{PoW and its Variants}
+In the context of Bitcoin, the solution-finding process is called \textit{mining}. 
+Due to the unpredictability of the hash function, mining is fair to all participants, including the adversaries. 
+Ruling out the possibility that adversaries control the majority of the hash power, it leads to the following two implications.
+If the adversaries pour all their resources to mine on a shorter chain fork, 
+that fork can catch up the longest chain with negligible probability, where the rest of honest power concentrates. 
+Nakamoto has bounded this possibility to be exponentially small in the original whitepaper~\cite{nakamoto2019bitcoin}.
+More in-depth mathematical frameworks have been established to reason the mining behavior ~\cite{gervais2016security,kiayias2015speed,ren2019analysis,miller2014anonymous,garay2015bitcoin}. 
+On the other hand, honest block proposers, aware that the longest chain is hardly revertible, are incentivized to extend on the longest chain. 
+It is because their proposed block contains a coinbase transaction that credits proposers to the minted cryptocurrencies. 
+Only the block is in the longest chain then this transaction can take into effect. 
 
-% \subsection{PoW and its Enhancements}
+Inevitably, the longest-chain-rule may lead to two divergent forks during the asynchronous network period. 
+When the network delay exceeds the block interval, two honest participants may generate two different blocks but on the same height. 
+The longest-chain-rule will eventually resolve to a unique chain when the network partition heals, 
+Hence, transactions in the ledger may not be secure given that they might reside on a shorter to-be-pruned fork. 
+Considering this, clients, for their interest, may wait for their transactions to get buried by later blocks deep enough, before considering them committed. 
+Intuitively, this depth balances between latency and security. 
+In the meantime, the block interval and the block size controls the tradeoff between throughput and security. 
+The shorter interval and the larger block imply greater system capacity. 
+But it compromises the security, i.e., the network may not propagate a block to each participant before the next block is generated. 
 
-% \subsection{Mining Policy and Incentive Analysis}
+Moreover, \cite{eyal2014majority} suggests that adversaries may not be incentivized to follow the default mining policy, i.e., mining on the longest chain and broadcast the block immediately. 
+Instead, they may temporally withhold mined blocks and selectively publish them to gain extra profits, disproportionate to their computation power. 
+Since then, more mining policies are discovered which allows adversaries to gain a competitive edge \cite{nayak2016stubborn,courtois2014subversive},
+even infiltrating other mining pools to waste their resources~\cite{luu2015power,eyal2015miner}. 
+Researchers employ a Markov Decision Process to find the optimal mining policy and explore the performance-security tradeoff~\cite{gervais2016security,sapirshtein2016optimal}.
 
-% \subsection{Byzantine Fault-tolerant Consensus}
+\subsection{The Enhancements on PoW}
+PoX
 
-% \subsection{Committee-based Consensus}
+Bitcoin-NG, GHOST, 
 
-% \section{Application Layer}
-% \subsection{Industrial Proposals}
-% \subsection{Benchmarks and Surveys}
-% \subsection{Databases or Blockchains}
+\subsection{Byzantine Fault-tolerant Consensus}
+PBFT
+Tendermint
+BFT Raft
+Hotstuff
+VM-Related
 
-% % \section{Preliminaries}
+\subsection{Committee-based Consensus}
 
-% % \lipsum[5-8]
+\section{Application}
+\subsection{Industrial Adoption}
+\subsection{Benchmarks and Surveys}
 
-% % \begin{figure}[!t]
-% %   \centering
-% %   \includegraphics[width=.5\linewidth]{\Pic{jpg}{rice}}
-% %   \vspace{\BeforeCaptionVSpace}
-% %   \caption{A bowl of rice.}
-% %   \label{Rice:fig:bowl_of_rice}
-% % \end{figure}
-
-% % \section{Methodology}
-
-% % \autoref{Rice:fig:bowl_of_rice} shows a bowl of rice. 
-% % \autoref{Rice:algo:sample} demonstrates the formatting of pseudo code. 
-% % Please carefully check the source files and learn how to use this style. 
-% % Importantly:
-
-% % \begin{itemize}
-% % \item Always state your input.
-
-% % \item State the output if any. 
-
-% % \item Always number your lines for quick referral.
-
-% % \item Always declare and initialize your local variables. 
-
-% % \item Always use \CMD{\gets} (``$\gets$'') for assignments.
-% % %Always use \textbackslash gets for assignments.
-% % \end{itemize}
-
-% % \begin{algorithm}[!t]
-% % \AlgoFontSize
-% % \DontPrintSemicolon
-
-% % \KwGlobal{max. calories of daily intake $\mathcal{C}$}
-% % \KwGlobal{calories per bowl of rice $\mathcal{B}$}
-% % \BlankLine
-
-% % \SetKwFunction{fEatRice}{EatRice}
-% % \SetKwFunction{fDoExercise}{DoExercise}
-
-% % \KwIn{number of bowls of rice $n$}
-% % \KwOut{calories intake}
-% % \Proc{\fEatRice{$n$}}{
-% %   $cal \gets n \times \mathcal{B}$\;
-% %   \uIf{$cal \geq \mathcal{C}$}{
-% %     \Return $\mathcal{C}$\;
-% %   }
-% %   \Else{
-% %     \Return $cal - \fDoExercise{n}$\;
-% %   }
-% % }
-
-% % \BlankLine
-
-% % \KwIn{time duration (in minutes) of exercise $t$}
-% % \KwOut{calories consumed}
-% % \Func{\fDoExercise{$t$}}{
-% %   $cal \gets 0$\;
-% %   \lFor{$i \gets 1$ \To $t$}{$cal \gets cal + i$}
-% %   \Return $cal$\;
-% % }
-
-% % \caption{Sample pseudo code of a dummy algorithm.}
-% % \label{Rice:algo:sample}
-% % \end{algorithm}
-
-% % \section{Evaluation}
-
-% % \lipsum[16-19]
-
-% % % \begin{figure}[!t]
-% % %   \centering
-% % %   \begin{minipage}[b]{.45\linewidth}
-% % %     \centering
-% % %     \includegraphics[width=\linewidth]{\Exp{eps}{taste_with_meals}}
-% % %     \caption{Taste with meal repetition.}
-% % %     \label{Rice:exp:taste_with_meals}
-% % %   \end{minipage}
-% % %   \hspace*{2em}
-% % %   \begin{minipage}[b]{.45\linewidth}
-% % %     \centering
-% % %     \includegraphics[width=\linewidth]{\Exp{eps}{taste_with_freshness}}
-% % %     \caption{Taste with meal freshness.}
-% % %     \label{Rice:exp:taste_with_freshness}
-% % %   \end{minipage}
-% % % \end{figure}
-
-% % \autoref{Rice:exp:taste_with_meals} and \autoref{Rice:exp:taste_with_freshness} show how the taste of rice is affected by meal repetition and freshness respectively. 
-% % \lipsum[20]
-
-% % \section{Summary}
-
-% % \lipsum[21]
+\section{Summary}
