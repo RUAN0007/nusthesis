@@ -23,13 +23,23 @@ In addition, without the built-in cryptocurrencies, the smart contracts of these
 We refer to the above class of blockchains \textit{permissioned}.
 Permissioned blockchains shows more potential to disrupt the industry and attract more interest from entrepreneurs. 
 
-Despite the above differences, both classes of blockchains share the identical high-level architecture, as proposed in BLOCKBENCH and illustrated in Figure~{fig:intro:arch}. 
-The architecture is layered into four. Enumerating from the top, they are applications, consensus, execution, and data model layer. 
+Despite the above differences, both classes of blockchains share the identical high-level architecture, as proposed in BLOCKBENCH~\cite{dinh2017blockbench} and illustrated in Figure~\ref{fig:intro:arch}. 
+The architecture is layered into four. Enumerating from the top, they are the application, consensus, execution, and data model layer. 
 A typical processing pipeline for a generic blockchain constitutes of the following procedures. 
 The consensus layer continuously drives participants to reach an agreement on the block at the ledger tip. 
-Each participant then serially executes the transaction (invokes the contract) in the agreed-upon block at the execution layer.
-If the transaction conforms to the blockchain protocol, the participant then persists its effect in the data model layer. 
+Each participant then invoke the contract to mutate the state, based on the context in each transaction in the block. 
+This step is conducted at the execution layer.
+If a transaction conforms to the blockchain protocol, the participant then persists its effect in the data model layer. 
 And the top application layer hides all the underneath processing details but leaves interfaces to accept the request and query the ledger. 
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.8\linewidth]{diagram/intro/architecture.pdf}
+  \vspace{\BeforeCaptionVSpace}
+  \caption{Blockchain high-level architecture. }
+  \subcaption*{State-mutating transactions must undergo the consensus and the execution components before persisting their effects at the data model layer, whereas ledger and state queries are directly answered by the storage component. }
+  \label{diagram:intro:arch}
+\end{figure}
 
 \section{Vision, Motivation and Principle}
 
@@ -75,26 +85,41 @@ We now explain the three principles that our enhancement follows:
 \begin{itemize}
   \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis, this principle can be manifested in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate a subsection in Chapter~\ref{ch:txn} on the security implication of the transaction reordering. 
   \item We adopt the modularized approach. We decouple a complex system into individual layers for the separate optimization. Modularization allows for the separation of concerns for the ease of reasoning. It also facilitates interoperability with independent optimization. 
-  We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{fig:arch}. 
+  We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{diagram:intro:arch}. 
   \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain, for the demonstration. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
 \end{itemize}
 
 \section{Optimization Basis}
-We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we first start preparing this thesis. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
+We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this thesis. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
 
 We now evaluate its throughput under its off-the-shelf configuration, which serves as the baseline. 
 Unless otherwise mentioned, all our following experiments in this thesis are conducted in the same testbed as this experiment.
 The testbed consists of a local cluster of 16 nodes. Each node is equipped with E5-1650 3.5GHz CPU, 32GB RAM, and 2TB hard disk. The nodes are interconnected via 1Gbps Ethernet. 
 
-We present the primary results, after averaging over 3 times on the four-peer setup, in Figure~\ref{}. 
+We present the primary results, after averaging over 3 times on the four-peer setup, in Figure~\ref{chart:intro:basic}. 
 The first workload consists of no-op transactions that access no records. 
-Fabric achieves xxx tps throughput at its peak under xxx transactions per block. 
-In the second workload with xxx transactions per block, we gradually increase the request skewness in the modification workload, in which each transaction reads and updates a single record out of 10k. 
-When the Zipfian coefficient $\theta$ of the request distribution reaches 1.0, we observe its throughput reduces to xxx tps, only xx\% when $\theta=0$. 
-Compared with the database reported in Figure~\ref{fig:}, this experiment further motivates for the system-level optimization of permissioned blockchains. 
+Fabric keeps around only 2300 tps throughput when the number of transactions per block is 2000 and beyond. 
+In the second workload with 2000 transactions per block, we gradually increase the request skewness in the modification workload, in which each transaction reads and updates a single record out of 10k. 
+The request distribution follows Zipfian distribution, where the larger coefficient $\theta$ implies for more skewness. 
+When $\theta$ reaches 1.0, we observe its throughput reduces to 549 tps, 65\% of that when $\theta=0$. 
+And more than half of transactions in the ledger do not take effect due to the transactional conflicts. 
+This primary experiment further motivates for the performance speedup of permissioned blockchains. 
+
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/intro/noop.pdf}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/intro/skew.pdf}
+    \end{subfigure}
+    \caption{Primary evaluation results for Fabric. }
+    \label{chart:intro:basic}
+    % \vspace{-1.0em}
+\end{figure}
 
 \section{Thesis Synopsis}
-We structure the rest of this thesis as follows. Chapter~\cite{ch:literature} overviews the recent year progress on both permissioned and permissionless blockchains. The covered literature ranges from the database, distributed computing, and security communities. For the modularized fashion, we organize their reviews according to the classified layers in Figure~\ref{}. This chapter ends with our critical analysis in this area. 
+We structure the rest of this thesis as follows. Chapter~\cite{ch:literature} overviews the recent year progress on both permissioned and permissionless blockchains. The covered literature spans from the database, distributed computing, and security communities. For the modularized fashion, we organize their reviews according to the classified layers in Figure~\ref{diagram:intro:arch}. This chapter ends with our critical analysis in this area. 
 
 Chapter~\ref{ch:twin} proposes a taxonomy that unifies blockchains and distributed databases. 
 The study considers both systems as the same type of distributed transactional systems, for the joint analysis on their respective focus. 

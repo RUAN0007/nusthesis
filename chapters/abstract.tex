@@ -1,11 +1,11 @@
 \begin{abstract}
-The success of Bitcoin brings enormous interest to its underneath technology, a blockchain. 
-A blockchain is a decentralized system capable to settle disputes between mutually distrusting parties. 
-Throughout the years, the blockchain applications are mostly restricted to cryptocurrencies, without fully unleashing their potential. 
+The success of Bitcoin brings enormous interest to its underneath technology, the blockchain. 
+A blockchain is a decentralized system capable to settle disputes between mutually distrusted parties. 
+Throughout the years, blockchain applications are mostly restricted to cryptocurrencies, without fully unleashing their potential. 
 It is until the emergence of smart contracts then blockchains start their transformation from simple cryptocurrency platforms into general data processing systems.
 Unfortunately, most blockchains researches are still carried out in the security community. 
 Only a few database researchers are aware of this trend.
-In this thesis, we focus on the enhancement and optimization of blockchains from a data system perspective.
+In this thesis, we focus on the enhancement and optimization of blockchains from a the perspective of a data system.
 As an attempt to databasify blockchains, we not only demonstrate the vast opportunities but also appeal to more system researchers on this promising area. 
 
 First, we treat a blockchain also as a generic distributed system, and as such it shares some similarities with distributed database systems. Existing works that compare blockchains and distributed database systems focus mainly on high-level properties, such as security and throughput. They stop short of showing how the underlying design choices contribute to the overall differences. Our paper is to fill this important gap. To be particular, We perform a twin study of blockchains and distributed database systems as two types of transactional systems. We propose a taxonomy that helps illustrate their similarities and differences. The taxonomy is along four dimensions: replication, concurrency, storage, and sharding. We discuss how the design choices have been driven by the system's goals: the blockchain's goal is security, whereas the distributed database's goal is performance. We then conduct an extensive performance study on two blockchains, namely Quorum and Hyperledger Fabric, and three distributed databases, namely CockroachDB, TiDB and etcd. We demonstrate how the different design choices in the four dimensions lead to different performances. And the experimental insight sheds light on our database-styled optimization on blockchains. 
@@ -31,6 +31,4 @@ demonstrates its benefits to the new class of blockchain applications, its effic
 Thirdly, catering for emerging business requirements, a new architecture called execute-order-validate has been proposed in Hyperledger Fabric to support parallel transactions and improve the blockchain's throughput. However, this new architecture might render many invalid transactions when serializing them. This problem is further exaggerated as the block formation rate is inherently limited due to other factors besides data processing, such as cryptography and consensus.
 In this work, we propose a novel method to enhance the execute-order-validate architecture, by reducing invalid transactions to improve the throughput of blockchains. Our method is inspired by state-of-the-art optimistic concurrency control techniques in modern database systems. In contrast to existing blockchains that adopt database's preventive approaches which might abort serializable transactions, our method is theoretically more fine-grained. Specifically, unserializable transactions are aborted before ordering and the remaining transactions are guaranteed to be serializable. For evaluation, we implement our method on top of our {\fs}, and {\ffs} on top of {\ff}. We compare the performance of {\fs} with carefully-chosen baselines. The results demonstrate that {\fs} achieves 25\% higher throughput compared to the other systems in nearly all experimental scenarios. Moreover, the {\ffs}'s improvement over {\ff} is up to 66\%.
 
-
-    
 \end{abstract}
