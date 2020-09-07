@@ -7,7 +7,10 @@ In this chapter, we lay out the foundation of blockchains and explore a systemat
 We organize the review based on the abstract layers as classified in Figure~\ref{diagram:intro:arch}, before identifying the research gap. 
 
 \section{Data Model Layer}
-There are two data organizations in the blockchains, the unspent transaction output-based (UTXO) and the account-based. Their key difference lies whether systems explicitly maintain the states. we illustrate both schemes in Figure~\ref{diagram:literature:data_model}.
+The data model in blochchains concerns on how to organize data that reflect the latest states, and model the ledger that record the historical transactions. 
+
+\subsection{State Organization}
+There are two state organizations in the blockchains, the unspent transaction output-based (UTXO) and the account-based. Their key difference lies whether systems explicitly maintain the states. we illustrate both schemes in Figure~\ref{diagram:literature:data_model}.
 
 \begin{figure}
     \centering
@@ -17,13 +20,13 @@ There are two data organizations in the blockchains, the unspent transaction out
     \label{diagram:literature:data_model}
 \end{figure}
 
-\subsection{UTXO Model}
+\textbf{UTXO Model.}
 UTXO purely operates on the transaction basis. In their structure, a transaction consists of multiple inputs and outputs. Each output is associated with an amount of cryptocurrency and an unanswered cryptographic puzzle. Any future transaction can reclaim this amount in its input, by providing the puzzle answer and referencing the previously unspent output. An canonical puzzle and its solution can be an address in the format of a public key hash, and a digital signature from the corresponding private key. Notably, the UTXO model does not bookkeep the balance to addresses. All transactions in the ledger form a Direct Acyclic Graph that records the cryptocurrency flow, where identity hides under the anonymous addresses. 
 
 Bitcoins, due to its decentralization and anonymity, provide a terrain for financial crimes, such as drug dealing and the money laundry. There are a number of attempts to exploit the transactional graph, and identify the pattern for the detection~\cite{fleder2015bitcoin,ron2013quantitative,weber2019anti}. 
 Some analysis relies on the graph linkage to discover the identity~\cite{ober2013structure,gaihre2018bitcoin,moser2013anonymity} or other information to predict the bitcoin price~\cite{greaves2015using}. 
 
-\subsection{Account-based Model}
+\textbf{Account-based Model.}
 Despite its simplicity, the UTXO model is solely applicable to cryptocurrency-based platforms. 
 To support more general workloads, Ethereum introduces the smart contract to encode Turing-complete logic. 
 In their design, a transaction either takes in the form of a contract deployment with the executable code. 
@@ -41,6 +44,18 @@ For example, Ethereum charges transaction senders with the transaction fee, in a
 Despite this, computational-heavy transactions may still render blockchains securely-flawed: some researchers reveal that rational block validators tend to skip their execution to gain an edge for the next block mining~\cite{luu2015demystifying}.
 It is because all the transaction fee is credited to the block miner. 
 
+\subsection{Ledger Abstraction}
+The term \textit{blockchain} originates from the fact that the ledger takes in the form of a hash chain of blocks. 
+Initially, the rationale for Bitcoin to batch transactions into blocks is to amortize the cryptographic overhead.
+However, this single-chain structure prohibits the concurrency, as all participants must sync up on the single ledger tip. 
+To address this problem, numerous studies have transformed a chain into a direct-acyclic graph (DAG), and then derive a total order of transactions~\cite{sompolinsky2015secure,kiayias2017trees,li2018scaling,srivastava2018phantom}. 
+The exact ledger format is strongly tied to their consensus. 
+
+Meanwhile, batching trades off the latency for the throughput, as PoW bounds the block interval by the network delay. 
+But from the perspective of permissioned blockchains. such tradeoff is not worthwhile: the state-machine replication consensus places no such restriction on the block interval. 
+This observation accounts for why some researchers abandon the canonical block-based design but directly work upon transactions~\cite{istvan2018streamchain}. 
+For a similar reason, we have observed a number of proposals known for their transaction-based DAG-typed ledger~\cite{lemahieu2018nano,churyumov2016byteball,divya2018iota}. 
+
 \section{Execution Layer}
 The execution layer concerns on how to process transactions. 
 Different blockchain platforms adopt their distinct execution platforms, such as the Docker environment for Hyperledger Fabric and Ethereum Virtual Machine (EVM) for Quorum. 
@@ -54,7 +69,7 @@ Despite their implementation differences, the execution architecture of any bloc
     \begin{subfigure}{0.8\textwidth}
       \includegraphics[width=0.99\textwidth]{diagram/literature/eov_arch.pdf}
     \end{subfigure}
-    \caption{Comparison of  Order-execute and Execute-order-validate architecture. }
+    \caption{Comparison of Order-execute and Execute-order-validate architecture. }
     \label{diagram:literature:execution}
     % \vspace{-1.0em}
 \end{figure}
@@ -129,7 +144,7 @@ If the adversaries pour all their resources to mine on a shorter chain fork,
 that fork can catch up the longest chain with negligible probability, where the rest of honest power concentrates. 
 Nakamoto has bounded this possibility to be exponentially small in the original whitepaper~\cite{nakamoto2019bitcoin}.
 More in-depth mathematical frameworks have been established to reason the mining behavior ~\cite{gervais2016security,kiayias2015speed,ren2019analysis,miller2014anonymous,garay2015bitcoin}. 
-On the other hand, honest block proposers, aware that the longest chain is hardly revertible, are incentivized to extend on the longest chain. 
+On the other hand, honest block proposers, aware that the longest chain is hardly revertible, are incentivized to extend on it. 
 It is because their proposed block contains a coinbase transaction that credits proposers to the minted cryptocurrencies. 
 Only the block is in the longest chain then this transaction can take into effect. 
 
@@ -137,34 +152,112 @@ Inevitably, the longest-chain-rule may lead to two divergent forks during the as
 When the network delay exceeds the block interval, two honest participants may generate two different blocks but on the same height. 
 The longest-chain-rule will eventually resolve to a unique chain when the network partition heals, 
 Hence, transactions in the ledger may not be secure given that they might reside on a shorter to-be-pruned fork. 
-Considering this, clients, for their interest, may wait for their transactions to get buried by later blocks deep enough, before considering them committed. 
-Intuitively, this depth balances between latency and security. 
+Considering this, clients are advised to wait for their transactions until deep enough, before considering them committed. 
+Intuitively, this depth, quantified by the number of blocks behind, balances between latency and security. 
 In the meantime, the block interval and the block size controls the tradeoff between throughput and security. 
 The shorter interval and the larger block imply greater system capacity. 
 But it compromises the security, i.e., the network may not propagate a block to each participant before the next block is generated. 
 
 Moreover, \cite{eyal2014majority} suggests that adversaries may not be incentivized to follow the default mining policy, i.e., mining on the longest chain and broadcast the block immediately. 
-Instead, they may temporally withhold mined blocks and selectively publish them to gain extra profits, disproportionate to their computation power. 
+Instead, they may temporally withhold mined blocks and selectively publish them to gain extra profits.
 Since then, more mining policies are discovered which allows adversaries to gain a competitive edge \cite{nayak2016stubborn,courtois2014subversive},
 even infiltrating other mining pools to waste their resources~\cite{luu2015power,eyal2015miner}. 
 Researchers employ a Markov Decision Process to find the optimal mining policy and explore the performance-security tradeoff~\cite{gervais2016security,sapirshtein2016optimal}.
 
 \subsection{The Enhancements on PoW}
-PoX
+PoW has long been plagued for its energy assumption. 
+In 2019, Bitcoin's electricity consumption is reported to reach 45.8 TWh. 
+Naturally, several researchers propose to transform PoW to be more eco-friendly, 
+or at least dedicate resources to useful tasks. 
+We refer to these PoW-based enhancements as Proof-of-X (PoX). 
 
-Bitcoin-NG, GHOST, 
+The major challenge of PoX is to replace the original computation-intensive puzzle and preserve its long-to-solve and easy-to-verify nature. 
+For example, Proof-of-Stake (PoS) requires miners to stake a certain amount of cryptocurrencies~\cite{king2012ppcoin}. 
+The stake will be confiscated if the proposed blocks are found to be invalid. 
+One can find the adoption of PoS in the following blockchains~\cite{kiayias2017ouroboros,david2018ouroboros,bentov2016snow} and their security analysis in~\cite{nguyen2019proof,li2017securing,brown2019formal}. 
+Proof-of-Elapsed-Time (PoET) replies on the Trusted Execution Environment to attest block validators that miners have waited enough time before the next block proposal~\cite{chen2017security}. 
+To fully exploit the consumed resources to useful works, 
+Proof-of-Retrievability is repurposed for the data archival~\cite{miller2014permacoin}, Proof-of-Prime-Number for the prime number searching~\cite{king2013primecoin}, and others for matrix product problems~\cite{shoker2017sustainable}. 
+
+Another enhancement direction is to optimize the primitive PoW. 
+Researchers adapt the puzzle-computation to resist ASIC-equipped mining and deter power centralization~\cite{zamanov2018asic,cho2018asic}. 
+On the other hand, they refine the PoW mechanism to increase the system capacity.
+For example, the original PoW groups the leader election and transaction proposal together. 
+Bitcoin-NG decouples these two tasks, by allowing a puzzle solver to continuously propose transactions until the next solver emerges~\cite{eyal2016bitcoin}. 
+GHOST incentives miners to extend on the heaviest sub-tree instead of the longest chain~\cite{sompolinsky2015secure}. 
+This is to better recycle orphaned blocks. 
+Conflux furthers replies on GHOST to determine the pivot chain and use the pivot chain to decide on a direct-acyclic graph, whose topological order determines the overall transaction sequence~\cite{li2018scaling}. 
+The OHIE is renowned for its multiple-chain structure to harness the distributed network setup~\cite{yu2020ohie}. 
+Its protocol drives each chain to catch up at the same height. 
 
 \subsection{Byzantine Fault-tolerant Consensus}
-PBFT
-Tendermint
-BFT Raft
-Hotstuff
-VM-Related
+The state-machine replication method to address byzantine consensus resurges with the popularity of blockchains. 
+The Byzantine-fault tolerant consensus problem involves a number of nodes with initial divergent proposals. 
+The problem requires honest nodes to reach agreement on one of the proposals, while reserving the safety (no possibility of disagreement) and liveness (guarantee of termination). 
+And this must hold true under the premise that a fraction of malicious nodes may perform arbitrary action. 
+Compared to Bitcoin, this problem modeling is more general, i.e., it is not targeting only on the ledger and no incentives can be hinged on. 
+
+Long before Bitcoin, PBFT has provided the first-ever practical approach.
+It achieves the consensus in $O(n^2)$ message complexity where $n$ is the number of nodes. 
+Quorum adopts a PBFT-variant, IBFT as one of its consensus options but still requires for $O(n^2)$ messages~\cite{saltini2019correctness}. 
+Tendermint reduces this bound to $O(n)$ but forgoes the network responsiveness~\cite{buchman2016tendermint}. 
+In a word, unlike PBFT, the progress of Tendermint is dependent on the maximum network delay, rather than the actual message transmission delay~\cite{amoussou2019dissecting}. 
+Hotstuff augments on the two-phase approach of PBFT and Tendermint into three phases of the message exchange~\cite{yin2019hotstuff}. 
+But it achieves both network linearity ($O(n)$ message complexity) and the responsiveness. 
+
+While the above series of researches are rooted from PBFT, researchers in VMWare address the problem from a new angle. 
+They remark the possibility to reach consensus in a single phase, given more number of nodes have acknowledged the proposal than normal. 
+Based on this insight, they starts from Fast Byzantine Paxos~\cite{martin2006fast} and Zyzzyva~\cite{gueta2019sbft}, and leads into a series of re-analysis~\cite{abraham2017revisiting} and re-design~\cite{abraham2018revisiting, gueta2019sbft}. 
+Their novelty comes from a fast path if more-than-normal acknowlegements have been collected before a timeout. 
+Otherwise, the consensus falls backs to the standard two-phase pipeline.  
+
+FLP Impossibility Result imposes no deterministic, safe and live protocols under the asynchronous network~\cite{fischer1985impossibility}. 
+The above protocols trade the liveness for the safety during the network partition. 
+In other words, disagreement never occurs even the network loses the connection. 
+Correspondingly, there also exist a number of approaches that rely on the network synchrony for the safety~\cite{abraham2020sync,abraham2017efficient}. 
+In this manner, these protocols behave like PoW in Bitcoin, i.e., a chain will fork under the asynchronous period. 
+In their design, the strict network assumption comes into play when to reliably broadcast the latest, majority-acknowledged block proposal. 
+Notably, Flexible BFT mixes two types of deterministic protocols together, so that clients can draw their own commit decisions at their discretion on the network condition~\cite{malkhi2019flexible}. 
+
+Randomness is another alternative route to break the Impossibilty, in order to reach agreement on the ledger. 
+For example, HonestBadgerBFT combines a variety of randomized agreement protocols~\cite{miller2016honey}. 
+So that it achieves linear message complexity, as PoW in Bitcoin. 
+As the carry-on work, BEAT provides a diversity of randomized protocols that tailors for various application demands~\cite{duan2018beat}. 
+Such randomization takes in the form of the unpredictable network connectivity in~\cite{rocket2019scalable}.
+Each node repetitively queries for the proposals the neighbors that it knows of. 
+It then determines his own proposal from the majority of query results and uses it to respond for other's queries. 
+Eventually, all honest nodes are probabilistically steered towards a uniform outcome, even though a limited fraction may cheat. 
 
 \subsection{Committee-based Consensus}
+Blockchains with the committee-based consensus select a single or multiple representative committees, and then to establish the ledger with the above state-machine replication consensus. 
+This idea has been dated back to PeerCensus~\cite{decker2016bitcoin}. 
+But their application may not be that straightforward. 
+It is because protocols require for strong assumptions, including identity management, member constitution, and so on. 
+To cater for these conditions, most blockchains must couple wth some additional procedures, especially on the fair committee formation. 
+For example, Algorand determines a single committee based on the Verifiable Random Function (VRF)~\cite{gilad2017algorand}. 
+In particular, nodes must compute a value with VRF from its private key and a common seed. 
+Only those with specific values are allowed to join the consensus with their public keys. 
+VRF remains unpredictable without knowing the common seed beforehand. 
+By starting from an unbiased random seed, Algorand guarantees that no adversaries may dominate a committee. 
+Omniledger depends on the Randhound to achieve the decentralized and unbiased randomness, and power the multi-committee establishment~\cite{kokoris2018omniledger}. 
+Byzcoin repurposes PoW to determine the membership for a single committee~\cite{kogias2016enhancing}. 
+PoW not only guarantees the randomness but also resists the Sybil attacks under the permissionless setting. 
+RapidChain also uses PoW to determine the participants, from which it organizes into multiple committees with a theoretical-involved method~\cite{zamani2018rapidchain}. 
+Elastico directly uses PoW nonce to assign puzzle solvers into one of the committees~\cite{luu2016secure}. 
+Such randomness for the committee formation comes from Trusted Execution Environment in AHL~\cite{dang2019towards}.
+Not that all the above systems are subject to the periodic committee re-configuration between epochs. 
+This prevents adaptive adversaries to exploit the setup and infiltrate honest nodes. 
+This reconfiguration can be a full swap like in Elastico~\cite{luu2016secure}, Algorand~\cite{gilad2017algorand}, and Omniledger~\cite{kokoris2018omniledger}, or in a rotational manner like Byzcoin~\cite{kogias2016enhancing}, RapidChain~\cite{zamani2018rapidchain}, and AHL~\cite{dang2019towards}. 
+
+We also observe several blockchains adopt a non-technical solution on membership management. 
+For instance, a central authority decides on the validators' role in RSCoin~\cite{danezis2015centrally}. 
+The participants and their weight in Libra~\cite{baudet2019state} and EoS~\cite{xu2018eos} are pre-determined according to their initial investment in the project. 
+Chainspace completely sidesteps the committee formation problem~\cite{al2017chainspace}. 
+It leaves the behavior of malicious committee audible in the hope that they can be enforced by an external entity.
 
 \section{Application}
 \subsection{Industrial Adoption}
+Casper
 \subsection{Benchmarks and Surveys}
 
 \section{Summary}
