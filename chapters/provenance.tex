@@ -22,7 +22,7 @@ during offline analysis. During contract execution (or runtime), however, no pro
 safely available to smart contracts. In other words, smart contracts cannot access historical blockchain
 states in a tamper-evident manner. The lack of secure, fine-grained, runtime access to provenance therefore restricts the expressiveness of the business logic the contract can encode.
 
-Consider an example smart contract shown in Figure~\ref{prov:code:contract}, which contains a method for transferring a
+Consider an example smart contract shown in Figure~\ref{code:prov:contract}, which contains a method for transferring a
 number of tokens from one user to another. Suppose user $A$ wants to send tokens to $B$ based on the latter's
 historical balance in recent months. For example, $A$ only sends token if $B$'s average balance per day is
 more than $t$. It is not currently possible to write a contract method for this operation. To work around
@@ -52,7 +52,7 @@ Transaction-Ordering attacks that cause substantial financial loss to the users~
     }
     \end{verbatim}
 \caption{A smart contract that manages for token management.}
-\label{prov:code:contract}
+\label{code:prov:contract}
 \end{figure}
 
 In this paper, we design and implement a fine-grained, secure and efficient provenance system for blockchains,
@@ -90,10 +90,10 @@ In summary, we make the following contributions:
   its efficient query and small storage overhead. 
 \end{itemize}
 
-The remainder of the chapter is organized as follows. Section~\ref{prov:sec:background} provides necessary blockchain preliminaries for the understanding. Section~\ref{prov:sec:capture} describes our design for capturing provenance, and the interface
-exposed to smart contracts. Section~\ref{prov:sec:storage} discusses how we store provenance, and
-Section~\ref{prov:sec:index} describes our new index. Section~\ref{prov:sec:implementation} presents our
-implementation. Section~\ref{prov:sec:exps} reports the performance of {\fs} on provenance-related matters. 
+The remainder of the chapter is organized as follows. \Cref{prov:sec:background} provides necessary blockchain preliminaries for the understanding. \Cref{prov:sec:capture} describes our design for capturing provenance, and the interface
+exposed to smart contracts. \Cref{prov:sec:storage} discusses how we store provenance, and
+\Cref{prov:sec:index} describes our new index. \Cref{prov:sec:implementation} presents our
+implementation. \Cref{prov:sec:exps} reports the performance of {\fs} on provenance-related matters. 
 
 \section{Preliminary}
 \label{prov:sec:background}
@@ -103,7 +103,7 @@ And we explain the design choices of state organization that affect index struct
 At last, we present an overview of {\fs}. 
 
 \textbf{Data model.} Different blockchains adopt different data models for their states. Bitcoin' states
-are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in Section~\ref{literature:sec:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
+are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in \Cref{literature:sec:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
 by smart contracts.  They adopt an account-based data model, in which each account has its own local states
 stored on the blockchain. A smart contract transaction can write arbitrary data to the storage. This flexible
 data model comes at the cost of integrity protection and verification of the account states. In this paper, we
@@ -123,7 +123,7 @@ addition, they enable efficient verification of transactions and states.
 
 \begin{algorithm}
     \caption{Block verification in blockchain}
-    \label{prov:alg:bc}
+    \label{alg:prov:bc}
       \KwIn{A block {\em Blk} received from the network.} 
       \KwIn{The global state {\em gState}, which maps state identifiers to their values.}
     \KwOut{{\em True} if the block is valid, {\em False} otherwise.}
@@ -160,7 +160,7 @@ addition, they enable efficient verification of transactions and states.
     }
   \end{algorithm}
 
-\textbf{Block verification.} Algorithm~\ref{prov:alg:bc} illustrates how a node uses the block header to verify
+\textbf{Block verification.} Algorithm~\ref{alg:prov:bc} illustrates how a node uses the block header to verify
 if a block it receives from the network is valid. If the block is valid, it is appended to the chain. When PoW
 is used for consensus, the node first checks if \texttt{Nonce} is the correct solution to the PoW puzzle. This
 step is skipped if a deterministic consensus protocol, such as PBFT, is used. Next, it checks if the list of
@@ -168,7 +168,7 @@ transactions has not been tampered with, by computing and verifying \texttt{Tran
 accessed via some index structures.  After the execution, the node checks if the resulting states match with
 \texttt{StateDigest}. If they do, the block is considered valid and the new states are committed to the
 storage.  Otherwise, the states are rolled back to those before execution. We note that
-Algorithm~\ref{prov:alg:bc} takes as input an object {\em gState} that represents the global states.  If the
+Algorithm~\ref{alg:prov:bc} takes as input an object {\em gState} that represents the global states.  If the
 blockchain does not have forks, e.g., Hyperledger Fabric, this object is the {\em latest} states. However, when
 there are forks, e.g., in Ethereum, this object may refer to the global states at a point in the past.
 
@@ -198,7 +198,7 @@ made at every block. This is crucial to realize the immutability property of blo
 read any historical states. It is also important for block verification. As explained earlier, when a new
 block is received that creates a fork, an old snapshot of the state must be used as input for verification.
 Even when the blockchain allows no forks, snapshots enable roll-back when the received block is found to be
-invalid after execution (step 4 in Algorithm~\ref{prov:alg:bc}). 
+invalid after execution (step 4 in Algorithm~\ref{alg:prov:bc}). 
 
 Existing blockchains use indices that are based on Merkle tree. In particular, Ethereum implements Merkle
 Patricia Trie (MPT), and Hyperledger implements Merkle Bucket Tree (MBT). In a Merkle tree,
@@ -228,7 +228,7 @@ In this section, we describe our approach to capture provenance during smart con
 APIs that allow the contract to query provenance at runtime. 
 
 \textbf{Running example.} Throughout this section, we use as running example the token smart contract  
-shown in Figure~\ref{prov:code:contract}. Figure~\ref{diagram:prov:ledger} depicts how the global states are modified by the contract. In particular, the contract is deployed at block $L^\textit{th}$ in the blockchain. Two addresses
+shown in Figure~\ref{code:prov:contract}. Figure~\ref{diagram:prov:ledger} depicts how the global states are modified by the contract. In particular, the contract is deployed at block $L^\textit{th}$ in the blockchain. Two addresses
 \textit{Addr1} and \textit{Addr2} are initialized with 100 tokens. Two transactions \textit{Txn1} and
 \textit{Txn2} that transfer tokens between the two addresses are committed at block $M$ and $N$ respectively.
 The value of \textit{Addr1} is 100 from block $L$ to block $M-1$, $90$ from block $M$ to $N-1$, and 70
@@ -275,7 +275,7 @@ the input data.
     \subcaption*{It defines dependency between the
     sender identifier and recipient identifier. This method is invoke after every invocation of the Token
     contract.} 
-    \label{prov:code:helper_contract}
+    \label{code:prov:helper_contract}
 \end{figure}
 
 
@@ -293,7 +293,7 @@ method prov_helper(name: string,
        returns map(string, string[]);
 \end{verbatim}
 
-It returns a set of dependencies based on the input read and write sets. Figure~\ref{prov:code:helper_contract}
+It returns a set of dependencies based on the input read and write sets. Figure~\ref{code:prov:helper_contract}
 shows implementation of the helper method for the Token contract. It first computes the identifier of the
 sender and recipient from the read and write sets. Specifically, the identifier whose value in \texttt{writes} is lower than that
 in \texttt{reads} is the sender, and the opposite is true for the recipient. It then returns a dependency set of
@@ -370,11 +370,11 @@ contract Token {
 
 \end{verbatim}
 \caption{The modified \textit{Token} contract with provenance-dependent methods.}
-\label{prov:code:enhanced_contract}
+\label{code:prov:enhanced_contract}
 \end{figure}
 
 % \subsection{Sample Usage}
-Figure~\ref{prov:code:enhanced_contract} demonstrates how the above APIs are used to express smart contract logics
+Figure~\ref{code:prov:enhanced_contract} demonstrates how the above APIs are used to express smart contract logics
 that are currently impossible in the secure manner.
 We add two additional methods to the original contract, both of which use the new
 APIs. The \textit{Refund} method examines an account's average balance in the recent month and makes the
@@ -496,6 +496,7 @@ the DAG from this hash to read the required version. Because the DAG is tamper e
 read version is guaranteed.
 
 \subsection{Support for Forward Tracking}
+\label{prov:sec:storage:forward}
 One problem of the above DAG model is that it does not support forward tracking, because the hash pointers
 only reference {\em backward} dependencies. When a state is updated, these backward
 dependencies are permanently established, so that they belong to the immutable derivation history of the
@@ -578,8 +579,8 @@ For ease of explanation, we assume that version numbers are positive integers.
     List<Node*> pre_nodes;
   }
   \end{verbatim}
-  \caption{A Node structure that captures a state $s_{k,v}$ with value $val$}
-  \label{prov:code:node}
+  \caption{Node structure that captures a state $s_{k,v}$ with value $val$}
+  \label{code:prov:node}
 \end{figure} 
 
 \begin{figure}
@@ -594,12 +595,12 @@ For ease of explanation, we assume that version numbers are positive integers.
     \caption{}
     \label{diagram:prov:dasl_appended}
   \end{subfigure}
-  \caption{Append Operation in Deterministic Append-only Skip List (DASL)}
+  \caption{An example of the append procedure in Deterministic Append-only Skip List (DASL)}
   \subcaption*{(a) A DASL containing versions 1, 3, 5 and 10. The base $b$ is 2. The intervals for $L_2$ and
   $L_3$ are shown in blue lines. (b) The new DASL after appending version 12 and 16. $L_4$ is created when appending version $16$. $L_5$ is created, then discarded.} 
 \end{figure}
 
-Figure~\ref{prov:code:node} shows how DASL is stored with the state in a data structure called Node.  This structure
+Figure~\ref{code:prov:node} shows how DASL is stored with the state in a data structure called Node.  This structure
 (also referred to as node) consists of the state version and value. A node belongs to multiple lists (or
 levels), hence it maintains  a list of pointers to some version numbers, and another list of pointers to other
 nodes.  Both lists are of size $N$, and the $i^{\textit th}$ entry of a list points to the previous version
@@ -626,7 +627,7 @@ represents the value of the state which is visible at time of $v_q$.
 
 \begin{algorithm}[t]
   \caption{DASL Append}
-  \label{prov:alg:append}
+  \label{alg:prov:append}
   %uint b \tcp{base}
   \KwIn{version $v$ and last node $last$}
   \KwOut{previous versions and nodes}
@@ -638,7 +639,7 @@ represents the value of the state which is visible at time of $v_q$.
   \While{not finish} {
     $l$ = $\textit{cur}$->$\textit{pre\_versions.size()}$ \;
     \If {l > 0} {
-      \For {j=level; j<l; ++j} { \label{prov:alg:append:iterate_begin}
+      \For {j=level; j<l; ++j} { \label{alg:prov:append:iterate_begin}
         \If {$\textit{cur}$->$\textit{version}$ / $b^j$ < $v$ / $b^j$} {
           $\textit{pre\_versions}$.append($\textit{cur}$->$\textit{version}$)\;
           $\textit{pre\_nodes}$.append($\textit{cur}$)\;
@@ -650,15 +651,15 @@ represents the value of the state which is visible at time of $v_q$.
       \If {not finish} {
         $\textit{cur}$ = $\textit{cur}$->\textit{pre\_versions[l-1]}\;
         $\textit{level}=l$
-      } \label{prov:alg:append:iterate_end}
+      } \label{alg:prov:append:iterate_end}
     } \Else {
       \tcc {We have reached the last level}
       $\textit{finish}$ = true\;
-      \While {$\textit{cur}$->$\textit{version}$ / $b^{\textit{level}}$ < $v$ / $b^{\textit{level}}$} { \label{prov:alg:append:head_begin}
+      \While {$\textit{cur}$->$\textit{version}$ / $b^{\textit{level}}$ < $v$ / $b^{\textit{level}}$} { \label{alg:prov:append:head_begin}
         ++$\textit{level}$\;
         $\textit{pre\_versions}$.append($\textit{cur}$->$\textit{version}$)\;
         $\textit{pre\_nodes}$.append($\textit{cur}$)\;
-      }\label{prov:alg:append:head_end}
+      }\label{alg:prov:append:head_end}
     }
   }
 
@@ -666,20 +667,20 @@ represents the value of the state which is visible at time of $v_q$.
 \end{algorithm}
 
 We now describe how a new node is appended to DASL. The challenge is to determine the lists that should include the
-new node. Algorithm \ref{prov:alg:append} details the steps that find the lists, and subsequently the previous
+new node. Algorithm \ref{alg:prov:append} details the steps that find the lists, and subsequently the previous
 versions, of the new node. The key idea is to start from the last node in $L_0$, then keep increasing the list
 level until the current node and the new node belong to the same interval (line
-\ref{prov:alg:append:iterate_begin} - \ref{prov:alg:append:iterate_end}). Figure~\ref{diagram:prov:dasl_appended} shows the result of appending a node with version $12$ to the original DASL. The algorithm starts at node $10$ and moves up to list $L_1$ and $L_2$. It stops at $L_3$ because in this level node $10$ and $12$ belong to the same
+\ref{alg:prov:append:iterate_begin} - \ref{alg:prov:append:iterate_end}). Figure~\ref{diagram:prov:dasl_appended} shows the result of appending a node with version $12$ to the original DASL. The algorithm starts at node $10$ and moves up to list $L_1$ and $L_2$. It stops at $L_3$ because in this level node $10$ and $12$ belong to the same
 interval, i.e., $[8,16)$. Thus, the new node is appended to list $L_0$ to $L_2$. When the algorithm reaches
 the last level and is still able to append, it creates a new level where node $0$ is the first entry and
-repeats the process (line \ref{prov:alg:append:head_begin} -
-\ref{prov:alg:append:head_end}). In Figure~\ref{diagram:prov:dasl_appended}, when appending version $16$, all existing lists can be used. The algorithm then creates $L_4$ with node $1$ and appends the node $16$ to it. It also creates
+repeats the process (line \ref{alg:prov:append:head_begin} -
+\ref{alg:prov:append:head_end}). In Figure~\ref{diagram:prov:dasl_appended}, when appending version $16$, all existing lists can be used. The algorithm then creates $L_4$ with node $1$ and appends the node $16$ to it. It also creates
 level $L_5$, but then discards it because node $16$ will not be appended since it belongs to same
 interval of $[0,32)$ with node $1$. 
 
 \subsection{Discussion} \label{prov:sec:model_discuss}
 \textbf{Integrating to Merkle DAG. } 
-The DASL is integrated to the Merkle DAG as follows. The node structure (Figure \ref{prov:code:node}) is stored in
+The DASL is integrated to the Merkle DAG as follows. The node structure (Figure \ref{code:prov:node}) is stored in
 the state entry (Definition~\ref{def:entry}).  The node pointers are implemented entry hashes. The Merkle tree
 structure remains unchanged.  
 
@@ -701,7 +702,7 @@ Another benefit is that the performance of such recent-version queries does not 
 \textbf{Extending to permissionless blockchains. } 
 We note that DASL incurs storage overhead. The version query also incurs some computation cost, even though it
 is more efficient with DASL than without it. These costs may be small enough such that they do not
-affect the performance of a permissioned blockchain, as we demonstrate in Section~\ref{prov:sec:exps}.  However,
+affect the performance of a permissioned blockchain, as we demonstrate in \Cref{prov:sec:exps}.  However,
 they need to be carefully managed in a permissionless blockchain where any overhead directly translates to
 monetary cost to the miners. In particular, any additional cost to the miner triggers the Verifier
 Dilemma~\cite{luu2015demystifying} and compromises the incentive mechanism of the blockchain.  
@@ -731,7 +732,7 @@ fee. Users may empirically estimate the hops (as well as the cost) based on the 
   \subcaption*{The original storage layer is replaced with the implementation that
   supports fine-grained provenance. The original execution layer is instrumented with a provenance capture
   engine. The application layer contains the new helper method and provenance query APIs. The consensus layer is unchanged. } 
-  \label{prov:fig:architecture} 
+  \label{diagram:prov:arch} 
 \end{figure}
 
 \begin{algorithm}[t]
@@ -759,7 +760,7 @@ fee. Users may empirically estimate the hops (as well as the cost) based on the 
    
       \tcc{Retrieve pointer to last DASL node}
       $\textit{last\_vid}$ = $latest$[$\textit{id}$]\;  \label{lst:line:dasl_begin}
-      \tcc{Refer DASL Append in Algorithm \ref{prov:alg:append}}
+      \tcc{Refer DASL Append in Algorithm \ref{alg:prov:append}}
       $\textit{pre\_versions}$, $\textit{pre\_vids}$ = DaslAppend($\textit{version}$, $\textit{last\_vid}$)\; 
       $\textit{node}$ = new DaslNode\{$version$, $pre\_versions$, $pre\_vids$\} \;\label{lst:line:dasl_end}
       $\textit{meta}$ = Serialize($\textit{back\_vids}$, $\textit{forward\_vids}$, $node$) \;  \label{lst:line:dump_begin}
@@ -786,7 +787,7 @@ fee. Users may empirically estimate the hops (as well as the cost) based on the 
     }
 \end{algorithm}
 In this section, we present our implementation of {\fs} based on Hyperledger Fabric v2.2. 
-Figure~\ref{prov:fig:architecture} highlights our changes in a layer-wise fashion. 
+Figure~\ref{diagram:prov:arch} highlights our changes in a layer-wise fashion. 
 In particular, we completely
 replace the storage layer with our implementation of the Merkle DAG and DASL index. This new storage
 is built on top of ForkBase~\cite{wang2018forkbase}, a state-of-the-art blockchain storage system
@@ -795,7 +796,7 @@ during contract execution. At the application layer we add a new helper method a
 execution engine is modified to invoke the helper method after every successful contract execution.  
 
 
-\subsection{Storage Layer Implementation}
+\subsection{Storage Layer}
 Instead of implementing the storage layer from scratch, we leverage ForkBase for its support of version
 tracking.  We exploit three properties of ForkBase in {\fs}. The first is the fork semantics, with which
 the application can specify a \textit{branch} for the update. Given
@@ -804,7 +805,7 @@ every update returns a tamper-evident identifier {\em vid} which captures the en
 updated value. A data object in ForkBase is uniquely identified by the key and {\em vid}. In {\fs}, {\em
 vid} is used as the entry hash in the DAG, and as the pointer in DASL. The third property is the rich set of
 built-in data types including map, list and set. 
-Figure~\ref{prov:code:api} lists our utilized ForkBase APIs with their explanations. 
+Figure~\ref{code:prov:api} lists our utilized ForkBase APIs with their explanations. 
 
 \begin{figure}
 \centering
@@ -822,7 +823,7 @@ meta <- GetMetadata(key, vid);
 \end{verbatim}
 \caption{ForkBase APIs to implement the {\fs}'s storage. }
 \subcaption{\textit{metadata} is a user provided string that describes the updated value. And \textit{vid} is uniquely determined by the updated value, key, branch and the metedata. }
-\label{prov:code:api}
+\label{code:prov:api}
 \end{figure}
 
 Algorithm~\ref{prov:fabric_change} details our implementation for updating states
@@ -846,13 +847,13 @@ Given a {\em key}, the query on its latest value can be directly answered by \te
 DASL facilitates this query process. 
 Then one shall use {\em vid} to fetch for the value and metadata with the corresponding ForkBase APIs. 
 
-\subsection{Application and Execution Layer Implementation}
+\subsection{Application and Execution Layer}
 In {\fs}, users write their smart contracts by implementing the \texttt{Chaincode} interface. Given any  \texttt{Chaincode} implementations, the execution engine triggers the \texttt{Init} and \texttt{Invoke} method during deployment and
 invocation respectively. Both methods take as input an instance of \texttt{ChaincodeStubInterface} which
 supplies relevant context, such as access to the ledger states, to the smart contract. 
 
 We add the helper method, called \texttt{ProvHelper}, to the \texttt{Chaincode} interface. This method's signature,
-and how to write user-defined provenance rules with it, are explained in Section~\ref{prov:sec:capture}. The
+and how to write user-defined provenance rules with it, are explained in \Cref{prov:sec:capture}. The
 execution engine intercepts \texttt{PutState} and \texttt{GetStates} during execution to record the read set and the
 write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. 
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}

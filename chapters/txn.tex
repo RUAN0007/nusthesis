@@ -1,105 +1,1375 @@
-% \SetPicSubDir{ch-Rice}
-% \SetExpSubDir{ch-Rice}
-
-\chapter{Txn}
+\chapter{A Transactional Perspective on \\Execute-order-validate Blockchains}
 \label{ch:txn}
-\vspace{2em}
+\section{Introduction}
+\label{sec:txn:intro}
+From Chapter~\ref{ch:twin}, blockchains systems can be classified into \textit{permissionless}
+(\textit{public}), such as Bitcoin and Ethereum, and \textit{permissioned}
+(\textit{private}), such as Hyperledger Fabric~\cite{androulaki2018hyperledger}.
+%
+In public blockchains, the data and transactional logic are transparent to the
+public, hence, are subject to private data leakage.
+%
+Due to their openness, public blockchains use expensive PoW consensus.
+%
+This, together with the serial transaction execution limit these systems' capacity.
+%
+Addressing the limitations of public blockchains, Hyperledger Fabric is a
+private blockchain that supports \emph{concurrent} transactions
+\cite{androulaki2018hyperledger}.
+%
+A Fabric blockchain requires its members to enroll through a trusted membership service in order to interact with the blockchain.
+In this paper, we focus on permissioned blockchains as they are more suitable
+for supporting applications such as supply-chain, healthcare and resource
+sharing, and in particular, we use Fabric as the underlying blockchain system.
 
-\lipsum[1-4]
+Fabric supports a new transaction execution architecture called
+execute-order-validate (EOV).
+%
+In this architecture, a transaction's lifecycle consists of three phases. In the
+first phase, \textit{execution}, a client sends the transaction to a set of
+nodes, or peers, specified by an endorsement policy.
+%
+The transaction is executed by these peers in parallel and its effects in terms
+of read and written states are recorded.
+%
+Moreover, transactions from different clients may be parallelized during the
+execution.
+%
+In the second phase, \textit{ordering}, a consensus protocol is used
+to produce a totally ordered sequence of endorsed transactions grouped in
+blocks.
+%
+This order is broadcast to all peers. In the third phase, \textit{validation},
+each peer validates the state changes from the endorsed transactions with
+respect to the endorsement policy and serializability.
 
-% \section{Preliminaries}
+The new EOV architecture limits the execution details of a transaction to the
+endorsing peers to enhance confidentiality and exploit concurrency. But such
+concurrency comes at the cost of aborting transactions that do not abide
+serializability.
+%
+We evaluate the impact of concurrency control in Fabric on the setup described in \Cref{sec:txn:experiment}.
+%
+We measure both the raw and effective peak throughputs under both no-op transactions, with no data access, and update transactions, with varying skewness controlled by the zipfian coefficient. 
+%
+The raw throughput represents the in-ledger transaction rate, while the effective throughput represents committed transactions by excluding the aborted transactions from raw throughput. 
+%
+In \Cref{chart:txn:intro}, a bar reports the raw throughput, while its blue part reports the effective throughput. 
+%
+The raw throughput is constant (xxx tps) despite the workload type and request skewness. 
+%
+But with higher skewness, a larger proportion of transactions are aborted for serializability.
 
-% \lipsum[5-8]
+\begin{figure}
+  \centering     
+  \includegraphics[width=0.8\textwidth]{chart/intro/skew.pdf}
+  \caption{Fabric's raw and effective throughput under both no-op transactions and single modification transactions with varying skewness}
+  \label{chart:txn:intro}
+\end{figure}
 
-% \begin{figure}[!t]
-%   \centering
-%   \includegraphics[width=.5\linewidth]{\Pic{jpg}{rice}}
-%   \vspace{\BeforeCaptionVSpace}
-%   \caption{A bowl of rice.}
-%   \label{Rice:fig:bowl_of_rice}
-% \end{figure}
+There are two notable directions attempting to solve this issue.
+%
+The first is to improve upon Fabric's architecture to enhance its
+attainable throughput \cite{nasir2018performance, thakkar2018performance}.
+%
+For example, FastFabric proposes to split a node's functionality to alleviate the bottleneck and achieves the highest throughput among all improvements of Fabric~\cite{gorenflo2019fastfabric}. 
+%
+However, these approaches are implementation-specific and might not generalize well
+to other blockchains.
+%
+The second direction is to abstract out the transaction lifecycle to reduce
+abort rate.
+%
+For example, {\fabricPlusplus}~\cite{sharma2019blurring} uses
+well-established concurrency techniques from databases to early abort
+transactions or reorder them to reconcile the potential conflicts.
 
-% \section{Methodology}
+Our work corresponds to the second direction, as a major attempt to
+\textit{databasify} blockchains.
+%
+Here, we take a principled approach to learn from transactional analysis
+techniques in databases with optimistic concurrency control (OCC) and apply them
+to enhance transaction processing in blockchains.
+%
+We formally analyze the behavior of the current implementations of Fabric, and discover that both
+achieve \textit{Strong Serializability} \cite{bailis2013highly} (as described in \Cref{sec:txn:serializabilityAnalysis}).
+%
+In fact, these implementations are more stringent than
+\textit{One-Copy Serializability} (or simply Serializability), as prescribed by the original Fabric protocol~\cite{androulaki2018hyperledger}.
+%
+Both systems employ a preventive approach which might over-abort transactions that are still serializable.
+%
+In contrast, our proposal consists of a novel reordering technique that
+eliminates unnecessary abort due to in-ledger conflicts, with the serializability guarantee established on our theoretical insights. 
+%
+Our approach does not change Fabric's architecture, therefore it is orthogonal to the aforementioned optimizations, such as FastFabric \cite{gorenflo2019fastfabric}. 
 
-% \autoref{Rice:fig:bowl_of_rice} shows a bowl of rice. 
-% \autoref{Rice:algo:sample} demonstrates the formatting of pseudo code. 
-% Please carefully check the source files and learn how to use this style. 
-% Importantly:
+In summary, our paper makes the following contributions:
+% \begin{itemize}[leftmargin=1.8em]
+\begin{itemize}
+\item We theoretically analyze the resemblance of transaction processing in
+  blockchains with EOV architecture and databases with optimistic concurrency
+  control (\Cref{sec:txn:resembalance}).
+  %
+  Based on this resemblance, we analyze the transactional behavior of
+  state-of-the-art EOV blockchains, such as Fabric and {\fabricPlusplus}
+  (\Cref{sec:txn:serializabilityAnalysis}).
+  
+\item We propose a novel theorem to identify transactions that can never be
+  reordered for serializability 
+  (\Cref{sec:txn:reorderabilityAnalysis}).
+  %
+  Based on this theorem, we propose efficient algorithms to early filter out
+  such transactions (\Cref{sec:txn:concurrencyControl}), 
+  with the serializability guarantee for the remaining after reordering.
+  We also discuss the security implications of our proposal (\Cref{sec:txn:securityanalysis}).
+  
 
-% \begin{itemize}
-% \item Always state your input.
+\item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
+  Fabric, {\fabricPlusplus}, and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
+  %
+  The experimental results show that the throughput of {\fs} is more than 25\% higher compared to the other systems.
+  %
+\end{itemize}
 
-% \item State the output if any. 
+The remaining of this paper is structured as follows.
+%
+\Cref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
+%
+Our theoretical analysis follows in \Cref{sec:txn:theory}, ending with our
+reordering algorithm.
+%
+\Cref{sec:txn:impl} describes the implementation of our approach.
+%
+\Cref{sec:txn:experiment} reports our experimental results.
 
-% \item Always number your lines for quick referral.
+\section{Background}
+\label{sec:txn:background}
+\begin{figure*}[h!]
+    \begin{subfigure}{0.71\textwidth}
+      \centering
+      \includegraphics[width=0.99\textwidth]{diagram/txn/background.pdf}
+      % \caption{Workflow of Hyperledger Fabric with example transactions}
+      \caption{}
+      \label{diagram:txn:background_fabric}
+    \end{subfigure}
+    \begin{subfigure}{0.28\textwidth}
+      \centering
+      \includegraphics[width=0.75\textwidth]{diagram/txn/fabric_orderer.pdf}
+      \caption{}
+      % \caption{Procedures in Fabric Orderer}
+      \label{diagram:txn:background_orderer}
+    \end{subfigure}
+    \caption{Background in Execute-order-validate architecture and {\fabricPlusplus}'s instrumentation.}
+    \subcaption*{(a) Example of transaction workflow in Fabric. An arrow represents the lifespan of a transaction's execution (simulation), e.g, Txn1 starts its execution immediately after block 1 and finishs its simulation after block 2. (b) Procedures replicated in each Fabric Orderer.
+    {\fabricPlusplus} introduces a reordering step before the block formation to reduce the transaction abort rate.}
+    \label{diagram:txn:background}
+\end{figure*}
 
-% \item Always declare and initialize your local variables. 
+\subsection{EOV~architecture~in~Fabric~and~{\fabricPlusplus}}
+\label{sec:txn:background_fabric}
 
-% \item Always use \CMD{\gets} (``$\gets$'') for assignments.
-% %Always use \textbackslash gets for assignments.
-% \end{itemize}
+Hyperledger Fabric~\cite{androulaki2018hyperledger} is a state-of-the-art
+permissioned blockchain that features a modular design based on the EOV architecture.
+% (execute-order-validate)
+%
+{\fabricPlusplus}~\cite{sharma2019blurring} is an optimization of Fabric, which reorders transactions after consensus to reduce the abort rate.
+%
+A Fabric/{\fabricPlusplus} blockchain is run by a set of authenticated nodes, whose identity is
+provided by a membership service.
+%
+A node in this blockchain has one of the following three roles:
+%
+(i) \textit{client} which submits a transaction proposal for execution,
+%
+(ii) \textit{peer} which \textit{executes} and \textit{validates}
+transaction proposals,
+%
+or (iii) \textit{orderer} which \textit{orders} transactions and batches
+them in blocks.
+%
+Transaction order is determined collectively by all orderers in
+the blockchain based on a consensus protocol.
+%
+% Orderers are responsible for block formation.
 
-% \begin{algorithm}[!t]
-% \AlgoFontSize
-% \DontPrintSemicolon
+The state of a blockchain after forming a block is maintained by a
+versioned key-value store.
+% 
+Each entry in this store is a tuple (\texttt{key}, \texttt{ver},
+\texttt{val}), where \texttt{key} is a unique name representing the entry, and
+\texttt{ver} and \texttt{val} are the entry's latest version and value, respectively.
+% 
+Moreover, \texttt{ver} is a pair consisting of the sequence number of the block
+and the transaction that updated the entry.
+%
+For example, in Figure~\ref{diagram:txn:background_fabric}, the entry \entry{C}{2,1}{201} in
+the state after block $2$ indicates that the key \texttt{C} contains the latest
+value $201$ which was lastly updated by the 1st transaction in block $2$.
 
-% \KwGlobal{max. calories of daily intake $\mathcal{C}$}
-% \KwGlobal{calories per bowl of rice $\mathcal{B}$}
-% \BlankLine
+\begin{table}[tp]
+\centering
+\caption{The transaction summary in Figure~\ref{diagram:txn:background}.}
+\label{tab:simulation}
+\small
+\setlength\tabcolsep{2.3pt}
+\begin{tabular}{|c|c|cc|cc|c|l|c|l|c|l|}
+\hline
+\multicolumn{2}{|c|}{}
+& \multicolumn{2}{c|}{\textbf{Txn1}}
+& \multicolumn{2}{c|}{\textbf{Txn2}}
+& \multicolumn{2}{c|}{\textbf{Txn3}}
+& \multicolumn{2}{c|}{\textbf{Txn4}}
+& \multicolumn{2}{c|}{\textbf{Txn5}}
+\\
 
-% \SetKwFunction{fEatRice}{EatRice}
-% \SetKwFunction{fDoExercise}{DoExercise}
+\hline
 
-% \KwIn{number of bowls of rice $n$}
-% \KwOut{calories intake}
-% \Proc{\fEatRice{$n$}}{
-%   $cal \gets n \times \mathcal{B}$\;
-%   \uIf{$cal \geq \mathcal{C}$}{
-%     \Return $\mathcal{C}$\;
-%   }
-%   \Else{
-%     \Return $cal - \fDoExercise{n}$\;
-%   }
-% }
+\multirow{2}{*}{\textbf{Readset}} & Key
+& B & C
+& A & {\color{red} \textbf{B}}
+& \multicolumn{2}{c|}{B}
+& \multicolumn{2}{c|}{{\color{red} \textbf{C}}}
+& \multicolumn{2}{c|}{{\color{red} \textbf{C}}}
+\\
 
-% \BlankLine
+& Version
+& 1,2 & 2,1
+& 1,1 & {\color{red} \textbf{1,2}}
+& \multicolumn{2}{c|}{2,1}
+& \multicolumn{2}{c|}{{\color{red} \textbf{2,1}}}
+& \multicolumn{2}{c|}{{\color{red} \textbf{2,1}}}
+\\
 
-% \KwIn{time duration (in minutes) of exercise $t$}
-% \KwOut{calories consumed}
-% \Func{\fDoExercise{$t$}}{
-%   $cal \gets 0$\;
-%   \lFor{$i \gets 1$ \To $t$}{$cal \gets cal + i$}
-%   \Return $cal$\;
-% }
+\hline
 
-% \caption{Sample pseudo code of a dummy algorithm.}
-% \label{Rice:algo:sample}
-% \end{algorithm}
+\multirow{2}{*}{\textbf{Writeset}} & Key
+& \multicolumn{2}{c|}{C}
+& \multicolumn{2}{c|}{C}
+& \multicolumn{2}{c|}{{\color{blue} \textbf{C}}}
+& \multicolumn{2}{c|}{B}
+& \multicolumn{2}{c|}{A}
+\\
 
-% \section{Evaluation}
+& Value
+& \multicolumn{2}{c|}{301}
+& \multicolumn{2}{c|}{302}
+& \multicolumn{2}{c|}{{\color{blue} \textbf{303}}}
+& \multicolumn{2}{c|}{304}
+& \multicolumn{2}{c|}{305}
+\\
 
-% \lipsum[16-19]
+\hline
 
-% % \begin{figure}[!t]
-% %   \centering
-% %   \begin{minipage}[b]{.45\linewidth}
-% %     \centering
-% %     \includegraphics[width=\linewidth]{\Exp{eps}{taste_with_meals}}
-% %     \caption{Taste with meal repetition.}
-% %     \label{Rice:exp:taste_with_meals}
-% %   \end{minipage}
-% %   \hspace*{2em}
-% %   \begin{minipage}[b]{.45\linewidth}
-% %     \centering
-% %     \includegraphics[width=\linewidth]{\Exp{eps}{taste_with_freshness}}
-% %     \caption{Taste with meal freshness.}
-% %     \label{Rice:exp:taste_with_freshness}
-% %   \end{minipage}
-% % \end{figure}
+\multirow{2}{*}{\textbf{Commit status}} & Fabric
+& \multicolumn{2}{c|}{\textbf{N.A.}}
+& \multicolumn{2}{c|}{\xmark}
+& \multicolumn{2}{c|}{\vmark}
+& \multicolumn{2}{c|}{\xmark}
+& \multicolumn{2}{c|}{\xmark}
+\\
 
-% \autoref{Rice:exp:taste_with_meals} and \autoref{Rice:exp:taste_with_freshness} show how the taste of rice is affected by meal repetition and freshness respectively. 
-% \lipsum[20]
+& {\fabricPlusplus}
+& \multicolumn{2}{c|}{{\xmark}}
+& \multicolumn{2}{c|}{{\xmark}}
+& \multicolumn{2}{c|}{{\xmark}}
+& \multicolumn{2}{c|}{\vmark}
+& \multicolumn{2}{c|}{\vmark}
+\\
 
-% \section{Summary}
+\hline
+\end{tabular}
+\subcaption*{
+  Staled reads and installed writes are
+  marked in {\color{red} red} and {\color{blue} blue} colors. The symbols {\vmark}, {\xmark}, \textbf{N.A.} respectively indicate committed, aborted, or not-allowed transactions.}
+\end{table}
 
-% \lipsum[21]
+
+In Fabric/{\fabricPlusplus}, the workflow of a transaction consists of three phases:
+execution, ordering, and validation.
+%
+We elaborate on these phases below, using the example in
+Figure~\ref{diagram:txn:background_fabric}.
+
+\textbf{Execution}. In this phase, clients propose transactions
+  consisting of smart contract invocations to a set of endorsing peers,
+  which are selected by an endorsement policy.
+  %
+  Each endorsing peer executes transaction proposals concurrently and
+  speculatively and returns the simulation results together with its endorsement
+  signature.
+  % 
+  The results contain two value sets called the \textit{readset} and the
+  \textit{writeset} which respectively represent the version dependencies (all
+  keys read along with their version numbers) and the state updates (all keys
+  modified along with their new values) produced by the simulation.
+  %
+  For example, the readset and writeset of transactions in
+  Figure~\ref{diagram:txn:background_fabric} are summarized in Table~\ref{tab:simulation}.
+  % 
+  Throughout the execution, a transaction holds a read lock on the
+  state database to guarantee that read values are the latest.
+  %
+  Transactions that read across blocks, such as \texttt{Txn1} in
+  Figure~\ref{diagram:txn:background_fabric}, are not allowed in Fabric.
+  %
+  In contrast, {\fabricPlusplus} optimistically removes this lock for more parallelism but aborts transactions that read across blocks.
+  %
+  After a client collects enough identical simulation results as required
+  by the endorsement policy, it packages them into a single transaction and
+  submits it to orderers.
+  % %
+  % \trung{To Pingcheng: I feel that the last two sentences are confusing. Can we
+  %   drop them?} \rpc{They are fine here.} \dumi{They indeed break the flow.}
+
+% \item 
+\textbf{Ordering}. In this second phase, orderers receive
+  transactions and sequence them into a total order to form a block, 
+  as shown in Figure~\ref{diagram:txn:background_orderer}.
+  %
+  Each orderer may belong to different administrative domains and receive different transaction proposals from various clients. 
+  %
+  But all orderers rely on a single consensus protocol to establish a common transaction order.
+  % 
+  Fabric/{\fabricPlusplus} outsources this consensus service to Kafka. 
+  %
+  With the consistent transaction stream from the consensus, each orderer employs the same block formation protocol to batch transactions into blocks, and consequently delivers them to peers.  
+  % 
+  A block is formed when the number of pending transactions reach the threshold or a timeout triggers. 
+  %
+  For example, in Figure~\ref{diagram:txn:background_fabric}, Orderer1 receives \texttt{Txn5} and Orderer2 receives \texttt{Txn2},  \texttt{Txn3}, and \texttt{Txn4}. 
+  %
+  They send the transactions to the consensus service and receive the same transaction order. 
+  %
+  Based on this order, both orderers package the transactions into identical blocks, i.e., block 3 with  \texttt{Txn2} to  \texttt{Txn5}, given that the protocol limits the maximum number of transactions per block to 4. 
+  
+
+% \item 
+\textbf{Validation}. This phase is executed by each peer after
+  a block has been retrieved from orderers.
+  %
+  Transactions in a block are sequentially validated based on the
+  corresponding endorsement policy and transaction serializability.
+  %
+  The serializability of a transaction is tested by inspecting the
+  staleness of its readset. The transaction is marked as invalid if it
+  reads a key whose version at the read time is inconsistent (or older) than the
+  latest version.
+  %
+  For example, in Figure~\ref{diagram:txn:background_fabric}, transaction \texttt{Txn2} in
+  block $2$ is unserializable since it reads key \texttt{B} with version
+  $(1,2)$ from block $1$, which is inconsistent with the latest version $(2,1)$
+  in block $2$.
+  %
+  Suppose that \texttt{Txn3} passes the serializability test and updates the version of key \texttt{C} from $(2,1)$ to $(3,3)$ in block $3$. Then, transactions \texttt{Txn4} and \texttt{Txn5} become invalid, since they both read an inconsistent version of key \texttt{C} in block $2$.
+  %
+  Hence, after this validation phase, only transaction \texttt{Txn3} in
+  block $3$ is committed, while transactions \texttt{Txn2}, \texttt{Txn4}, \texttt{Txn5} are aborted.
+  %
+  To satisfy the serializability constraint, {\fabricPlusplus} introduces a reordering step immediately before block formation but after consensus.
+  % 
+  The reordering is based on the commit order determined by the consensus and the accessed records in the transactions. 
+  % 
+  For example, each orderer in {\fabricPlusplus} puts \texttt{Txn3} behind \texttt{Txn4} and  \texttt{Txn5}. Then, \texttt{Txn4} and \texttt{Txn5} are committed while \texttt{Txn3} is aborted. 
+  % 
+  Hence, {\fabricPlusplus} commits one more transaction than Fabric. 
+  
+\subsection{Optimistic Concurrency Control in Databases}
+Unlike pessimistic concurrency control, the OCC technique does not hold locks to
+regulate transactional interference.
+%
+Instead, each transaction has a unique \textit{start timestamp} assigned to it
+from a global atomic clock.
+%
+All queries reflect the state snapshot of the database at the start timestamp,
+without observing later changes.
+%
+Each transaction is also assigned an {\textit{end timestamp}. 
+%
+Before committing, the database system checks the validity of a transaction
+based on these two timestamps and the accessed records.
+%
+OCC can easily achieve \textit{Snapshot Isolation}, which disallows concurrent
+transactions updating the same key~\cite{berenson1995critique}.
+%
+Considering the fact that Snapshot Isolation suffers anomalies such as
+Lost Update and Write Skew, a number of attempts have been
+made to transform Snapshot Isolation to Serializable level
+\cite{fekete2005making, yabandeh2012critique, bornea2011one}.
+
+\section{Theoretical Analysis}
+\label{sec:txn:theory}
+
+In this section, we first describe the resemblance of transaction processing
+techniques in EOV blockchains and OCC databases.
+%
+Then, we use the transactional analysis method of OCC databases to
+reason about the serializability behavior of EOV blockchains, such as Fabric and {\fabricPlusplus}.
+%
+Finally, we propose a reordering-based concurrency control algorithm for ordering
+serializable transactions in EOV blockchains, 
+along with the discussion on its security implications.
+
+\subsection{Resemblance~in~Transaction~Processing}
+\label{sec:txn:resembalance}
+%
+Similar to database systems where the concept \textit{database snapshot} is used
+to describe a read-only, static view of a database~\cite{kung1981optimistic}, in blockchains, we can define the similar concept of \textit{blockchain snapshot} as follows.
+
+\begin{definition}[Blockchain snapshot]
+  \label{defn:snapshot}
+  A blockchain snapshot is the state of a blockchain after a block is committed.
+  %
+  Let $M$ be the sequence number of the committed block, then the
+  corresponding snapshot is denoted as $M$ and is said to have the sequence
+  number $(M{+}1,0)$~\footnote{We use the two-value tuple with 0 fixed for the
+    second element. This is to facilitate the ordering relations $<$ of sequence numbers of blockchain snapshots and
+    transaction timestamps.}.
+\end{definition}
+
+\begin{definition}[Snapshot consistency]
+  \label{defn:inconsistentExe}
+  A transaction is snapshot consistent if there exists a blockchain snapshot M
+  from which all the transaction's records are read.
+\end{definition}
+
+Transactions in Fabric satisfy snapshot consistency since Fabric uses a lock to
+ensure the simulation is done against the latest state.
+%
+{\fabricPlusplus} optimistically removes the lock but early aborts transactions which read across blocks.
+%
+Hence, it also satisfies the snapshot consistency. 
+%
+However, eliminating transactions based on cross-block reading might
+lead to over-aborting snapshot consistent transactions.
+
+\begin{example}
+  \label{example:txn:acrossBlk}
+  In Figure~\ref{diagram:txn:theory_snapshot}, \texttt{Txn1} reads key
+  \texttt{A} of version $(1,1)$ in snapshot $1$ and key \texttt{B} of
+  version $(2,1)$ in snapshot $2$.
+  %
+  These versions are the same as the versions of keys \texttt{A} and \texttt{B} in snapshot $2$.
+  %
+  Hence, \texttt{Txn1} is \textit{snapshot consistent} with block snapshot $2$.
+  %
+  In contrast, transaction \texttt{Txn2}, which also reads across blocks, does
+  not achieve snapshot consistency because the value of previously read key B
+  changes in block 2.
+  %
+  % \texttt{Txn2}, unlike \texttt{Txn1}, is correctly aborted by \heur{H1}.
+\end{example}
+
+
+\begin{figure*}[tp] \centering
+  \begin{subfigure}{0.7\textwidth}
+    \includegraphics[width=0.99\textwidth]{diagram/txn/theory_snapshot.pdf}
+    \caption{Txn1, which reads across blocks, is snapshot consistent and can be
+    scheduled with serializability. Txn2 is not as its early-read key B
+    is updated before its execution ends.}
+    \label{diagram:txn:theory_snapshot}
+  \end{subfigure}\hfill
+  \begin{subfigure}{0.27\textwidth}
+    \includegraphics[width=0.99\textwidth]{diagram/txn/theory_notation.pdf}
+    \caption{Concise notation to represent a transaction}
+    \label{diagram:txn:theory_notation}
+  \end{subfigure}
+  \caption{An example of transactions reading across blocks}
+  % \label{fig:theory_inconsistent}
+\end{figure*}
+
+\begin{proposition}
+  \label{proposition:crossblockRead}
+  There exist snapshot-consistent transactions that read across blocks. For such
+  a transaction, its block snapshot is determined by its last read operation.
+\end{proposition}
+
+\begin{proof}
+  \texttt{Txn1} in Figure~\ref{diagram:txn:theory_snapshot} is a witness example.
+  %
+  We have described in Example~\ref{example:txn:acrossBlk} that \texttt{Txn1} reads across
+  blocks 1 and 2, and it is still consistent with block snapshot 2.
+\end{proof}
+
+Proposition~\ref{proposition:crossblockRead} shows that a legitimate transaction in an
+EOV blockchain can read across blocks, if their states are consistent.
+%
+This makes the EOV blockchain similar to an OCC database, as the
+latter also reads from consistent states determined by the transaction's start
+timestamp.
+%
+We also observe that the blockchain's sequence numbers have similar properties with
+databases' timestamps, such as atomicity, monotony, total order, and
+unique mapping to snapshots.
+%
+Therefore, we define the timestamps of blockchain transactions using their
+sequence numbers.
+
+\begin{definition}[Start timestamp]
+  \label{defn:start-timestamp}
+  The start timestamp of transaction \texttt{Txn}, denoted by \startTS{Txn}, is
+  the sequence number of its read snapshot.
+\end{definition}
+
+\begin{definition}[End timestamp]
+  \label{defn:commit-timestamp}
+  The end timestamp of transaction \texttt{Txn}, denoted by \commitTS{Txn}, is its sequence number in the block, determined by the consensus. 
+\end{definition}
+
+For example, in Figure~\ref{diagram:txn:theory_snapshot}, \texttt{Txn1} has $\startTS{Txn1} =
+(3, 0)$ and $\commitTS{Txn1} = (3,1)$, since it lastly reads from block $2$ and
+occupies the first position in block $3$.
+%
+For brevity, in later paragraphs, we use the notation presented in
+Figure~\ref{diagram:txn:theory_notation} to denote a transaction.
+%
+Moreover, the sequence numbers of transactions' start or end timestamps are lexicographically ordered, e.g., (2,1) < (2,2) = (2,2) < (3,0).
+
+\begin{definition}[Concurrent transactions]
+  \label{defn:concurrent-transaction}
+  Two transactions \texttt{Txn1} and \texttt{Txn2} are said to be concurrent if their executions overlap. 
+  To be specific, if \texttt{Txn1} ends earlier than \texttt{Txn2} (i.e., $\commitTS{Txn1}$ < $\commitTS{Txn2}$), then \texttt{Txn2} must start before \texttt{Txn1} ends (i.e., $\startTS{Txn2}$ < $\commitTS{Txn1}$). Otherwise, if \texttt{Txn2} ends earlier than \texttt{Txn1} (i.e., $\commitTS{Txn2}$ < $\commitTS{Txn1}$), then \texttt{Txn1} must start before \texttt{Txn2} ends (i.e., $\startTS{Txn1}$ < $\commitTS{Txn2}$).
+\end{definition}
+
+\begin{proposition}
+  \label{proposition:concurrency}  
+  Each pair of transactions in the same block are concurrent. 
+\end{proposition} 
+
+\begin{proof}
+  Suppose two transactions \texttt{Txn1} and \texttt{Txn2} are committed in the
+  same block $M$ at position $p$ and $q$, respectively, where $p < q$.
+  %
+  Since the latest block that \texttt{Txn2} can read from is $M{-}1$, we have
+  that: $\startTS{Txn2} \le (M,0) < \commitTS{Txn1} = (M,p) < \commitTS{Txn2} =
+  (M,q)$.
+  %
+  Hence, \texttt{Txn1} and \texttt{Txn2} are concurrent.
+\end{proof}
+
+\begin{proposition}
+  \label{proposition:nonconcurrency}  
+  The reverse of Proposition~\ref{proposition:concurrency} is not true: there are concurrent transactions not belonging to the same block.
+\end{proposition} 
+
+\begin{proof}
+  We present a witness example in Figure~\ref{diagram:txn:theory_concurrency}, where
+  transactions \texttt{Txn1} and \texttt{Txn2} respectively belong to block $M$
+  and $M{+}1$. However, \texttt{Txn2} reads from a block earlier than $M$.
+  %
+  Hence, we have: $\startTS{Txn2} \le (M,0) < \commitTS{Txn1} = (M,1) <
+  \commitTS{Txn2} = (M{+}1,1)$.
+  %
+  Therefore, \texttt{Txn1} and \texttt{Txn2} are concurrent.
+\end{proof}
+
+\begin{figure}[tp] \centering
+  \includegraphics[width=0.85\textwidth]{diagram/txn/theory_concurrency.pdf}
+  \caption{Concurrency of transactions within and across blocks}
+  \subcaption*{\texttt{Txn2} and \texttt{Txn3} are in the same block and concurrent. \texttt{Txn1} and \texttt{Txn2} are in different blocks, but they are still concurrent. \texttt{Txn1} and \texttt{Txn3} are not concurrent.}
+  \label{diagram:txn:theory_concurrency}
+\end{figure}
+
+From the above two propositions, concurrency does not only occur between transactions within the same block.  
+%
+{\fabricPlusplus} fails to consider dependencies among transactions across blocks.
+%
+Hence, its reordering effect is limited. 
+
+
+\subsection{Serializability Analysis}
+\label{sec:txn:serializabilityAnalysis}
+
+\begin{figure*}
+  \centering
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_noncurrent_ww.pdf} 
+      \caption{\textit{n-ww}}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_noncurrent_wr.pdf}
+      \caption{\textit{n-wr}}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_noncurrent_rw.pdf} 
+      \caption{\textit{n-rw}}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_concurrent_ww.pdf} 
+      \caption{\textit{c-ww}}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_concurrent_rw.pdf} 
+      \caption{\textit{c-rw}}
+  \end{subfigure}
+  \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/txn/dependency/theory_concurrent_antirw.pdf} 
+      \caption{\textit{anti-rw}}
+  \end{subfigure}  
+  \caption{Six canonical dependencies between snapshot transactions.}
+  \subcaption*{(a), (b), and (c) are non-concurrent and (d), (e), and (f) are concurrent.}
+  \label{diagram:txn:theory_dependencies}
+\end{figure*}
+
+Figure~\ref{diagram:txn:theory_dependencies} shows all six scenarios of canonical transaction dependency (or conflict) between snapshot transactions, as described by
+\cite{fekete2005making}.
+%
+Among them, three dependencies, namely \scenario{n-ww}, \scenario{n-wr}, and
+\scenario{n-rw} are between non-concurrent transactions.
+%
+The other three dependencies, namely \scenario{c-ww}, \scenario{c-rw}, and \scenario{anti-rw} are between concurrent transactions.
+%
+According to the conflict serializability theorem in
+\cite{weikum2001transactional}, the effect of a serializable transaction
+schedule is equivalent to any serialized transaction history that respects
+dependency order.
+%
+Note that the dependency graph of the serializable transaction schedule must be acyclic.
+
+\begin{definition}[Strong Serializability]
+  A schedule of transactions is \textit{Strong Serializable} if its effect is
+  equivalent to the serialized history, which conforms to the transactions'
+  commit order determined by their end timestamps.
+\end{definition}
+
+\begin{theorem}   
+  \label{theory:strict}
+  A schedule of transactions without \scenario{anti-rw} achieves Strong Serializability.
+\end{theorem}
+
+\begin{proof}
+  We first prove that any transaction schedule without \scenario{anti-rw} achieves Serializability.
+  %
+  By contradiction, suppose that such a transaction schedule does not achieve Serializability.
+  %
+  Then, in the schedule there must be a subset of transactions with a dependency cycle,
+  in which the last committed transaction is denoted by \texttt{Txn}.
+  %
+  Then \texttt{Txn} must exhibit an \scenario{anti-rw} dependency because
+  \scenario{anti-rw} is the only one among all six dependencies that relates
+  later transactions to earlier ones.
+  %
+  But this contradicts our assumption. 
+  %
+  Hence, the transaction schedule is serializable.
+  %
+  Next, we prove that it also achieves Strong Serializability.
+  %
+  Since the order of the five remaining dependencies is consistent to their
+  commit order, the serialized history that respects the commit order also
+  respects the dependency order.
+  %
+  According to the conflict serializability theorem in
+  \cite{weikum2001transactional}, this serialized transaction history has the
+  equivalent effect of the serializable schedule.
+  %
+  Hence, the transaction schedule is Strong Serializable.
+\end{proof} 
+
+We remark that Fabric/{\fabricPlusplus} do not allow \scenario{anti-rw} between two transactions because the latter transaction would read an old version of the updated key, hence, it must be aborted.
+Based on Theorem~\ref{theory:strict}, transactions in Fabric/{\fabricPlusplus} satisfy Strong Serializability, which is more stringent than Serializability~\cite{androulaki2018hyperledger}. This opens up the opportunity to reduce the transaction abort rate. 
+
+
+\subsection{Reorderability Analysis}
+\label{sec:txn:reorderabilityAnalysis}
+Under Serializability instead of Strong Serializability,
+we formally analyze the reorderability of transactions in EOV blockchains.
+%
+We focus on determining a serializable schedule by switching the commit order of
+pending transactions.
+
+\begin{lemma} 
+  \label{lemma:reorder_concurrency}
+  In blockchains, reordering can only happen between concurrent transactions. 
+\end{lemma}
+
+\begin{proof} 
+  Assume transaction reordering occurs between two non-concurrent transactions.
+  These transactions are committed in different blocks, due to the
+  contra-positive of Proposition~\ref{proposition:concurrency}. Switching their order means changing a previously committed block, which is impossible in blockchains due
+  to their immutability.
+\end{proof}
+
+\begin{lemma} 
+  \label{lemma:reorder_impact}
+  A transaction does not change its concurrency relationship with respect to
+  others after reordering.
+\end{lemma}
+
+\begin{proof}
+  Assume the next block's sequence number is $M$.
+  %
+  For any pending transaction \texttt{Txn}, we have: $\startTS{Txn} \le (M,0) <
+  \commitTS{Txn}$.
+  %
+  Other transactions are classified into three cases.
+  %
+  (i) For any non-concurrent transaction \texttt{Txn1}, we have:
+  $\commitTS{Txn1} < \startTS{Txn}$.
+  %
+  Since reordering does not affect $\startTS{Txn}$, the non-concurrency between
+  \texttt{Txn} and \texttt{Txn1} still holds.
+  %
+  (ii) For any concurrent transaction \texttt{Txn2} committed earlier than block
+  $M$, we have: $\startTS{Txn} < \commitTS{Txn2} < (M,0) < \commitTS{Txn}$.
+  %
+  Since reordering cannot move the commit time of \texttt{Txn} before $(M,0)$,
+  \texttt{Txn2} and \texttt{Txn} remain concurrent.
+  %
+  (iii) For any pending transaction \texttt{Txn3},  we have either $\startTS{Txn} < (M, 0) < \commitTS{Txn3} < \commitTS{Txn}$, or $\startTS{Txn3} < (M, 0) < \commitTS{Txn} < \commitTS{Txn3}$.
+  %
+  Hence, \texttt{Txn} and \texttt{Txn3} remain concurrent after reordering.
+\end{proof}
+
+The above Lemma~\ref{lemma:reorder_concurrency} ensures that reordering does not
+impact non-concurrent transactions and their dependencies.
+%
+Lemma~\ref{lemma:reorder_impact} ensures that non-concurrent transactions are not
+introduced by reordering.
+%
+Therefore, we restrict our analysis to concurrent dependencies.
+
+We describe the dependency order of concurrent transactions using the two lemmas below.
+
+\begin{figure}[tp]
+      \centering
+      \begin{subfigure}{0.46\textwidth}
+        \includegraphics[width=0.99\textwidth]{diagram/txn/theory_order_rw.pdf}
+      \end{subfigure}      
+      \begin{subfigure}{0.46\textwidth}
+        \includegraphics[width=0.99\textwidth]{diagram/txn/theory_order_ww.pdf}
+      \end{subfigure}
+      \caption{The implication of reordering to concurrent dependencies}
+      \subcaption*{Dependency order preserves between \scenario{c-rw},
+        \scenario{anti-rw} but not \scenario{c-ww} when switching commit order}
+      \label{diagram:txn:theory_reorder}
+\end{figure}
+
+\begin{lemma} 
+  \label{lemma:reorder_rw}
+  If two transactions \texttt{Txn1} and \texttt{Txn2} exhibit \scenario{c-rw} or
+  \scenario{anti-rw} dependency, switching their commit order does not affect
+  their dependency order.
+\end{lemma}
+
+\begin{proof}
+  When \texttt{Txn1} and \texttt{Txn2} exhibit \scenario{c-rw} (or
+  \scenario{anti-rw}) dependency, if we switch their commit order, they will
+  exhibit \scenario{anti-rw} (or \scenario{c-rw}) dependency, as illustrated in the left side of Figure~\ref{diagram:txn:theory_reorder}.
+  %
+  Consequently, in both two cases, their dependency order remains the same,
+  i.e., \texttt{Txn1} reads a key which will be written later by \texttt{Txn2}.
+\end{proof}
+
+\begin{lemma} 
+  \label{lemma:reorder_ww}
+  If two transactions \texttt{Txn1} and \texttt{Txn2} exhibit \scenario{c-ww}
+  dependency, switching their commit order flips their dependency order.
+\end{lemma}
+
+\begin{proof}
+  When \texttt{Txn1} and \texttt{Txn2} exhibit \scenario{c-ww} dependency,
+  \texttt{Txn1} writes to a key which will be over-written by \texttt{Txn2}.
+  %
+  If their commit order is switched, then \texttt{Txn2} and \texttt{Txn1} will
+  exhibit \scenario{c-ww} dependency, as illustrated in the right side of
+  Figure~\ref{diagram:txn:theory_reorder}.
+  %
+  Now, \texttt{Txn2} writes to a key which will be over-written by \texttt{Txn1}.
+  %
+  Consequently, the dependency order of \texttt{Txn1} and \texttt{Txn2} is flipped.
+\end{proof}
+
+Finally, we present a theorem on reordering transactions containing a dependency
+cycle. This theorem is utilized in \Cref{sec:txn:concurrencyControl} to
+design our novel fine-grained concurrency control algorithm.
+
+\begin{theorem}
+  \label{theory:unreorderable}
+  A transaction schedule cannot be reordered to be
+  serializable if there exists a cycle with no \scenario{c-ww} dependencies involving pending transactions.
+\end{theorem}
+
+\begin{proof}
+  We classify the dependencies in the cycle into two categories. 
+  %
+  The first category includes those involving at least one committed transaction in the dependency. 
+  %
+  Due to the immutability of blockchains, reordering does not impact these dependencies, because the relative commit order of two transactions is fixed.
+  %
+  The second category includes all dependencies between a pair of pending transactions. 
+  %
+  For each dependency, its corresponding transactions must be concurrent, otherwise, the preceding transaction would be committed. 
+  %
+  Due to the fact that the pending transactions are concurrent and the absence of \scenario{c-ww}, the order switching can only happen between conflicting transactions with \scenario{c-rw} or \scenario{anti-rw}.
+  %
+  Their dependency order preserves despite being reordered (Lemma~\ref{lemma:reorder_rw}).
+  %
+  Hence, the cyclic schedule remains unserializable, as shown in
+  Figure~\ref{diagram:txn:theory_cycle_rw}.
+\end{proof}
+
+However, a transaction schedule can be reordered to be serializable if there exists a cycle with one \scenario{c-ww} conflict between pending transactions. Due to Lemma~\ref{lemma:reorder_ww}, their dependency order can be flipped. We present this scenario in Figure~\ref{diagram:txn:theory_cycle_ww}, where a cyclic schedule formed by \texttt{Txn1}, \texttt{Txn2} and \texttt{Txn3} becomes serializable by switching the commit order of \texttt{Txn2} and \texttt{Txn3}, which exhibit \scenario{c-ww} dependency.
+
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+    	\centering
+      \includegraphics[width=0.99\textwidth]{diagram/txn/theory_cycle_rw.pdf}
+      \caption{An unreorderable schedule without \scenario{c-ww}}
+      \label{diagram:txn:theory_cycle_rw}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+    	\centering
+      \includegraphics[width=0.99\textwidth]{diagram/txn/theory_cycle_ww.pdf}
+      \caption{A reorderable schedule with \scenario{c-ww}}
+      \label{diagram:txn:theory_cycle_ww}
+    \end{subfigure}
+    \caption{Transaction schedule reorderability}
+\end{figure}
+
+\subsection{Fine-grained Concurrency Control}
+\label{sec:txn:concurrencyControl}
+
+Theorem~\ref{theory:unreorderable} states that a cyclic transaction schedule without
+\scenario{c-ww} among pending transactions can never be serializable despite reordering.
+%
+Based on this insight, we formulate the following three steps for
+fine-grained concurrency control in EOV blockchains.
+
+\begin{itemize}
+
+\item For a new transaction, we first consider all dependencies, except
+  \scenario{c-ww}, among all pending transactions (including the new
+  transaction).
+  % 
+  Then, we directly drop the new transaction if there is a dependency cycle.
+
+\item On block formation, we retrieve the pending transaction order that
+  respects all the computed dependencies.
+
+\item Finally, we restore \scenario{c-ww} dependencies on pending transactions
+  based on the retrieved schedule.
+
+\end{itemize}
+
+Note that \scenario{c-ww} dependency restoration is still necessary, 
+%
+as future unserializable transactions may encounter a cycle with a \scenario{c-ww}
+dependency which involves committed transactions. 
+%
+But both their commit and dependency order are already fixed.
+%
+Hence, the dependency graph remains acyclic after the restoration.
+
+We outline our fine-grained concurrency control in Algorithms \ref{alg:txn:simulation}, \ref{alg:txn:txn}, and \ref{alg:txn:blk}, while the implementation details are presented in \Cref{sec:txn:impl}.
+%
+We use the notation $A \unioneq B$ to represent the self-assignment with union $A := A \cup B$.
+%
+Here, we argue that the topological sort in Algorithm~\ref{alg:txn:blk} always has a solution
+since the transaction dependency graph $G$ is guaranteed to be acyclic by Algorithm~\ref{alg:txn:txn}.
+%
+Even the sub-graph containing only the pending transactions, $P$, is a directed
+acyclic graph and, hence, must have a topological order.
+
+Compared to the reordering algorithm in {\fabricPlusplus}, ours is more fine-grained
+because the unserializable transactions are aborted before ordering and the
+remaining transactions are guaranteed to be serializable without being aborted.
+%
+Our reordering is no longer limited to a block's scope.
+./b
+Another notable difference is that we determine the block snapshot at the start
+of the simulation, while Fabric and {\fabricPlusplus} determine it based on the last read
+operation.
+%
+We allow block commit during the contract simulation for more
+parallelism, but this may introduce stale snapshots when previously read records
+are updated by committed transactions during the simulation.
+
+% \begin{algorithm}[tp]
+\begin{algorithm}
+  \caption{Contract simulation}
+  \label{alg:txn:simulation}
+  \KwIn{Contract invocation context.}
+  \KwOut{$readset$, $writeset$ are simulation results,\\
+  \hspace*{3.4em} $b$ is the number of the block simulated on.}
+  $b$ := fetch the number of the last block\;
+  $readset, writeset$ := simulate the contract invocation on Block $b$
+  snapshot; \hfill {// \Cref{sec:txn:impl:snapshot_read}}
+\end{algorithm}
+
+
+\begin{algorithm}[tp]
+  \caption{On the arrival of a transaction}
+  \label{alg:txn:txn}
+  \KwData{$G$ is the transaction dependency graph with nodes $U$ and edges $V$,
+    and $P$ is the pending transaction set.}
+  \KwIn{$t$ is the transaction identifier, 
+    $b$ is the number of the block simulated on, 
+    and $readkeys$, $writekeys$ are accessed keys during simulation.}
+  \KwOut{$reorderable$ property of $t$.}
+  $dep$ := Compute $t$'s dependency except $c$-$ww$ among $P$ based on $G, b, readkeys,
+  writekeys$; \hfill {// \Cref{sec:txn:impl:dep}}\\
+  $reorderable := true$ if no cycle is detected in $G$ with respect to $dep$,
+  or $false$ otherwise;
+  \hfill {// \Cref{sec:txn:impl:graph}}\\
+  \If{$reorderable$} {
+    $P \unioneq \{t\}$\;
+    $G.U \unioneq \{t\}$\;
+    $G.V \unioneq dep$\;
+  }
+\end{algorithm}
+
+\begin{algorithm}
+  \caption{On the formation of a block}
+  \label{alg:txn:blk}
+  \KwData{$G$ is the transaction dependency graph, and
+    $P$ is the pending transaction set.}
+  \KwOut{$s$ is the commit order of pending transactions.}
+  $s$ := Topologically sort $P$ based on reachability in $G$\;
+  $ww$ := Compute \scenario{c-ww} among $P$ with $s$\;
+  $G.V \unioneq ww$;  \hfill {// \Cref{sec:txn:impl:resintall}} \\
+  $P := \emptyset$
+\end{algorithm}
+
+\subsection{Security Analysis}
+\label{sec:txn:securityanalysis}
+Our reordering algorithm serves as a part of the ordering process and needs to be replicated on each honest orderer to form the ledger after the consensus service has established the transaction order. 
+%
+We assume the safety and liveness of the original consensus service under its security model, either crash-failure or byzantine-failure.
+%
+We now discuss whether both properties preserve after our reordering. 
+
+\textbf{Safety.} 
+In the original Fabric design, there are four safety properties: \textit{agreement, hash chain integrity, no skipping}, and \textit{no creation}~\cite{androulaki2018hyperledger}. 
+%
+These properties require honest orderers to sequentially deliver consistent, untampered blocks in a ledger.
+%
+We claim that our approach preserves \textit{hash chain integrity} and \textit{no skipping} as we do not change the block formation procedure.
+%
+Next, \textit{no creation} holds because we do not introduce new transactions. 
+%
+Lastly, we achieve \textit{agreement} because we fully replicate the reordering on each orderer.
+%
+Moreover, we do not introduce non-determinism which may lead to execution bifurcation. 
+%
+As long as honest orderers perform the reordering individually from a consistent transaction stream, they shall produce identical ledgers. 
+
+\textbf{Liveness.} 
+Fabric defines liveness in terms of the \textit{validity} property, which mandates all broadcasted transactions to be included in the ledger. 
+%
+Our algorithm may compromise this liveness property as aborted transactions are excluded from the ledger. 
+%
+However, we propose the following approach to prevent abusive usage. 
+%
+To be specific, in the consensus protocol, the transaction order is tentatively proposed by a leader node. 
+%
+When this order is accepted by the other nodes, it becomes the input of our reordering approach. 
+%
+Hence, the order is controlled by the leader, which may hinge on the publicly available reordering algorithm to maliciously defer certain transactions.
+% 
+Suppose the malicious leader detects an undesirable transaction \texttt{TxnT} which reads and writes a record against the state snapshot of block N. 
+%
+The leader, using both a proxy peer and a proxy client, can immediately prepare another transaction \texttt{TxnT'} which reads and writes the same record against block N. 
+%
+Next, the leader places \texttt{TxnT'} ahead of \texttt{TxnT} during ordering. 
+%
+The other orderers, unaware of this manipulation, may accept this ordering.
+% 
+Assuming \texttt{TxnT'} passes the reorderability test in Algorithm~\ref{alg:txn:txn}, each honest orderer will abort \texttt{TxnT}.
+%
+It is because these two transactions form an unreorderable cyclic schedule, namely \texttt{TxnT'} depends on \texttt{TxnT} with \scenario{c-rw} and \texttt{TxnT} on \texttt{TxnT'} with \scenario{anti-rw}.
+%
+The crux of the mitigation is to hide the transaction's details, such as accessed records, before the transaction order is established. 
+%
+For example, we allow clients to send only the transaction hash to the orderers.
+%
+Moreover, clients have incentives to do so to avoid the above manipulation.
+%
+After the sequence of a transaction hash is decided, its details are then disclosed to orderers for reordering. 
+%
+We remark that this approach also defers malicious clients from exploiting the reordering by mutating the transaction contents.
+%
+It is because clients have already made a security commitment by publishing the transaction hash. 
+
+
+\section{Implementation}
+\label{sec:txn:impl}
+
+\begin{figure}
+  \center
+	\includegraphics[width=0.68\textwidth]{diagram/txn/fabricX_arch.pdf}
+  \caption{The integration of our concurrency control on EOV blockchains}
+	\label{diagram:txn:impl:fabricx}
+\end{figure}
+
+\subsection{Overview}
+We illustrate in Figure~\ref{diagram:txn:impl:fabricx} the integration of our proposed fine-grained concurrency control on EOV blockchains. 
+%
+For simplicity, we only show a single orderer and a single peer in the EOV pipeline, but the algorithms are replicated on each node. 
+%
+While the majority of our implementation is done in orderers, Algorithm~\ref{alg:txn:simulation} is integrated in the peers for snapshot-consistent transaction execution during the endorsement phase.
+%
+In the ordering phase, we employ Algorithm~\ref{alg:txn:txn} to test the reorderability of an incoming transaction after the consensus decides its commit order.
+%
+Algorithm~\ref{alg:txn:blk} performs the abort-free reordering immediately before pending transactions are batched into a block. 
+%
+We remark that Algorithm~\ref{alg:txn:txn} and Algorithm~\ref{alg:txn:blk} are far from implementation-friendly to system developers, as both employ an abstract dependency graph.
+%
+In light of this, we present the details of designing the dependency graph and efficient operations on it.
+
+Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
+%
+We then dedicate~\Cref{sec:txn:impl:sharp} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
+
+\subsection{Snapshot Read}
+\label{sec:txn:impl:snapshot_read}
+
+We first describe the snapshot mechanism used by Algorithm~\ref{alg:txn:simulation}.
+%
+We rely on the storage snapshot mechanism to ensure each contract invocation is
+simulated against a consistent state.
+%
+Specifically, after a block is committed, we create a storage snapshot and associate
+it with the block number.
+%
+Each transaction, before its simulation, must acquire the number of the latest
+block, as shown in Algorithm~\ref{alg:txn:simulation}.
+%
+Staled snapshots without any simulation are periodically pruned.
+%
+This design allows more parallelism across contract simulation in the Execution
+phase and block commit in the Validation phase.
+%
+In contrast, vanilla Fabric uses a read-write lock to coordinate these two phases.
+
+
+\subsection{Dependency Resolution}
+\label{sec:txn:impl:dep}
+
+To compute the dependency graph in Algorithm~\ref{alg:txn:txn}, we introduce two
+multi-versioned storages in the orderers to identify committed transactions.
+%
+These storages are implemented in LevelDB and represent
+\textit{CommittedWriteTxns} (\textit{CW}) and \textit{CommittedReadTxns}
+(\textit{CR}), respectively.
+%
+Each key of \textit{CW} consists of the concatenation of the record key and the
+commit sequence of the transaction updating the value.
+%
+For example, if \texttt{Txn1} with commit sequence $(3,2)$ writes to key
+\texttt{A}, \textit{CW} has an entry \dbentry{A}{3}{2}{Txn1}.
+%
+Similarly, each key of \textit{CR} consists of the concatenation of the record key and
+the commit sequence of the transaction reading that key's latest value.
+%
+For instance, the entry \dbentry{A}{4}{1}{Txn7} indicates that \texttt{Txn7} is
+the first transaction in block 4 which reads the latest value of key \texttt{A}.
+%
+In both \textit{CW} and \textit{CR}, we place the record key prior to the commit
+sequence to efficiently support point query and range query.
+%
+For example, the query $CW$.$Before(key, seq)$ returns the last committed
+transaction updating $key$ with the commit sequence earlier than $seq$.
+%
+Similarly, $CW$.$Last(key)$ returns the last committed transaction updating
+$key$.
+%
+For the range query, $CW[key][seq:]$ returns all committed transactions from
+$seq$ onward that update $key$.
+
+We maintain two in-memory indices, $PendingWriteTxns$ ($PW$) and
+$PendingReadTxns$ ($PR$), to respectively store the keys for the write and read
+sets of pending transactions.
+%
+Consider a new transaction $txn$ that starts at $startTS$ with read keys $R$ and
+write keys $W$. All the dependencies of transaction $txn$ are computed as
+follows.
+
+\begin{center}
+  \def\arraystretch{1.3}
+  \begin{tabular}{lcl}
+    $\scenario{anti-rw}(txn)$
+    & $=$
+    & $\bigcup_{r \in R}^{} CW[r][startTS:] \cup PW[r]$
+    \\
+
+    $\scenario{rw}(txn)$
+    & $=$
+    & $\bigcup_{w \in W}^{} CR[w]  \cup PR[w]$
+    \\
+
+    $\scenario{n-wr}(txn)$
+    & $=$
+    & $\bigcup_{r \in R}^{} CW.Before(r, startTS)$
+    \\
+
+    $\scenario{ww}(txn)$
+    & $=$
+    & $\bigcup_{w \in W}^{} CW.Last(w)$
+    \\
+  \end{tabular}
+\end{center}
+
+
+Note that we ignore \scenario{ww} dependencies between pending transactions and do not
+differentiate whether \scenario{ww} and \scenario{rw} are concurrent or not.
+%
+This is because non-concurrent transaction may be part of a cycle.
+%
+We then compute the predecessor transactions of $txn$ as $\scenario{ww}(txn)
+\cup \scenario{n-wr}(txn) \cup \scenario{rw}(txn)$, and successor transactions
+as $\scenario{anti-rw}(txn)$.
+
+\subsection{Cycle Detection}
+\label{sec:txn:impl:graph}
+
+We now discuss how we represent the dependency graph $G$ to detect cycles and
+achieve serializability.
+%
+We face two design choices.
+%
+On the one hand, we could maintain only the immediate linkage information for
+each transaction and then perform graph traversal for cycle detection.
+%
+On the other hand, we could maintain the entire reachability information among
+each pair of transactions.
+%
+But the latter approach shifts the overhead from computation to space
+consumption.
+%
+We achieve a sweet spot by maintaining the immediate successors of
+a transaction ($txn.succ$) and represent all transactions that can reach $txn$
+with a bloom filter, referred to as $txn.anti\_reachable$.
+%
+Cycle detection becomes straightforward by testing
+$p.anti\_reachable(s)$ for each pair $(p,s)$ consisting of a
+predecessor and a successor of $txn$.
+
+We use bloom filters because they are memory efficient and can perform
+fast union.
+%
+Union is extensively used to update the reachability information for each
+transaction, as shown in Algorithm~\ref{alg:txn:reachability}.
+%
+Since a bloom filter internally relies on a bit vector, the set union can be
+fast computed via the bitwise OR operation.
+%
+However, bloom filters are known to report false positives~\cite{bloom1970space}.
+%
+If the filters report such false positives for a pair of adjacent transactions
+to $txn$, we preventively abort $txn$.
+%
+If they report negative for all pairs, then $txn$ does not belong to any
+cycle in $G$.
+
+Algorithm~\ref{alg:txn:reachability} entails the relatively expensive traversal of all
+reachable transactions from $txn$.
+%
+However, this cost is bearable, since the traversal is unnecessary when
+$\scenario{anti-rw}(txn)$ is empty.
+%
+This is often the case under non-skewed workloads.
+%
+Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in \Cref{sec:txn:impl:optimization}.
+
+\begin{algorithm}
+  \caption{Reachability update for transaction $txn$}
+  \label{alg:txn:reachability}
+  \KwData{$G$ is the transaction dependency graph}
+  \KwIn{$M$ is the number of next block to be committed, 
+    $pred$ is $txn$'s immediate predecessor transactions, and
+    $succ$ is $txn$'s immediate successor transactions.}
+
+  $txn.anti\_reachable$ := $\emptyset$\;
+  \For{$p$ \textup{in} $pred$} {
+      $p.succ \ \unioneq \{txn\}$\;
+      $txn.anti\_reachable \ \unioneq
+      p.anti\_reachable$\; }
+  \For{$s$ \textup{reachabale from} $succ$ \textup{in} $G$} {
+      $s.anti\_reachable \ \unioneq
+      txn.anti\_reachable$;\\
+      $s.age := M$;\label{alg:txn:age}}
+\end{algorithm}
+
+Algorithm~\ref{alg:txn:reachability} is the constant growth of the
+$anti\_reachable$ filter.
+%
+In practice, we observe that the false positive rate of a single bloom filter
+grows to an intolerable ratio.
+%
+To address this issue, we use two bloom filters with relay.
+%
+Each transaction is associated with one bloom filter capturing transactions
+committed after block $M$ and another bloom filter capturing transactions after
+block $N$.
+%
+Suppose block $C$ is the earliest block which contains a committed transaction
+in $G$.
+%
+We maintain $M < C < N$ and use the first bloom filter for testing reachability.
+%
+Whenever $C$ grows to $M < N < C$, the first bloom filter is emptied and it
+starts to collect transactions from the current block.
+%
+We then use the second filter for testing reachability.
+%
+In this manner, we restrict the number of transactions represented by a bloom
+filter within a certain block range so that the false positive rate remains
+acceptable. 
+%
+For safety, honest orderers must use the same $M$ and $N$ for exact replication.
+
+
+\subsection{Dependency Restoration}
+\label{sec:txn:impl:resintall}
+Next, we present our method to install \scenario{ww} dependencies into the dependency
+graph $G$ based on the derived commit sequence, which is a topological order of
+the pending transactions $P$ according to the reachability in $G$.
+%
+One prominent issue is that the reachability of a transaction may be affected by
+multiple \scenario{ww} dependencies from various updated keys.
+%
+But we want the reachability modification to take place within a single
+iteration for efficiency.
+%
+Algorithm~\ref{alg:txn:restoration} outlines the major steps of the restoration of
+\scenario{ww} dependencies.
+%
+We further explain this algorithm using the example in Figure~\ref{diagram:txn:impl:restore}.
+
+\begin{algorithm}
+  \caption{Restoration of \scenario{ww} within pending transactions based on
+    the computed commit sequence}
+    \label{alg:txn:restoration}
+    \KwData{$G$ is transaction dependency graph.}
+    \KwIn{$seq$ is committed sequence of pending transactions, 
+      $PW$ is the index that associates updated keys with pending
+      transactions.}
+    $head\_txns := \emptyset$\;
+    \For{($key, txns$) \textup{in} $PW$\label{alg:txn:iter_key}}
+      {
+        Sort $txns$ based on the relative order in $seq$;\\
+        $(txn1, txn2)$ := the first pair in $txns$ such that $txn1 \notin
+        txn2.anti\_reachable$;\label{alg:txn:pair}\\
+        $txn2.anti\_reachable \ \unioneq
+        txn1.anti\_reachable$;\\
+        $head\_txns \ \unioneq \{txn2\}$;
+      }
+    \For{$txn$ \textup{in the topologically-ordered
+         iteration of all txns reachable from} $head\_txns$
+         \label{alg:txn:iteration}}
+      {
+        \For{$t$ \textup{in} $txn.succ$}
+          {
+            $t.anti\_reachable \ \unioneq txn.anti\_reachable$;
+          }
+      }
+\end{algorithm}
+
+For each $key$ to be updated by pending transactions ($PW$), we topologically
+sort its associated transactions and select the first pair that is not yet
+connected in the reachability filter.
+%
+In such a pair, the second transaction can be reached from all the predecessors
+of the first transaction.
+%
+There can be a scenario where transactions in a pair are already connected in
+the reachability filter, which makes the restoration redundant.
+%
+For example, this happens with \texttt{Txn0} and \texttt{Txn3} in
+Figure~\ref{diagram:txn:impl:restore}.
+%
+For transactions that are not yet connected, we need to update their
+successors.
+%
+To do this efficiently, we keep the transactions in a set ($head\_txns$) and
+update their successors based on the topological order.
+%
+Thereby, we avoid updating the information multiple times during the iteration
+in line~\ref{alg:txn:iter_key}.
+%
+For example, \texttt{Txn8} in Figure~\ref{diagram:txn:impl:restore} is reachable through
+the update of both key \texttt{A} and \texttt{B}.
+%
+Using our algorithm, the reachability information is updated once.
+
+\begin{figure}
+  \centering
+	\includegraphics[width=0.87\textwidth]{diagram/txn/impl_dep_graph.pdf}
+  \caption{An example of a dependency graph with new \scenario{c-ww} dependencies}
+  \subcaption*{Blue dashed border indicates \textcolor{blue}{pending
+      transactions} with their commit sequence.
+      Blue solid line indicates \textcolor{blue}{new \scenario{ww} dependencies}
+    and the topologically-sorted iteration order.
+    We do not consider the \scenario{ww} dependency between Txn0 and Txn3
+    (marked with blue dotted line), as it is implicit.
+    \textcolor{red}{Txn1} in red is subject to
+    pruning due to staleness. The transaction age is in italic.}
+	\label{diagram:txn:impl:restore}
+\end{figure}
+
+\subsection{Dependency Graph Pruning}
+\label{sec:txn:impl:optimization}
+Since graph $G$ can grow quickly, we prune transactions that either (i) are simulated against very old snapshots or (ii) cannot affect pending transactions.
+%
+For the first case, we introduce a parameter called $max\_span$ to limit the block span\footnote{If a transaction is simulated against block $M$ and committed in block $M+1$, its block span is 1.} for
+a transaction.
+%
+If the number of the next block is $M$, we compute the \textit{snapshot
+  threshold} as $H = M - max\_span$.
+%
+Any transaction simulated against block $H$ or earlier is aborted.
+%
+For the second case, we define the \textit{age} of a transaction $txn$ to be the sequence
+number of the last committed block containing at least one transaction reachable
+from $txn$ in $G$.
+%
+When the snapshot threshold is greater than $txn$'s age, future transactions
+cannot be concurrent with any transaction that can reach $txn$.
+%
+In this case, the \scenario{anti-rw} dependency will not happen, and this rules
+out any unserializable schedule containing $txn$.
+%
+Therefore, $txn$ can be safely pruned from $G$.
+%
+We facilitate the pruning by arranging all transactions in $G$ into a priority
+queue weighted by age.
+%
+For new transaction to be committed in block $M$, we increase the age of the
+transactions reachable from it to $M$ during the traversal in
+Algorithm~\ref{alg:txn:reachability} (line~\ref{alg:txn:age}).
+%
+For security, all orderers must use the same value for $max\_span$.
+
+\subsection{{\fs} Specifics}
+\label{sec:txn:impl:sharp}
+When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
+It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
+In addition, the historical query powered by DASL in ~\Cref{prov:sec:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+
+\begin{figure}
+  \centering
+	\includegraphics[width=0.87\textwidth]{diagram/txn/odd.pdf}
+  \caption{An example that leads to the incorrect forward query}
+	\label{diagram:txn:impl:sharp}
+\end{figure}
+
+Our concurrency control relaxes from the Strong Serializability in Fabric to the Serializability in {\fs}.
+In other words, transactions committed later can now depend on earlier ones with \scenario{anti-rw}. 
+But this may lead to an incorrect forward query. 
+Figure~\ref{diagram:txn:impl:sharp} illustrates a concrete case.
+It juxtaposes both the state DAG, which draws the provenance dependency between state entries, and the transactional graph, which draws the dependencies between transactions. 
+In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and commits as the first transaction in block 5. Hence, it creates a new entry $S_{A,5}$ with the version 5.
+\texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
+Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
+Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
+In~\Cref{prov:sec:storage:forward}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
+However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
+To address this issue, we directly drop \texttt{Txn2}. 
+In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 
+Notably, the abort only applies when \texttt{Txn1} is already committed in earlier blocks. 
+If \texttt{Txn1} and \texttt{Txn2} are both pending, our reordering procedure guarantees to place \texttt{Txn2} ahead and avoid the above scenario. 
+
+\section{Experiments}
+\label{sec:txn:experiment}

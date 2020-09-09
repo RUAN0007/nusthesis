@@ -169,5 +169,20 @@
 %%% For example code used only
 \usepackage{lipsum} % for generating dummy text
 \newcommand{\CMD}[1]{\texttt{\string#1}} % for typing a command
+\newcommand{\entry}[3]{\ensuremath{(\texttt{#1}, (#2), #3)}}
+\newcommand{\dbentry}[4]{\ensuremath{\{{\texttt{#1}}\_{#2}\_{#3}: \texttt{#4}\}}}
 
+\newcommand{\startTS}[1]{\ensuremath{\textsf{StartTs}(\texttt{#1})}}
+\newcommand{\commitTS}[1]{\ensuremath{\textsf{EndTs}(\texttt{#1})}}
+
+\newcommand{\scenario}[1]{\textit{#1}}
+
+\def\unioneq{\ensuremath{\mathrel{{\cup}{=}}}}
+
+\def\xmark{\ensuremath{\texttt{x}}}
+\def\vmark{\ensuremath{\checkmark}}
+
+\newtheorem{theorem}{Theorem}
 \newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+\newtheorem{proposition}{Proposition}

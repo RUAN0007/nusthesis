@@ -8,34 +8,34 @@ We organize the review based on the abstract layers as classified in Figure~\ref
 
 \section{Data Model Layer}
 \label{literature:sec:datamodel}
-The data model in blochchains concerns on how to organize data that reflect the latest states, and model the ledger that record the historical transactions. 
+The data model in blochchains concerns on how to organize data that reflect the latest states, and model the ledger that records the historical transactions. 
 
 \subsection{State Organization}
-There are two state organizations in the blockchains, the unspent transaction output-based (UTXO) and the account-based. Their key difference lies whether systems explicitly maintain the states. we illustrate both schemes in Figure~\ref{diagram:literature:data_model}.
+There are two state organizations in blockchains, the unspent transaction output-based (UTXO) and the account-based. Their key difference lies whether systems explicitly maintain the states. We illustrate both schemes in Figure~\ref{diagram:literature:data_model}.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.8\linewidth]{diagram/literature/data_model.pdf}
     \vspace{\BeforeCaptionVSpace}
-    \caption{Unspent Transaction Output (UTXO) model vs the Account-based model. }
+    \caption{The Unspent Transaction Output (UTXO) model vs the Account-based model. }
     \label{diagram:literature:data_model}
 \end{figure}
 
 \textbf{UTXO Model.}
-UTXO purely operates on the transaction basis. In their structure, a transaction consists of multiple inputs and outputs. Each output is associated with an amount of cryptocurrency and an unanswered cryptographic puzzle. Any future transaction can reclaim this amount in its input, by providing the puzzle answer and referencing the previously unspent output. An canonical puzzle and its solution can be an address in the format of a public key hash, and a digital signature from the corresponding private key. Notably, the UTXO model does not bookkeep the balance to addresses. All transactions in the ledger form a Direct Acyclic Graph that records the cryptocurrency flow, where identity hides under the anonymous addresses. 
+UTXO operates on the transaction basis. In their structure, a transaction consists of multiple inputs and outputs. Each output is associated with an amount of cryptocurrency and an cryptographic puzzle. Any future transaction can reclaim this amount in its input, by providing the puzzle answer and referencing the previously unspent output. An canonical puzzle and its solution can be an address in the format of a public key hash, and a digital signature from the corresponding private key. Notably, the UTXO model does not bookkeep the balance to addresses. All transactions in the ledger form a Direct Acyclic Graph that records the cryptocurrency flow, where identity hides under the anonymous addresses. 
 
 Bitcoins, due to its decentralization and anonymity, provide a terrain for financial crimes, such as drug dealing and the money laundry. There are a number of attempts to exploit the transactional graph, and identify the pattern for the detection~\cite{fleder2015bitcoin,ron2013quantitative,weber2019anti}. 
 Some analysis relies on the graph linkage to discover the identity~\cite{ober2013structure,gaihre2018bitcoin,moser2013anonymity} or other information to predict the bitcoin price~\cite{greaves2015using}. 
 
 \textbf{Account-based Model.}
-Despite its simplicity, the UTXO model is solely applicable to cryptocurrency-based platforms. 
+Due to its simplicity, the UTXO model is solely applicable to cryptocurrency-based platforms. 
 To support more general workloads, Ethereum introduces the smart contract to encode Turing-complete logic. 
 In their design, a transaction either takes in the form of a contract deployment with the executable code. 
 Or a transaction provides the execution context to invoke a contract. 
 In all cases, each transaction is tagged with the digital signature of the sender. 
 In addition, each blockchain peer must explicitly compute for contract states, including the cryptocurrency balance, in each account. 
 Such requirement is enforced by the blockchain protocol that all peers shall reach consensus on a post-execution state digest in the block header. 
-In contrast, the UTXO-based blockchain only requires for a digest on the transaction integrity.
+In contrast, the UTXO-based blockchain only requires a digest for the transaction integrity.
 
 The account-based data model with smart contracts transition a blockchain into a more general processing platform. 
 But it inevitably incurs more vulnerability from the additional complexity. 
@@ -48,7 +48,7 @@ It is because all the transaction fee is credited to the block miner.
 \subsection{Ledger Abstraction}
 The term \textit{blockchain} originates from the fact that the ledger takes in the form of a hash chain of blocks. 
 Initially, the rationale for Bitcoin to batch transactions into blocks is to amortize the cryptographic overhead.
-However, this single-chain structure prohibits the concurrency, as all participants must sync up on the single ledger tip. 
+However, this single-chain structure prohibits the concurrency, as all participants must sync up on the unique ledger tip. 
 To address this problem, numerous studies have transformed a chain into a direct-acyclic graph (DAG), and then derive a total order of transactions~\cite{sompolinsky2015secure,kiayias2017trees,li2018scaling,srivastava2018phantom}. 
 The exact ledger format is strongly tied to their consensus. 
 
@@ -70,7 +70,7 @@ Despite their implementation differences, the execution architecture of any bloc
     \begin{subfigure}{0.8\textwidth}
       \includegraphics[width=0.99\textwidth]{diagram/literature/eov_arch.pdf}
     \end{subfigure}
-    \caption{Order-execute vs. Execute-order-validate architecture. }
+    \caption{The Order-execute vs. Execute-order-validate architecture. }
     \label{diagram:literature:execution}
     % \vspace{-1.0em}
 \end{figure}
@@ -108,12 +108,12 @@ Read-only queries only involve the Execute phase.
 
 This architecture brings additional benefits compared to Order-execute architecture. 
 Firstly, the endorsement policy decouples the trust condition of a contract from the consensus. 
-For example, a valid transaction may carry the execution results from only one of three peers. 
+For example, a transaction with the endorsement on execution results from only one of three peers can be considered valid. 
 In contrast, the Order-execute architecture mandates the majority of peers to agree on the contract result. 
 Secondly, it preserves confidentiality by restricting the execution to specify peers.
-Clients, aware of the results before transactions are effected, can also minimize the uncertainty. 
+Clients, by knowing results before transactions are effected, can also minimize the uncertainty. 
 Lastly, speculative execution at the start fits well for the concurrency.
-It greatly facilitates computation-heavy transactions, which would queue up in Order-execute architecture. 
+It greatly facilitates computation-heavy transactions, which would queue up in the sequential Order-execute architecture. 
 
 However, such concurrency comes with the cost, which manifests as the aborted transactions for the serializability. 
 We have empirically demonstrated that in Figure~\ref{chart:intro:basic} and will elaborate this issue in Chapter~\ref{ch:txn}. 
@@ -127,7 +127,7 @@ The dependency captured during the transaction execution determines this snippet
 \section{Consensus Layer}
 Byzantine-tolerant consensus differentiates blockchains from other distributed systems. 
 Proof-of-work (PoW), initially proposed in Bitcoin, opens up a new horizon on incentive-based protocols. 
-Meanwhile, the permissioned blockchains revitalize the interest of 
+Meanwhile, permissioned blockchains revitalize the interest of 
 state machine replication approach to address the arbitrary failure. 
 
 \subsection{PoW and its Analysis}
@@ -142,11 +142,11 @@ In the context of Bitcoin, the solution-finding process is called \textit{mining
 Due to the irreversibility of the hash function, mining is fair to all participants, including the adversaries. 
 Ruling out the possibility that adversaries control the majority of the hash power, it results into the following two implications.
 If the adversaries pour all their resources to mine on a shorter chain fork, 
-that fork can catch up the longest chain with negligible probability, where the rest of honest power concentrates. 
+that fork is impossible to catch up the longest chain, where the rest of honest power concentrates. 
 Nakamoto has bounded this possibility to be exponentially small in the original whitepaper~\cite{nakamoto2019bitcoin}.
-More in-depth mathematical frameworks have been established to reason the mining behavior ~\cite{gervais2016security,kiayias2015speed,ren2019analysis,miller2014anonymous,garay2015bitcoin}. 
+More in-depth mathematical frameworks have been established to reason about the mining behavior ~\cite{gervais2016security,kiayias2015speed,ren2019analysis,miller2014anonymous,garay2015bitcoin}. 
 On the other hand, honest block proposers, aware that the longest chain is hardly revertible, are incentivized to extend on it. 
-It is because their proposed block contains a coinbase transaction that credits proposers to the minted cryptocurrencies. 
+It is because their proposed block contains a coinbase transaction that credits the minted cryptocurrencies to proposers. 
 Only the block is in the longest chain then this transaction can take into effect. 
 
 Inevitably, the longest-chain-rule may lead to two divergent forks during the asynchronous network period. 
@@ -189,11 +189,11 @@ GHOST incentives miners to extend on the heaviest sub-tree instead of the longes
 This is to better recycle orphaned blocks. 
 Conflux furthers replies on GHOST to determine the pivot chain and use the pivot chain to decide on a direct-acyclic graph, whose topological order determines the overall transaction sequence~\cite{li2018scaling}. 
 The OHIE is renowned for its multiple-chain structure to harness the distributed network setup~\cite{yu2020ohie}. 
-Its protocol drives each chain to catch up at the same height. 
+Its protocol drives each chain to grow at the same pace. 
 
 \subsection{Byzantine Fault-tolerant Consensus}
 The state-machine replication method to address byzantine consensus resurges with the popularity of blockchains. 
-The Byzantine-fault tolerant consensus problem involves a number of nodes with initial divergent proposals. 
+The Byzantine-fault tolerant consensus problem involves a number of nodes with initial different proposals. 
 The problem requires honest nodes to reach agreement on one of the proposals, while reserving the safety (no possibility of disagreement) and liveness (guarantee of termination)~\cite{lamport2019byzantine}. 
 And this must hold true under the premise that a fraction of malicious nodes may perform arbitrary action. 
 Compared to Bitcoin, this problem modeling is more general, i.e., it is not targeting only on the ledger and no incentives can be hinged on. 
@@ -208,12 +208,12 @@ But it achieves both network linearity ($O(n)$ message complexity) and the respo
 
 While the above series of researches are rooted from PBFT, researchers in VMWare address the problem from a new angle. 
 They remark the possibility to reach consensus in a single phase, given more number of nodes have acknowledged the proposal than normal. 
-Based on this insight, they starts from Fast Byzantine Paxos~\cite{martin2006fast} and Zyzzyva~\cite{gueta2019sbft}, and leads into a series of re-analysis~\cite{abraham2017revisiting} and re-design~\cite{abraham2018revisiting, gueta2019sbft}. 
+Based on this insight, they start from Fast Byzantine Paxos~\cite{martin2006fast} and Zyzzyva~\cite{gueta2019sbft}, and lead into a series of re-analysis~\cite{abraham2017revisiting} and re-design~\cite{abraham2018revisiting, gueta2019sbft}. 
 Their novelty comes from a fast path if more-than-normal acknowlegements have been collected before a timeout. 
 Otherwise, the consensus falls backs to the standard two-phase pipeline.  
 
 FLP Impossibility Result imposes no deterministic, safe and live protocols under the asynchronous network~\cite{fischer1985impossibility}. 
-The above protocols trade the liveness for the safety during the network partition. 
+The above Byzantine-tolerant consensus protocols trade the liveness for the safety during the network partition. 
 In other words, disagreement never occurs even the network loses the connection. 
 Correspondingly, there also exist a number of approaches that rely on the network synchrony for the safety~\cite{abraham2020sync,abraham2017efficient}. 
 In this manner, these protocols behave like PoW in Bitcoin, i.e., a chain will fork under the asynchronous period. 
@@ -225,7 +225,7 @@ For example, HonestBadgerBFT combines a variety of randomized agreement protocol
 So that it achieves linear message complexity, as PoW in Bitcoin. 
 As the carry-on work, BEAT provides a diversity of randomized protocols that tailors for various application demands~\cite{duan2018beat}. 
 Such randomization takes in the form of the unpredictable network connectivity in~\cite{rocket2019scalable}.
-In its design, each node repetitively queries for the proposals the neighbors that it knows of. 
+In its design, each node repetitively queries for the proposals from the neighbors that it knows of. 
 It then determines his own proposal from the majority of query results and uses it to respond for other's queries. 
 Eventually, all honest nodes are probabilistically steered towards a uniform outcome, even though a limited fraction may cheat. 
 
@@ -268,20 +268,20 @@ This survey investigates a broader range of applications and quantifies their th
 Another popular application is the token management.
 Unlike the built-in cryptocurrency, the token is associated with external assets. 
 The assets may range from vouchers, IOU, copyrights, and tangible objects. 
-So that one may redeem the asset in the world, by showing the cryptographic proof on the token possession in the blockchain. 
+So that one may redeem the asset in the world, by showing the cryptographic proof of the token possession in the blockchain. 
 For example, one may get a one-for-one exchange between Tether tokens and US dollars. 
 We observe most of these applications operate on Ethereum, especially to hinge on the official provided ERC20 token standard~\cite{wiki:ERC20}.
 In particular, ERC20 is a smart contract that defines a common list of rules on token operations.  
 Any token issuer can deploy its own version of the ERC20 contract with the prevision of the initial ownership and the total of the supply amount. 
 The transfer of tokens takes in the form of the contract invocations. 
 So that their transactions are secured by Ethereum.
-ERC20 token is widespread with a growing number of Initial Coin Offering (ICO). 
+ERC20 token is getting widespread with a growing number of Initial Coin Offering (ICO). 
 This study reveals that there are more than 64k distinct ERC20 tokens~\cite{victor2019measuring}.
 We refer readers to~\cite{victor2019measuring,somin2018network,chen2020traveling} for the analysis of their transaction pattern. 
 
 To further unleash the blockchain potential, plenty of business proposals explore its intermediary-free data processing capabilities to the banking industry~\cite{guo2016blockchain}, the supply chain management~\cite{tse2017blockchain,saberi2019blockchain,korpela2017digital}, Internet-of-Things(IoT)~\cite{novo2018blockchain,huh2017managing,khan2018iot}, the autonomous governance~\cite{diallo2018egov,atzori2015blockchain}, identity service~\cite{lim2018blockchain,lootsma2017fintech}, medical record ownership control~\cite{azaria2016medrec,medilot}, collaborative shared databases~\cite{peng2020falcondb,el2019blockchaindb} and so on. 
-In all the above cases, blockchains provide a unique trust-building platform that coordinates the business process.
-The procedure usually involve multiple stakeholders with the conflict of interest. 
+In all the above cases, blockchains provide a unique trust-building platform that enforces the business process.
+These processes usually involve multiple stakeholders with the conflict of interest.
 Along with the popularity, some researchers voice out their concern about the improper blockchain usage. 
 \cite{wust2018you} criticizes this worrying trend by critically analyzing several unreasonable cases. 
 \cite{yaga2019blockchain,chowdhury2018blockchain,wust2018you} provide empirical guidelines for applications to choose between blockchains and conventional databases. 
@@ -296,7 +296,7 @@ But it is questionable whether such additional security guarantee is worthwhile 
 
 \section{Benchmarks and Surveys}
 Even though the aforementioned references cover most representative research works, they are far from comprehensive to draw an overall picture on the recent blochchain progress. 
-For a wider range of exposition, we compile blockchain-related surveys with respect to their focused layers in Table~\ref{tab:literature:survey}. We also tabulate reported benchmarks with their selected systems in the table.
+For a wider range of exposition, we compile blockchain-related surveys with their focused layers in Table~\ref{tab:literature:survey}. We also tabulate reported benchmarks with their selected systems in the table.
 
 \begin{table}[]
   \caption{Blockchain-related surveys and benchmarks}
