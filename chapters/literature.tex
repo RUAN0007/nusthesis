@@ -7,6 +7,7 @@ In this chapter, we lay out the foundation of blockchains and explore a systemat
 We organize the review based on the abstract layers as classified in Figure~\ref{diagram:intro:arch}, before identifying the research gap. 
 
 \section{Data Model Layer}
+\label{literature:sec:datamodel}
 The data model in blochchains concerns on how to organize data that reflect the latest states, and model the ledger that record the historical transactions. 
 
 \subsection{State Organization}
@@ -16,7 +17,7 @@ There are two state organizations in the blockchains, the unspent transaction ou
     \centering
     \includegraphics[width=0.8\linewidth]{diagram/literature/data_model.pdf}
     \vspace{\BeforeCaptionVSpace}
-    \caption{Unspent Transaction Output (UTXO) and the Account-based data model. }
+    \caption{Unspent Transaction Output (UTXO) model vs the Account-based model. }
     \label{diagram:literature:data_model}
 \end{figure}
 
@@ -69,7 +70,7 @@ Despite their implementation differences, the execution architecture of any bloc
     \begin{subfigure}{0.8\textwidth}
       \includegraphics[width=0.99\textwidth]{diagram/literature/eov_arch.pdf}
     \end{subfigure}
-    \caption{Comparison of Order-execute and Execute-order-validate architecture. }
+    \caption{Order-execute vs. Execute-order-validate architecture. }
     \label{diagram:literature:execution}
     % \vspace{-1.0em}
 \end{figure}
@@ -125,7 +126,7 @@ The dependency captured during the transaction execution determines this snippet
 
 \section{Consensus Layer}
 Byzantine-tolerant consensus differentiates blockchains from other distributed systems. 
-Proof-of-work (PoW), initially proposed in Bitcoin, opens up a new horizon on the study of incentive-based protocols. 
+Proof-of-work (PoW), initially proposed in Bitcoin, opens up a new horizon on incentive-based protocols. 
 Meanwhile, the permissioned blockchains revitalize the interest of 
 state machine replication approach to address the arbitrary failure. 
 
@@ -138,8 +139,8 @@ In Bitcoin, the puzzle solution is a nonce to make the block hash value prefixed
 The block proposer gets compensated for the hashing power with the newly-minted cryptocurrencies and the transaction fee. 
 
 In the context of Bitcoin, the solution-finding process is called \textit{mining}. 
-Due to the unpredictability of the hash function, mining is fair to all participants, including the adversaries. 
-Ruling out the possibility that adversaries control the majority of the hash power, it leads to the following two implications.
+Due to the irreversibility of the hash function, mining is fair to all participants, including the adversaries. 
+Ruling out the possibility that adversaries control the majority of the hash power, it results into the following two implications.
 If the adversaries pour all their resources to mine on a shorter chain fork, 
 that fork can catch up the longest chain with negligible probability, where the rest of honest power concentrates. 
 Nakamoto has bounded this possibility to be exponentially small in the original whitepaper~\cite{nakamoto2019bitcoin}.
@@ -150,8 +151,8 @@ Only the block is in the longest chain then this transaction can take into effec
 
 Inevitably, the longest-chain-rule may lead to two divergent forks during the asynchronous network period. 
 When the network delay exceeds the block interval, two honest participants may generate two different blocks but on the same height. 
-The longest-chain-rule will eventually resolve to a unique chain when the network partition heals, 
-Hence, transactions in the ledger may not be secure given that they might reside on a shorter to-be-pruned fork. 
+The longest-chain-rule will eventually resolve to a unique chain when the network partition heals.
+Hence, transactions in the ledger may not be secure given that they might reside on a shorter, to-be-pruned fork. 
 Considering this, clients are advised to wait for their transactions until deep enough, before considering them committed. 
 Intuitively, this depth, quantified by the number of blocks behind, balances between latency and security. 
 In the meantime, the block interval and the block size controls the tradeoff between throughput and security. 
@@ -193,7 +194,7 @@ Its protocol drives each chain to catch up at the same height.
 \subsection{Byzantine Fault-tolerant Consensus}
 The state-machine replication method to address byzantine consensus resurges with the popularity of blockchains. 
 The Byzantine-fault tolerant consensus problem involves a number of nodes with initial divergent proposals. 
-The problem requires honest nodes to reach agreement on one of the proposals, while reserving the safety (no possibility of disagreement) and liveness (guarantee of termination). 
+The problem requires honest nodes to reach agreement on one of the proposals, while reserving the safety (no possibility of disagreement) and liveness (guarantee of termination)~\cite{lamport2019byzantine}. 
 And this must hold true under the premise that a fraction of malicious nodes may perform arbitrary action. 
 Compared to Bitcoin, this problem modeling is more general, i.e., it is not targeting only on the ledger and no incentives can be hinged on. 
 
@@ -224,15 +225,15 @@ For example, HonestBadgerBFT combines a variety of randomized agreement protocol
 So that it achieves linear message complexity, as PoW in Bitcoin. 
 As the carry-on work, BEAT provides a diversity of randomized protocols that tailors for various application demands~\cite{duan2018beat}. 
 Such randomization takes in the form of the unpredictable network connectivity in~\cite{rocket2019scalable}.
-Each node repetitively queries for the proposals the neighbors that it knows of. 
+In its design, each node repetitively queries for the proposals the neighbors that it knows of. 
 It then determines his own proposal from the majority of query results and uses it to respond for other's queries. 
 Eventually, all honest nodes are probabilistically steered towards a uniform outcome, even though a limited fraction may cheat. 
 
 \subsection{Committee-based Consensus}
-Blockchains with the committee-based consensus select a single or multiple representative committees, and then to establish the ledger with the above state-machine replication consensus. 
+Blockchains with the committee-based consensus select a single or multiple representative committees, which then establish the ledger with the above state-machine replication consensus. 
 This idea has been dated back to PeerCensus~\cite{decker2016bitcoin}. 
 But their application may not be that straightforward. 
-It is because protocols require for strong assumptions, including identity management, member constitution, and so on. 
+It is because these off-the-shelf protocols require for strong assumptions, including identity management, member constitution, and so on. 
 To cater for these conditions, most blockchains must couple wth some additional procedures, especially on the fair committee formation. 
 For example, Algorand determines a single committee based on the Verifiable Random Function (VRF)~\cite{gilad2017algorand}. 
 In particular, nodes must compute a value with VRF from its private key and a common seed. 
@@ -242,22 +243,87 @@ By starting from an unbiased random seed, Algorand guarantees that no adversarie
 Omniledger depends on the Randhound to achieve the decentralized and unbiased randomness, and power the multi-committee establishment~\cite{kokoris2018omniledger}. 
 Byzcoin repurposes PoW to determine the membership for a single committee~\cite{kogias2016enhancing}. 
 PoW not only guarantees the randomness but also resists the Sybil attacks under the permissionless setting. 
-RapidChain also uses PoW to determine the participants, from which it organizes into multiple committees with a theoretical-involved method~\cite{zamani2018rapidchain}. 
-Elastico directly uses PoW nonce to assign puzzle solvers into one of the committees~\cite{luu2016secure}. 
+RapidChain also uses PoW to determine participants, from which it breaks into multiple committees with a theoretical-involved method~\cite{zamani2018rapidchain}. 
+Elastico directly uses PoW nonce and group solvers with common prefixes into one of the committees~\cite{luu2016secure}. 
 Such randomness for the committee formation comes from Trusted Execution Environment in AHL~\cite{dang2019towards}.
 Not that all the above systems are subject to the periodic committee re-configuration between epochs. 
 This prevents adaptive adversaries to exploit the setup and infiltrate honest nodes. 
-This reconfiguration can be a full swap like in Elastico~\cite{luu2016secure}, Algorand~\cite{gilad2017algorand}, and Omniledger~\cite{kokoris2018omniledger}, or in a rotational manner like Byzcoin~\cite{kogias2016enhancing}, RapidChain~\cite{zamani2018rapidchain}, and AHL~\cite{dang2019towards}. 
+The reconfiguration can be a full swap like in Elastico~\cite{luu2016secure}, Algorand~\cite{gilad2017algorand}, and Omniledger~\cite{kokoris2018omniledger}, or in a rotational manner like Byzcoin~\cite{kogias2016enhancing}, RapidChain~\cite{zamani2018rapidchain}, and AHL~\cite{dang2019towards}. 
 
 We also observe several blockchains adopt a non-technical solution on membership management. 
 For instance, a central authority decides on the validators' role in RSCoin~\cite{danezis2015centrally}. 
-The participants and their weight in Libra~\cite{baudet2019state} and EoS~\cite{xu2018eos} are pre-determined according to their initial investment in the project. 
+The participants and their weight in Libra~\cite{baudet2019state} and EoS~\cite{xu2018eos} are pre-determined according to their initial investment. 
 Chainspace completely sidesteps the committee formation problem~\cite{al2017chainspace}. 
-It leaves the behavior of malicious committee audible in the hope that they can be enforced by an external entity.
+It leaves the behavior of malicious committee audible under the premise that they can be enforced by an external entity.
 
 \section{Application}
-\subsection{Industrial Adoption}
-Casper
-\subsection{Benchmarks and Surveys}
+Blockchains provide unique decentralization, auditability, transparency, and irreversibility, adding abundant value to real-world applications. 
+The most natural use case is to rely on the decentralized ledger as a trustworthy chronological logbook. 
+For example, the Bitcoin protocol allows for a 40 byte of arbitrary data piggybacked at \textit{OP\_RETURN} opcode~\cite{opreturn}.
+Several applications exploit this payload to use as a message commitment. 
+So that one in the future can verify its existence, the creation time and the source of the origin. 
+More advanced usage can be found in~\cite{maesa2017blockchain}, where this payload is used to encode the right transfer of the external resource access, and in~\cite{wu2017voting} for the e-voting. 
+This survey investigates a broader range of applications and quantifies their the overhead of the piggybacking scheme~\cite{bartoletti2017analysis}. 
 
-\section{Summary}
+Another popular application is the token management.
+Unlike the built-in cryptocurrency, the token is associated with external assets. 
+The assets may range from vouchers, IOU, copyrights, and tangible objects. 
+So that one may redeem the asset in the world, by showing the cryptographic proof on the token possession in the blockchain. 
+For example, one may get a one-for-one exchange between Tether tokens and US dollars. 
+We observe most of these applications operate on Ethereum, especially to hinge on the official provided ERC20 token standard~\cite{wiki:ERC20}.
+In particular, ERC20 is a smart contract that defines a common list of rules on token operations.  
+Any token issuer can deploy its own version of the ERC20 contract with the prevision of the initial ownership and the total of the supply amount. 
+The transfer of tokens takes in the form of the contract invocations. 
+So that their transactions are secured by Ethereum.
+ERC20 token is widespread with a growing number of Initial Coin Offering (ICO). 
+This study reveals that there are more than 64k distinct ERC20 tokens~\cite{victor2019measuring}.
+We refer readers to~\cite{victor2019measuring,somin2018network,chen2020traveling} for the analysis of their transaction pattern. 
+
+To further unleash the blockchain potential, plenty of business proposals explore its intermediary-free data processing capabilities to the banking industry~\cite{guo2016blockchain}, the supply chain management~\cite{tse2017blockchain,saberi2019blockchain,korpela2017digital}, Internet-of-Things(IoT)~\cite{novo2018blockchain,huh2017managing,khan2018iot}, the autonomous governance~\cite{diallo2018egov,atzori2015blockchain}, identity service~\cite{lim2018blockchain,lootsma2017fintech}, medical record ownership control~\cite{azaria2016medrec,medilot}, collaborative shared databases~\cite{peng2020falcondb,el2019blockchaindb} and so on. 
+In all the above cases, blockchains provide a unique trust-building platform that coordinates the business process.
+The procedure usually involve multiple stakeholders with the conflict of interest. 
+Along with the popularity, some researchers voice out their concern about the improper blockchain usage. 
+\cite{wust2018you} criticizes this worrying trend by critically analyzing several unreasonable cases. 
+\cite{yaga2019blockchain,chowdhury2018blockchain,wust2018you} provide empirical guidelines for applications to choose between blockchains and conventional databases. 
+In their opinion, the absence of the central authority is the deciding factor for the blockchain adoption. 
+This absence may be due to the entangled interest in the application, the trust deficit from the hostile environment or etc. 
+Otherwise, the expense of dis-intermediation, in terms of the extra storage and performance, far outweighs other blockchain-provided features. 
+Most similar business requirements, such as the provenance support and state integrity, can be more efficiently satisfied with other technical solutions.
+For example, QLDB, as a centrally administrated, in-cloud database, provides a verifiable storage~\cite{qldb}. 
+In other words, the QLDB vendor is technically possible to tamper the data or refuse to deliver the service, despite the fact that all this action will leave evidence. 
+Blockchains, however, is capable to prevent such arbitrary behavior due to their decentralized consensus. 
+But it is questionable whether such additional security guarantee is worthwhile for most applications. 
+
+\section{Benchmarks and Surveys}
+Even though the aforementioned references cover most representative research works, they are far from comprehensive to draw an overall picture on the recent blochchain progress. 
+For a wider range of exposition, we compile blockchain-related surveys with respect to their focused layers in Table~\ref{tab:literature:survey}. We also tabulate reported benchmarks with their selected systems in the table.
+
+\begin{table}[]
+  \caption{Blockchain-related surveys and benchmarks}
+  \label{tab:literature:survey}
+  \centering
+
+  \begin{tabular}{l|l|l}
+    \hline
+                             & \textbf{Layer} & \textbf{Focus}                                                                                       \\ \cline{2-3} 
+    \multirow{4}{*}{\textbf{Surveys}} & Execution      & Ethereum Contract Security~\cite{li2020survey,atzei2017survey,chen2020survey,praitheeshan2019security}                                                                           \\ \cline{2-3} 
+                             & Consensus     &  \cite{wang2019survey,nguyen2018survey,xiao2020survey,garay2020sok}                                                                                                 \\ \cline{2-3} 
+                             & Application    & \begin{tabular}[c]{@{}l@{}}Internet-of-Things~\cite{novo2018blockchain,wu2019comprehensive,wang2019iotsurvey} \\ Banking~\cite{guo2016blockchain,cocco2017banking,peters2016understanding} \\ Others~\cite{mollah2020blockchain,al2019blockchain,blossey2019blockchain,zhuang2020blockchain}\end{tabular}                                  \\ \cline{2-3} 
+                             & Others         & \begin{tabular}[c]{@{}l@{}}Technical Overview~\cite{zheng2018blockchain,lin2017survey,dinh2018untangling}\\ Chain Interoperability and Sharding~\cite{zamyatin2019sok,wang2019sok,yu2020survey}\\ Data Privacy~\cite{feng2019survey,joshi2018survey,mohanta2019blockchain} \end{tabular} \\ \hline
+    \multicolumn{2}{l|}{\textbf{Benchmarks}}           & \begin{tabular}[c]{@{}l@{}}Hyperledger Fabric~\cite{dinh2017blockbench,thakkar2018performance,nasir2018performance,ruan2019blockchains,pongnumkul2017performance,tinguely2019benchmarking}\\ Ethereum\cite{dinh2017blockbench,pongnumkul2017performance,rouhani2017performance,chen2018comparative} \\ Quorum~\cite{ruan2019blockchains,baliga2018performance} \\ Parity~\cite{dinh2017blockbench} \\ Corda~\cite{cordaperf,tinguely2019benchmarking} \end{tabular}                                  \\ \hline
+    \end{tabular}
+\end{table}
+
+\section{Lessons learnt from the Review} 
+Our above review reveals a mismatch between the focus of the industry and academia on blockchains. 
+In particular, researchers place great emphasis on their security aspects. They restrict their attention on the incentive-based consensus, and UTXO-based cryptocurrency in permissionless blockchains. On the other hand, entrepreneurs in the industry show the most interest in the intermediary-free data processing capabilities from permissioned blockchains. 
+In the meantime, we observe most researchers treat a blockchain as it is, but few of them realize its vast similarities to distributed databases. A few work with this awareness juxtapose permissioned blockchains and distributed databases for the joint study. 
+But their analysis leaves much room for improvement: they either only show the blockchains' inferior performance to databases~\cite{dinh2017blockbench,chen2018comparative}. Or they compare their distinct value-addition properties for applications~\cite{chowdhury2018blockchain,wust2018you,yaga2019blockchain}. 
+But they ignore a promising area, which is to optimize permissioned blockchains with database-specific techniques to support general workloads. 
+
+Our thesis moves a step forward along this direction. 
+We first classify blockchains and distributed databases under the same taxonomy.
+Based on this framework, we jointly understand their design choices and behavior (Chapter \ref{ch:twin}). 
+With the developed insights, we extend the provenance support to smart contracts to improve utility (Chapter \ref{ch:prov}). Then learning from databases, we explore reordering techniques to reduce the transaction abort. 
+This performance enhancement applies to any blockchains with execute-order-validate execution pipeline (Chapter \ref{ch:txn}).  
+
