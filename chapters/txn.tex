@@ -210,7 +210,7 @@ value $201$ which was lastly updated by the 1st transaction in block $2$.
 \begin{table}[tp]
 \centering
 \caption{The transaction summary in Figure~\ref{diagram:txn:background}.}
-\label{tab:simulation}
+\label{txn:tab:simulation}
 \small
 \setlength\tabcolsep{2.3pt}
 \begin{tabular}{|c|c|cc|cc|c|l|c|l|c|l|}
@@ -305,7 +305,7 @@ Figure~\ref{diagram:txn:background_fabric}.
   modified along with their new values) produced by the simulation.
   %
   For example, the readset and writeset of transactions in
-  Figure~\ref{diagram:txn:background_fabric} are summarized in Table~\ref{tab:simulation}.
+  Figure~\ref{diagram:txn:background_fabric} are summarized in Table~\ref{txn:tab:simulation}.
   % 
   Throughout the execution, a transaction holds a read lock on the
   state database to guarantee that read values are the latest.
@@ -877,7 +877,6 @@ because the unserializable transactions are aborted before ordering and the
 remaining transactions are guaranteed to be serializable without being aborted.
 %
 Our reordering is no longer limited to a block's scope.
-./b
 Another notable difference is that we determine the block snapshot at the start
 of the simulation, while Fabric and {\fabricPlusplus} determine it based on the last read
 operation.

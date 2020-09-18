@@ -103,7 +103,7 @@ And we explain the design choices of state organization that affect index struct
 At last, we present an overview of {\fs}. 
 
 \textbf{Data model.} Different blockchains adopt different data models for their states. Bitcoin' states
-are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in \Cref{literature:sec:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
+are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in \Cref{sec:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
 by smart contracts.  They adopt an account-based data model, in which each account has its own local states
 stored on the blockchain. A smart contract transaction can write arbitrary data to the storage. This flexible
 data model comes at the cost of integrity protection and verification of the account states. In this paper, we
