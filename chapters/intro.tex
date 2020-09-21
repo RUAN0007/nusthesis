@@ -66,7 +66,7 @@ They seek to harness their common data processing capability while enjoying the 
 However, their attempts are primarily hindered by the following limitations of the permissioned blockchains:
 
 \textbf{Utility. }
-Even though smart contracts open us opportunities for arbitrary transaction logic for blockchains, their provided utility is far from comparable to that of databases. 
+Even though smart contracts open up opportunities for arbitrary transaction logic for blockchains, their provided utility is far from comparable to that of databases. 
 For example, mainstream blockchains only provide procedural languages to encode the data transformation, such as Ethereum with Solidity and Hyperledger Fabric with Golang. 
 But current relational databases already adopt the more expressive declarative SQL language, not to mention the enriched query features that databases develop over decades. 
 In the face of growing demand, permissioned blockchains call for more data processing functionalities, like databases. 
@@ -86,40 +86,53 @@ We now explain the three principles that our enhancement follows:
   \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis, this principle can be manifested in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate \Cref{sec:txn:securityanalysis} on the security implication of the transaction reordering. 
   \item We adopt the modularized approach. We decouple a complex system into individual layers for the separate optimization. Modularization allows for the separation of concerns for the ease of reasoning. It also facilitates interoperability with independent optimization. 
   We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{diagram:intro:arch}. 
-  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain, for the demonstration. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
+  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
 \end{itemize}
 
 \section{Optimization Basis}
 We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this thesis. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
 
-We now evaluate its throughput under its off-the-shelf configuration, which serves as the baseline. 
-Unless otherwise mentioned, all our following experiments in this thesis are conducted in the same testbed as this experiment.
-The testbed consists of a local cluster of 16 nodes. Each node is equipped with E5-1650 3.5GHz CPU, 32GB RAM, and 2TB hard disk. The nodes are interconnected via 1Gbps Ethernet. 
+We now evaluate its throughput under out testbed and setup, which serves as the baseline. 
+The testbed consists of a local cluster of 96 nodes. Each node is equipped with E5-1650 3.5GHz CPU, 32GB RAM, and 2TB hard disk. The nodes are interconnected via 1Gbps Ethernet. 
+We dedicate five nodes to run \textit{peer} processes and three nodes for \textit{orderer} processes. 
+(The distinction of \textit{peer} and \textit{orderer} processes can be found at~\Cref{sec:literature:execution:execute-order-validate}.  )
+We configure Raft as the consensus protocol and all inter-node communication are protected by TLS encryption. 
+Unless otherwise mentioned, all our following experiments in this thesis are conducted in the identical setup and the same testbed as this experiment.
 
-We present the primary results, after averaging over 3 times on the four-peer setup, in Figure~\ref{chart:intro:basic}. 
-The first workload consists of no-op transactions that access no records. 
-Fabric keeps around only 2300 tps throughput when the number of transactions per block is 2000 and beyond. 
-In the second workload with 2000 transactions per block, we gradually increase the request skewness in the modification workload, in which each transaction reads and updates a single record out of 10k. 
-The request distribution follows Zipfian distribution, where the larger coefficient $\theta$ implies for more skewness. 
-When $\theta$ reaches 1.0, we observe its throughput reduces to 549 tps, 65\% of that when $\theta=0$. 
-And more than half of transactions in the ledger do not take effect due to the transactional conflicts. 
-This primary experiment further motivates for the performance speedup of permissioned blockchains. 
+We now present the primary results, after averaging over 3 times, in Figure~\ref{chart:intro:basic}. 
+The first experiment is adapted from YCSB~\cite{cooper2010benchmarking}. 
+Its workload consists of uniform write-only transactions, each inserting 1KB record. 
+Fabric attains its maximum throughput at around 1500 tps when the number of transactions per block is 1000 and beyond. 
+In the second experiment, we fix the block size at its optimal, i.e., 1000 transactions per block, and evaluate against the Smallbank workload~\cite{smallbank}. 
+We first measure the peak performance without contention by uniformly creating bank accounts (loading records). 
+As shown in the leftmost bar of Figure~\ref{chart:intro:basic:smallbank}, Fabric achieves similar throughout as in the previous YCSB experiment, around 1500 tps. 
+Then we saturate the system with the transaction workload at a request rate of 1700 tps, which is slightly greater than the above-mentioned throughput.
+The transaction workload simulates the monetary transfer between 100k bank accounts. 
+And the accessed accounts(records) follow Zipfian distribution, whose skewness is proportional to its coefficient $\theta$. 
+One can observe that the Fabric's performance is susceptible to the request skewness, i.e., the greater $\theta$ leads to the lower throughput. 
+In particular, as illustrated by the blue bar, it only attains 580 tps when $\theta=1$, around 38.6\% of the peak. 
+This baseline experiment again motivates for the performance speedup of permissioned blockchains. 
 
 \begin{figure}[tp]
 	\centering
     \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/intro/noop.pdf}
+      \includegraphics[width=0.99\textwidth]{chart/intro/ycsb.pdf}
+      \caption{YCSB}
+      \label{chart:intro:basic:ycsb}
     \end{subfigure}
     \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/intro/skew.pdf}
+      \includegraphics[width=0.99\textwidth]{chart/intro/smallbank.pdf}
+      \caption{Smallbank}
+      \label{chart:intro:basic:smallbank}
     \end{subfigure}
     \caption{Primary evaluation results for Fabric. }
+    \subcaption*{(a) Fabric attains around 1500 tps at 1000 transactions per block, reaching its peak under the contention-free workload. (b) The skewness of the workload impacts on the Fabric's behavior. }
     \label{chart:intro:basic}
     % \vspace{-1.0em}
 \end{figure}
 
 \section{Thesis Synopsis}
-We structure the rest of this thesis as follows. Chapter~\cite{ch:literature} overviews the recent year progress on both permissioned and permissionless blockchains. The covered literature spans from the database, distributed computing, and security communities. For the modularized fashion, we organize their reviews according to the classified layers in Figure~\ref{diagram:intro:arch}. This chapter ends with our critical analysis in this area. 
+We structure the rest of this thesis as follows. Chapter~\ref{ch:literature} overviews the recent year progress on both permissioned and permissionless blockchains. The covered literature spans from the database, distributed computing, and security communities. For the modularized fashion, we organize their reviews according to the classified layers in Figure~\ref{diagram:intro:arch}. This chapter ends with our critical analysis in this area. 
 
 Chapter~\ref{ch:twin} proposes a taxonomy that unifies blockchains and distributed databases. 
 The study considers both systems as the same type of distributed transactional systems, for the joint analysis on their respective focus. 
@@ -137,7 +150,7 @@ Chapter~\ref{ch:txn} demonstrates another optimization on the performance.
 The work originates from our following subtle observation:
 the execute-order-validate architecture in permissioned blockchains may over-abort transactions under the Serializable isolation level. 
 Borrowed from the well-established transactional analysis from databases, we reason about the potential of transaction reordering to streamline the execution schedule. Based on the developed insight, then we adapt {\fs} to attain the theoretical limits. 
-And the improvement is empirically demonstrated with the remarkable speedup, compared with the vanilla Fabric and the state-of-the-art. 
+And the improvement is empirically demonstrated with our remarkable speedup, compared with the vanilla Fabric and the other state-of-the-art. 
 
 At last, we wrap up the thesis with the conclusion and future directions in Chapter~\ref{ch:conclu}. 
 

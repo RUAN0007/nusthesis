@@ -25,7 +25,7 @@ sharing, and in particular, we use Fabric as the underlying blockchain system.
 Fabric supports a new transaction execution architecture called
 execute-order-validate (EOV).
 %
-In this architecture, a transaction's lifecycle consists of three phases. In the
+In this architecture, a transaction's lifecycle consists of three phases, as detailed in~\Cref{sec:literature:execution:execute-order-validate}. In the
 first phase, \textit{execution}, a client sends the transaction to a set of
 nodes, or peers, specified by an endorsement policy.
 %
@@ -48,26 +48,30 @@ endorsing peers to enhance confidentiality and exploit concurrency. But such
 concurrency comes at the cost of aborting transactions that do not abide
 serializability.
 %
-We evaluate the impact of concurrency control in Fabric on the setup described in \Cref{sec:txn:experiment}.
+We have quantified this cost with respect to the Smallbank workload in Figure~\ref{chart:intro:basic:smallbank}.
 %
-We measure both the raw and effective peak throughputs under both no-op transactions, with no data access, and update transactions, with varying skewness controlled by the zipfian coefficient. 
+Figure~\ref{chart:intro:basic:smallbank} report both the raw and effective peak throughputs under the contention-free workload(, as depicted in \textit{Load} bar) and the transaction workload with contention. 
+%
+In the latter, the Zipfian coefficient $\theta$ of the request distribution controls the contention. 
 %
 The raw throughput represents the in-ledger transaction rate, while the effective throughput represents committed transactions by excluding the aborted transactions from raw throughput. 
 %
-In \Cref{chart:txn:intro}, a bar reports the raw throughput, while its blue part reports the effective throughput. 
+In Figure~\ref{chart:intro:basic:smallbank}, a bar shows the raw throughput, while its blue part reports the effective throughput. 
 %
-The raw throughput is constant (xxx tps) despite the workload type and request skewness. 
+As we can see, the transaction workload achieve similar raw throughput as in the contention-free workload. 
 %
-But with higher skewness, a larger proportion of transactions are aborted for serializability.
+But with higher skewness, a substantial fraction of the in-ledger transactions are aborted for serializability. 
+%
+To be specific, this ratio grows to 57\% when $\theta=1$, severely reducing the system processing volume. 
 
-\begin{figure}
-  \centering     
-  \includegraphics[width=0.8\textwidth]{chart/intro/skew.pdf}
-  \caption{Fabric's raw and effective throughput under both no-op transactions and single modification transactions with varying skewness}
-  \label{chart:txn:intro}
-\end{figure}
+% \begin{figure}
+%   \centering     
+%   \includegraphics[width=0.8\textwidth]{chart/intro/skew.pdf}
+%   \caption{Fabric's raw and effective throughput under both no-op transactions and single modification transactions with varying skewness}
+%   \label{chart:txn:intro}
+% \end{figure}
 
-There are two notable directions attempting to solve this issue.
+There are two notable directions attempting to address this limited volume. 
 %
 The first is to improve upon Fabric's architecture to enhance its
 attainable throughput \cite{nasir2018performance, thakkar2018performance}.

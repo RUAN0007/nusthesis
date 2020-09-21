@@ -381,7 +381,7 @@ Table~\ref{twin:tab:systems} summarizes their design choices according to the ta
 		\multirow{2}{*}{\textbf{Quorum v1.8.2}} & \multirow{2}{*}{Transaction-based} & CFT & Raft & \multirow{2}{*}{Serial} & \multirow{2}{*}{Ledger-based} & \multirow{2}{*}{MPT} & \multirow{2}{*}{NO} \\
 		&  & BFT & IstanbulBFT &  &  &  &  \\
 
-		\multirow{2}{*}{\textbf{Fabric v2.2}} & \multirow{2}{*}{Transaction-based} & \multirow{2}{*}{CFT} & \multirow{2}{*}{Kafka} & Parallel Execution & \multirow{2}{*}{Ledger-based} & \multirow{2}{*}{LSM Tree} & \multirow{2}{*}{NO} \\
+		\multirow{2}{*}{\textbf{Fabric v2.2.0}} & \multirow{2}{*}{Transaction-based} & \multirow{2}{*}{CFT} & \multirow{2}{*}{Raft} & Parallel Execution & \multirow{2}{*}{Ledger-based} & \multirow{2}{*}{LSM Tree} & \multirow{2}{*}{NO} \\
 		&  & &  &  Serial Commit &  &  &  \\
 
 		% \textbf{Hyperledger Fabric v1.3} & Transaction-based & CFT & Kafka & Parallel Execution Sequential Commit & Ledger-based & LSM Tree & NO \\
@@ -423,8 +423,8 @@ copy of the states. In particular, for Fabric we use the endorsement policy unde
 is executed and endorsed by all peers. For CockroachDB and TiDB, we set the replication factor to be the
 same as the number of nodes. 
 
-We use CFT protocols in all five systems. In particular, we configure Quorum to use Raft, and Fabric to use
-Kafka which is a CFT protocol. We also disable all optional security features, such as data encryption and
+We use CFT protocols in all five systems. In particular, we configure both Quorum and Fabric to use Raft. 
+We also disable all optional security features, such as data encryption and
 Transport Layer Security (TLS) communication. 
 
 We set the number of transactions per block to $100$ in Fabric and the block interval to the
