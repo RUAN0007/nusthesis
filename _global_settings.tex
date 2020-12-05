@@ -6,12 +6,21 @@
 
 \dsp % pseudo double spacing
 
+\usepackage{arydshln}
+
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{csquotes}
 \usepackage{subcaption}
 \usepackage{multirow}
+\usepackage{pdflscape}
+\usepackage{pifont}% http://ctan.org/pkg/pifont
 
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+\usepackage{makecell} % For multi-row cells in table
+\usepackage{multirow} % For multi-row cells in table
+\usepackage{tabulary}
 
 
 %%% The abstract of the thesis is titled as "Abstract" by default. 
@@ -130,7 +139,8 @@
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
-\usepackage{color}
+\usepackage{color, colortbl}
+
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{soul}
 \soulregister\cite7

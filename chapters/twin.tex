@@ -1,7 +1,8 @@
 \chapter{Twin Study}
 \label{ch:twin}
-
 \section{Introduction}
+\label{sec:twin:intro}
+
 The very first blockchain system, that is Bitcoin~\cite{nakamoto2019bitcoin}, is a decentralized ledger for
 recording cryptocurrency's transactions. The ledger consists of multiple blocks chained together with cryptographic
 hash pointers, each block containing multiple transactions. This chain of blocks is distributed    
@@ -23,422 +24,775 @@ against Byzantine failures.
 In fact, many companies and government agencies are exploring blockchains to replace, or to complement, their
 enterprise-grade databases~\cite{mougayar2016business,morabito2017business,crosby2016blockchain}.
 
-The parallel between blockchains and distributed databases has not gone unnoticed. Existing works show that
-there are little similarities between the two. Blockchains are suitable when the applications are running in
-untrusted, hostile environments, whereas databases are
-suitable when performance is more important than
-security~\cite{crosby2016blockchain, wust2018you,chowdhury2018blockchain,yaga2018blockchain}. Their distinction is further compounded
-by the significant gap in performance~\cite{dinh2017blockbench}, for instance Bitcoin processes around
-$10$ transactions per second~\cite{bitcoin_tps} while etcd --- a state-of-the-art distributed NoSQL database
---- processes over $50,000$ operations per second~\cite{etcd_perf}.
+The parallel between blockchains and distributed databases has not gone
+unnoticed. Existing works show that there are little similarities between the
+two. Blockchains are suitable when the applications are running in untrusted,
+hostile environments, whereas databases are suitable when performance is more
+important than security~\cite{crosby2016blockchain,
+wust2018you,chowdhury2018blockchain,yaga2018blockchain}. Their distinction is
+further compounded by the significant gap in
+performance~\cite{dinh2017blockbench}, for instance Bitcoin processes around
+$10$ transactions per second~\cite{bitcoin_tps} while etcd --- a
+state-of-the-art distributed NoSQL database --- processes over $50,000$
+operations per second~\cite{etcd_perf}.
 
-On the other hand, we notice the trend of design fusion between databases and blockchains. Design principles and techniques that are traditionally used by databases are being adopted by blockchains. For example, concurrency control techniques attributed to databases are used to increase the performance of blockchains~\cite{sharma2019blurring, ruan2020transactional, dickerson2017adding}. Moreover, sharding has been used to scale out permissioned blockchains~\cite{dang2019towards}. At the same time, the security features of blockchains are used in hybrid blockchain-database systems to provide verifiable data~\cite{el2019blockchaindb, veritas, peng2020falcondb}. 
+On the other hand, we notice the trend of design fusion between databases and
+blockchains. Design principles and techniques that are traditionally used by
+databases are being adopted by blockchains. For example, concurrency control
+techniques attributed to databases are used to increase the performance of
+blockchains~\cite{sharma2019blurring, ruan2020transactional,
+dickerson2017adding}. Moreover, sharding has been used to scale out permissioned
+blockchains~\cite{dang2018towards}. At the same time, the security features of
+blockchains are used in hybrid blockchain-database systems to provide verifiable
+data~\cite{el2019blockchaindb, veritas, peng2020falcondb}.
 
-One limitation of the existing works that compare blockchains and databases is that they only focus on
-application-level, observable and measurable properties, such as throughput and security. In particular, they
-show how the two types of systems differ without identifying the root cause. For example, 
-BLOCKBENCH~\cite{dinh2017blockbench} compares three permissioned blockchains, namely Hyperledger Fabric, Ethereum
-and Parity, with H-Store under two popular data processing workloads. It shows a large gap in performance, but provides no further analysis of the gap. As a consequence, the reported difference does not
-generalize to other workloads other than the two used in the experiments. For instance, under high contention
-workloads, the performance difference may shrink drastically, or may even reverse.   
 
-We aim to provide a comprehensive dichotomy of blockchains and databases. Our approach is to position  
-them within the same design space --- that is, the design space of general transactional systems. We propose a
-taxonomy consisting of four design dimensions and discuss how the two types of systems make different design choices in
-each dimension. The first dimension is replication, which determines what data is replicated to what nodes,
-and the mechanism needed to keep the replicas consistent. The second is concurrency, which determines the tradeoffs between performance and correctness when executing concurrent transactions. The third is storage, which
-determines the data models and access methods. The final dimension is sharding, which determines how data is
-partitioned, and the mechanism for atomicity of cross-shard transactions.  
+% 1. Focus on high level, without explaining the root cause 2. Too much on the
+% difference, there are a lot of similarity.
+% 3. We should look for their commonality, unify their design space.
+% 4. The benefit of having one unifying design space, is that
+One limitation of the existing works that compare blockchains and databases is
+that they only focus on application-level, observable and measurable properties,
+such as throughput and security. In particular, they show how the two types of
+systems differ without identifying the root cause. For example,
+BLOCKBENCH~\cite{dinh2017blockbench} compares three private blockchains, namely
+Hyperledger Fabric, Ethereum and Parity, with H-Store under two popular data
+processing workloads. The authors expose a large gap in performance, but provide
+no further analysis of that gap. As a consequence, the reported difference does
+not generalize to workloads other than the two used in the experiments. For
+instance, under high contention workloads, the performance difference may shrink
+drastically, or may even reverse.
 
-Under our taxonomy, existing works such as~\cite{dinh2017blockbench} are incomplete: they only cover extreme
-points in the design space. In contrast, our work is comprehensive, as it covers many other
-points in the space. Our taxonomy illustrates the inherent similarities between blockchains and
-databases, and provides a principled framework for exploring new designs that fuse blockchains and
-databases~\cite{BlockchainMeetsDatabase,peng2020falcondb,veritas,el2019blockchaindb,mcconaghy2016bigchaindb,schuhknecht2019chainifydb}. 
-We observe that both systems address the same set of
-problems in distributed settings, including consistency, failure and data access, but they make different
-design choices driven by the high-level goals: security for blockchains and performance for databases.  Given
-the taxonomy, we conduct experiments to evaluate the effect of different design choices, thereby giving
-insights into the factors that contribute to their performance gap.  
+To overcome these limitations, we aim to provide a comprehensive dichotomy of
+blockchains and databases. Our approach is to position them within the same
+design space --- that is, the design space of general transactional systems. We
+propose a taxonomy consisting of four design dimensions and discuss how the two
+types of systems make different design choices in each dimension. The first
+dimension is replication, which determines what data is replicated to what
+nodes, and the mechanism needed to keep the replicas consistent. The second is
+concurrency, which determines the tradeoffs between performance and correctness
+when executing concurrent transactions. The third is storage, which determines
+the data models and access methods. The final dimension is sharding, which
+determines how data is partitioned, and the mechanism for atomicity of
+cross-shard transactions.
 
-In summary, we make the following contributions:
+The four dimensions in our taxonomy capture the fundamental
+similarities betwen blockchains and databases. In addition, their impact on the
+overall performance can be measured, therefore these dimensions form a framework
+for fine-grained, quantitiative comparison between these systems. We demonstrate
+how our taxonomy is useful in practice by applying it to compare the performance
+of recent hybrid database-blockchain
+systems~\cite{BlockchainMeetsDatabase,peng2020falcondb,veritas,el2019blockchaindb,mcconaghy2016bigchaindb,schuhknecht2019chainifydb}.
+
+In summary, we make the following contributions in this paper:
 \begin{itemize}
-  \item We compare blockchains and distributed databases as two different types of distributed, transactional systems.  We propose a new taxonomy that characterizes both system categories and their hybrids along four design dimensions: replication, concurrency, storage, and sharding.
+  \item We compare blockchains and distributed databases as two different types
+  of distributed, transactional systems. We propose a new taxonomy that
+  characterizes both types of systems and their hybrids along four
+  design dimensions: replication, concurrency, storage, and sharding.
 
-  \item We use our taxonomy to analyze the security and performance of emerging hybrid blockchain-database systems. 
-  
-  \item We conduct a comprehensive performance study of five popular systems, including  two permissioned blockchains, namely Hyperledger Fabric and Quorum, and three database systems, namely CockroachDB, TiDB, and etcd. The results demonstrate the impact of different design choices on the overall performance. 
-
+  \item We conduct a comprehensive performance study of four popular systems,
+  including two permissioned blockchains, namely Fabric~\cite{web:fabric} and
+  Quorum~\cite{web:quorum}, and two database systems, namely
+  TiDB~\cite{web:tidb} and etcd~\cite{web:etcd}. The results demonstrate the
+  impact of different design choices on performance.
+   
+  \item We use our taxonomy to analyze the security and performance of emerging
+  hybrid blockchain-database systems. We propose a framework that explains their
+  performance differences and estimates the performance of future hybird
+  systems.
 \end{itemize}
 
-\Cref{twin:sec:background} provides relevant background, followed by a qualitative comparisons on the above
-four dimensions in \Cref{twin:sec:anatomy}. \Cref{twin:sec:setup} and \Cref{twin:sec:result} discuss the experimental setup and
+Chapter~\ref{sec:twin:background} provides relevant background, followed by a qualitative comparisons on the above
+four dimensions in Chapter~\ref{sec:twin:taxonomy}. Chapter~\ref{sec:twin:setup} and Chapter~\ref{sec:twin:exp} discuss the experimental setup and
 results, respectively. 
 
+
+%!TEX root = ../main.tex
+
 \section{Background}
-\label{twin:sec:background}
+\label{sec:twin:background}
+
 In this section, we discuss relevant background on blockchains and distributed databases.
 Figure~\ref{diagram:twin:spectrum} shows a high-level comparison of these systems.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.9\textwidth]{diagram/twin/spectrum.pdf}
-    \caption{Blockchains vs. distributed databases in the security-performance coordinate.}
-    \label{diagram:twin:spectrum} 
-\end{figure}
+\subsection{Blockchains}
+From a data structure perspective, a blockchain is a list of blocks linked by
+cryptographic hash pointers. These blocks contain cryptocurrency
+transactions~\cite{nakamoto2019bitcoin}. By this definition, the blockchain is a
+tamper-evident ledger for recording transactions. With smart contracts,
+transactions are in the form of contract deployment and invocation.
+From a systems perspective, a blockchain is a distributed system consisting of
+multiple nodes, some of which are malicious. These nodes maintain a consistent
+ledger by using a Byzantine fault-tolerant (BFT) consensus protocol, such as PoW
+or PBFT~\cite{castro1999practical}.
 
-\subsection{Blockchain}
-From a data structure perspective, a blockchain is a list of blocks linked by cryptographic hash pointers. These blocks contain cryptocurrency transactions~\cite{nakamoto2019bitcoin}. By this definition, the blockchain is a tamper-evident ledger for recording transactions. With smart contracts, transactions are in the form of contract deployment and invocation.
-From a systems perspective, a blockchain is a distributed system consisting of multiple nodes, some of which are malicious. These nodes maintain a consistent ledger by using a Byzantine fault-tolerant (BFT) consensus protocol, such as PoW or PBFT~\cite{castro1999practical}.
+\begin{figure}[tp]
+  \centering
+  \includegraphics[width=0.99\textwidth]{diagram/twin/spectrum.pdf}
+  \caption{Blockchains vs. distributed databases in the security-performance coordinate.}
+  \label{diagram:twin:spectrum}
+ \end{figure}
 
-In the earlier designs, a blockchain transaction is restricted to cryptocurrency and the states are modeled
-as Unspent Transaction Outputs (UTXO).  For example, Bitcoin~\cite{nakamoto2019bitcoin} and other similar
-altcoins use the UTXO model.  Starting with Ethereum~\cite{wood2014ethereum}, blockchains support \textit{smart
-contracts} which allow users to encode and execute arbitrary Turing-complete computations on the ledger. The ledger states are modelled as accounts instead of UTXO. 
-Other systems supporting smart contracts include Quorum, Parity and Hyperledger Fabric~\cite{androulaki2018hyperledger}.  In these systems, a transaction on the ledger takes the form of a contract invocation, which modifies the ledger based on order determined by the consensus protocol. A read-only transaction can be carried out by any node, without undergoing the consensus and being included in the ledger. We only consider blockchains that support smart contracts in this paper, because earlier blockchains (without smart contracts) cannot support database transaction workloads and thus cannot be compared with distributed databases.
 
-\textbf{Permissionless vs. Permissioned.} Blockchains can be broadly divided into two categories: permissionless (or public), and permissioned (or
-private). In the former, for example in Bitcoin and Ethereum, any node and user can join the system in a pseudonymous manner. In the latter, for example in Fabric and Quorum, the node and user must be authorized to join the system. With strong membership control and action regulation, permissioned blockchains are more suitable for enterprise applications and are particularly used in the financial sector.
-Figure~\ref{diagram:twin:spectrum} shows the security-performance tradeoffs in blockchains. It highlights how permissionless
-blockchains can achieve stronger security because they make no identity assumption. In contrast, permissioned
-blockchains have weaker security because of the identity assumption, but can achieve higher performance
-because they can employ consensus protocols with higher efficiency. A more detailed discussion of permissionless versus permissioned blockchain designs can be found
+In earlier designs, a blockchain transaction is restricted to cryptocurrency and
+the states are modeled as Unspent Transaction Outputs (UTXO).  For example,
+Bitcoin~\cite{nakamoto2019bitcoin} and other similar altcoins use the UTXO
+model.  Starting with Ethereum~\cite{web:ethereum}, blockchains support
+\textit{smart contracts} which allow users to encode and execute arbitrary
+Turing-complete computations on the ledger. The ledger states are modelled as
+accounts instead of UTXO.
+Other systems supporting smart contracts include Quorum, Parity and Hyperledger
+Fabric~\cite{androulaki2018hyperledger}.  In these systems, a transaction on the
+ledger takes the form of a contract invocation.
+Transactions sequentially modify the system state based on their order in the
+ledger, determined by the consensus protocol. A read-only transaction can be
+carried out by any node, without undergoing the consensus and being included in
+the ledger. We only consider blockchains that support smart contracts in this
+paper, because earlier blockchains (without smart contracts) cannot support
+database transaction workloads and thus cannot be compared with distributed
+databases.
+
+\textbf{Permissionless vs. Permissioned.} Blockchains can be broadly divided
+into two categories: permissionless (or public), and permissioned (or private).
+In the former, for example in Bitcoin and Ethereum, any node and user can join
+the system in a pseudonymous manner. In the latter, for example in Fabric and
+Quorum, the node and user must be authorized to join the system. With strong
+membership control and action regulation, permissioned blockchains are more
+suitable for enterprise applications and are particularly used in the financial
+sector.
+Figure~\ref{diagram:twin:spectrum} shows the security-performance tradeoffs in
+blockchains. It highlights how permissionless blockchains can achieve stronger
+security because they make no identity assumption. In contrast, permissioned
+blockchains have weaker security because of the identity assumption, but can
+achieve higher performance because they can employ consensus protocols with
+higher efficiency. A more detailed discussion of permissionless versus
+permissioned blockchain designs can be found
 in~\cite{dinh2018untangling,dinh2017blockbench}.
-
 
 \subsection{Distributed Databases}
 
-Unlike blockchains, database systems have been around for decades.  Relational databases, which  
-support easy-to-use SQL language and intuitive ACID transaction semantics, remained mainstream throughout the years. The recent demand of big data processing and the fact that Moore's law is reaching its limit are major factors
-behind the trend of scale-out database designs. Nowadays, both data and computation are distributed over multiple nodes
-in order to achieve high availability and scalability. Principles and techniques in designing and scaling distributed databases are described in detail in~\cite{ozsu2011principles}. 
-Basically, there are two distinctive movements, namely NoSQL and NewSQL, under this new design direction.
+Unlike blockchains, database systems have been around for decades.  Relational
+databases, which support easy-to-use SQL language and intuitive ACID transaction
+semantics, remained mainstream throughout the years. The recent demand of big
+data processing and the fact that Moore's law is reaching its limit are major
+factors behind the trend of scale-out database designs. Nowadays, both data and
+computation are distributed over multiple nodes in order to achieve high
+availability and scalability. Principles and techniques in designing and scaling
+distributed databases are described in detail in~\cite{ozsu2011principles}.
+Basically, there are two distinctive movements, namely NoSQL and NewSQL, under
+this new distributed design direction.
 
 
 \textbf{NoSQL vs. NewSQL.}
-For scalability, many distributed databases abandon the complex relational model and
-the strong ACID semantics. 
-These systems are referred to as {\em NoSQL}. They support more flexible data models and weaker consistency. 
-% They adopt the BASE principle for their transaction semantics. 
-In the sense of CAP theorem~\cite{gilbert2012perspectives}, these NoSQL systems compromise consistency for the sake of availability. 
-A variety of their supported data models may include key-value store (e.g, Redis~\cite{carlson2013redis}, etcd~\cite{web:etcd}), 
-document store (e.g, CouchDB~\cite{anderson2010couchdb}), graph store (e.g, Neo4J~\cite{vukotic2014neo4j}), column-oriented (e.g, Cassandra~\cite{lakshman2010cassandra}) and so on. 
-The most lenient consistency model is eventual consistency which makes no guarantees about the order
-of read and write operations. 
-Between eventual and strong consistency, researchers explore a variety of other abstractions, such as sequential, causal and PRAM consistency. They standardize on the allowable operation behavior for the ease of reasoning. 
-Most NoSQL databases offer configurable options, where users can tradeoff between performance and consistency.
+For scalability, many distributed databases abandon the complex relational model
+and the strong ACID semantics.
+These systems are referred to as {\em NoSQL}. They support more flexible data
+models and weaker consistency.
+% They adopt the BASE principle for their transaction semantics.
+In the sense of the CAP theorem~\cite{gilbert2012perspectives}, these NoSQL
+systems compromise consistency for the sake of availability.
+A variety of their supported data models include key-value store (e.g,
+Redis~\cite{carlson2013redis}, etcd~\cite{web:etcd}), document store (e.g,
+CouchDB~\cite{anderson2010couchdb}), graph store (e.g,
+Neo4J~\cite{vukotic2014neo4j}), column-oriented (e.g,
+Cassandra~\cite{lakshman2010cassandra}) and so on.
+The most lenient consistency model is eventual consistency which makes no
+guarantees about the order of read and write operations.
+Between eventual and strong consistency, researchers explore a variety of other
+abstractions, such as sequential, causal, and PRAM consistency. They standardize
+on the allowable operation behavior for the ease of reasoning.
+Most NoSQL databases offer configurable options, where users can trade off
+between performance and consistency.
 
 The surge of NoSQL systems, however, does not obscure the cost in usability and
-the increase in application complexity.  A new class of distributed database systems, called {\em NewSQL}, aim to restore the relational model and ACID semantics without sacrificing much scalability.  
-NewSQL has drawn attention since 
+the increase in application complexity.  A new class of distributed database
+systems, called {\em NewSQL}, aim to restore the relational model and ACID
+semantics without sacrificing much scalability.
+NewSQL has drawn attention since Google introduced
+Spanner~\cite{corbett2013spanner}, the first NewSQL system. It was followed by a
+few database vendors, such as CockroachDB~\cite{web:cockroach} and
+TiDB~\cite{web:tidb}. In this paper, we consider both NoSQL and NewSQL systems.
 
-Google introduced Spanner~\cite{corbett2013spanner}, the first NewSQL system. It was followed by a few database vendors, such as CockroachDB~\cite{taft2020cockroachdb} and TiDB~\cite{huang13tidb}. In this paper, we consider both NoSQL and NewSQL systems.
-
-\section{Taxonomy}
-\label{twin:sec:anatomy}
-In this section, we present a distributed system taxonomy that illustrates the important design choices made
-by blockchains and distributed databases. We highlight how the differences are driven by the fact that these
-systems aim to achieve different goals: security for blockchains, and performance for databases.  
-Table~\ref{twin:tab:taxonomy} compares the design choices of distributed databases and blockchains under each dimension in our taxonomy. 
-
-\begin{table}
-	\centering
-	\caption{Design choices in blockchains and distributed databases}
-    \label{twin:tab:taxonomy}
-	% \toprule
-	
-\begin{tabular}{l|p{0.38\textwidth}p{0.35\textwidth}}
-                     & \textbf{Blockchains}                                                                                                         & \textbf{Distributed Databases}                                                                                                    \\ \hline
-\textbf{Replication} & \begin{tabular}[c]{@{}l@{}}Transaction replication\\ Byzantine Fault Tolerant\\ consensus: PBFT, PoW, etc\end{tabular}   & \begin{tabular}[c]{@{}l@{}}State replication\\ Crash Fault Tolerant\\ consensus: Raft, Paxos, etc.\end{tabular}               \\ \hline
-\textbf{Concurrency} & Serial execution                                                                                                             & Parallel execution                                                                                                                \\ \hline
-\textbf{Storage}     & \begin{tabular}[c]{@{}l@{}}Append-only ledger abstraction\\ Authenticated data structure:\\ Merkle Tree, etc.\end{tabular}     & \begin{tabular}[c]{@{}l@{}}Direct access without\\ historical query\\ Hardware-conscious index:\\ PSL, FAST, etc.\end{tabular} \\ \hline
-\textbf{Sharding}    & \begin{tabular}[c]{@{}l@{}}Workload-aware shard formation\\ 2PC and BFT-based replication\end{tabular} & \begin{tabular}[c]{@{}l@{}}Node-aware shard formation \\ 2PC with centralized coordinator\end{tabular}                           
-\end{tabular}
-% \bottomrule
-\end{table}
-
-\subsection{Replication}
-\label{sec:replication} 
-
-Replication is the technique of storing copies of the data on multiple nodes called replicas. The key challenge in such a system is to ensure consistency, which involves running a consensus protocol among the replicas. Through this consensus protocol, the replicas reach agreement on the latest data. In this section, we characterize blockchains and distributed databases by the replication model, failure model, and consensus protocol.
-
-\subsubsection{Replication model}
-Blockchains replicate transactions, while databases replicate storage operations (reads and writes). As
-depicted in Figure~\ref{diagram:twin:arch}, a blockchain replicates the ordered log of transactions by running a
-consensus protocol. Each node then executes the transactions against its local states (the ledger). On the
-other hand, a distributed database replicates the ordered log of read and write operations on top of the
-storage. The nodes in the database are oblivious to the transaction logic because they see only one operation at
-a time. In other words, the transaction manager which coordinates the execution of a transaction must be
-trusted --- a common assumption in databases. The blockchain, which assumes malicious nodes,
-does not have that trusted entity, therefore it must replicate the entire transaction so that its execution can be replayed by each participant node. 
-
-\begin{figure}
+\begin{figure}[tp]
     \centering
-	\begin{subfigure}{0.45\textwidth}
-	    \includegraphics[width=0.99\textwidth]{diagram/twin/bc_arch.pdf}
+	\begin{subfigure}{0.5\textwidth}
+	    \includegraphics[width=0.9\textwidth]{diagram/twin/bc_arch.pdf}
 	    % \caption{Blockchain architecture }
 	    \caption{}
 	\end{subfigure}%
 	% \hspace{28mm}
-	\begin{subfigure}{0.45\textwidth}
-	    \includegraphics[width=0.99\textwidth]{diagram/twin/db_arch.pdf}
+	\begin{subfigure}{0.5\textwidth}
+	    \includegraphics[width=0.9\textwidth]{diagram/twin/db_arch.pdf}
 	    % \caption{Distributed database architecture}
 	    \caption{}
-    \end{subfigure}%
-    \caption{Architecture of blockchains and distributed databases}
+	\end{subfigure}%
+	\caption{Architecture of a blockchain and a distributed database}
     \subcaption*{(a) Blockchains first reach consensus on the transaction history, then commit their effects into the storage.
     (b) Distributed databases replicate at the storage layer.}
-    \label{diagram:twin:arch} 
+    \label{diagram:twin:arch}
 \end{figure}
 
+% \begin{landscape}
+\begin{table}[tp]
+	\centering
+	\caption{Design choices in blockchains and distributed databases}
+	\label{tab:twin:taxonomy}
+	
+	\resizebox{1.0\textwidth}{!}{%
+	\begin{tabular}{l|ll}
+	\toprule
+	& \textbf{Blockchains} & \textbf{Distributed Databases} \\ 
+	\hline
+	\textbf{Replication} & \begin{tabular}[c]{@{}l@{}}Transaction replication \\
+	Byzantine Fault Tolerant consensus \end{tabular} &
+	\begin{tabular}[c]{@{}l@{}}State replication \\ 
+	Crash Fault Tolerant consensus\end{tabular} \\ 
+	\hline \textbf{Concurrency} & Serial execution & Concurrent execution \\ 
+	\hline \textbf{Storage} & \begin{tabular}[c]{@{}l@{}}Append-only ledger
+	abstraction \\ 
+	Authenticated data structure: Merkle Tree, etc.\end{tabular} &
+	\begin{tabular}[c]{@{}l@{}}Direct access without historical query \\
+	Hardware-conscious index: PSL, FAST, etc.\end{tabular} \\ 
+	\hline \textbf{Sharding} & \begin{tabular}[c]{@{}l@{}}Node-aware shard
+	formation \\
+	2PC and BFT-based replication\end{tabular} & \begin{tabular}[c]{@{}l@{}}Workload-aware shard formation \\ 
+	2PC with centralized coordinator\end{tabular} \\
+	\bottomrule
+\end{tabular}
+	}
+\end{table}
+% \end{landscape}
+
+
+\section{Taxonomy}
+\label{sec:twin:taxonomy}
+% In this section, we present a distributed system taxonomy that illustrates the important design choices made
+% by blockchains and distributed databases. We highlight how the differences are driven by the fact that these
+% systems aim to achieve different goals: security for blockchains, and performance for databases.  
+
+Table~\ref{tab:twin:taxonomy} compares the design choices of distributed databases and blockchains under each dimension in our taxonomy. 
+
+\subsection{Replication}
+Replication is the technique of storing copies of the data on multiple nodes called replicas. The key
+challenge in such a system is to ensure consistency under failures.
+In this section, we characterize blockchains and distributed databases by what they replicate, how they keep
+the replicas consistent, and their failure models.
+
+\subsubsection{Replication model}
+The units of replication can be transactions or the read/write operations.
+Figure~\ref{diagram:twin:arch} shows that blockchains replicate an ordered log of transactions (or ledger).  
+Distributed databases replicate the ordered log of read and write operations on top
+of the storage. The nodes in the database are oblivious to the transaction logic because they see only one
+operation at a time. One consequence of this model is that the transaction manager which coordinates the
+execution of a transaction must be trusted. In contrast, a blockchain does not have such trusted entity,
+therefore it replicates the entire transaction so that its execution can be replayed by each participant node.
+
+By replicating transactions, the ledger contain application-level information, such as transaction context,
+client signature, execution timestamp, etc.,  making it easy to perform transaction verification.  Due to this
+verifiability, blockchains are often used as a data and computing platform for mutually distrusting parties.
+On the other hand, replicating storage operations means there can be more concurrency, because
+operations can be replicated in different order but with the same effect on the storage.  
+
+\subsubsection{Replication approach}
+There are two main approaches to maintain consistency among replicas. The first
+is primary-backup, which dedicates a replica as the primary which synchronizes
+its states with backup replicas. This is adopted by many databases.
+For example, Replex~\cite{replex} that uses chain replication.
+Cassandra~\cite{lakshman2010cassandra} uses the client as the primary to
+synchronize the replicas.
+
+The second approach is state-machine replication, which essentially maintains an
+ordered log of operations/transactions on each replica. Each replica starts at
+the same initial state, then applies the operations/transactions in the log in
+the same order. Many systems use {\em consensus protocols}, such as
+Paxos~\cite{lamport2001paxos}, Raft~\cite{raft}, and
+PBFT~\cite{castro1999practical}, for the replicas to agree on the ordered log.
+Examples include Quorum~\cite{web:quorum}, TiDB~\cite{web:tidb},
+Spanner~\cite{corbett2013spanner}.
+Compared with the primary-backup, consensus protocols achieve the automatic
+primary failover, by introducing the view change. That is, when the progress
+halts, replicas may jointly agree to enter into a new epoch/view where a new
+primary is elected.
+Apart from the consensus, other systems rely on external services that provide a
+distributed {\em shared log} abstraction, such as Kafka~\cite{web:kafka} and
+Corfu~\cite{corfu}. Operations/transactions are appended to the log, and the
+replicas, as clients of the log, apply them independently.
+Examples of shared log systems include Fabric~\cite{web:fabric},
+Hyder~\cite{hyder}, and Tango~\cite{tango}.
+
+Primary-backup protocols are simpler, and can perform better than state-machine
+replication, when the states are small and there are no failures. For example,
+the chain replication protocol can spread the network cost more evenly among the
+replicas than a consensus protocol, and it achieves better read
+performance~\cite{replex}. Systems based on shared log are expected to perform
+better than the ones based on consensus when there are no failures.  This is
+because shared log decouples ordering from state replication, therefore it can
+be optimized to have high throughput. Furthermore, while the throughput of a
+consensus protocol decreases with more replicas, the throughput of a shared log
+system is expected to remain constant until the number of log consumers exceeds
+the capacity of the log producers~\cite{corfu}. 
+ 
 \subsubsection{Failure model}
-Fault tolerance is an important goal of any distributed system. Distributed databases assume crash failure, in
-which nodes only fail by crashing. In this model, referred to as crash fault tolerance (CFT), the system needs
-to tolerate hardware and software crash, as well as network partition. CFT is suitable for databases, because
-they are considered internal systems, protected by many layers of security. Blockchains, on the
-other hand, assume hostile environments, in which a node can behave arbitrarily. In this Byzantine fault tolerance (BFT) model, the system needs to tolerate any software and hardware failures, as well as any malicious user. This model is appropriate when the system needs to operate correctly under security attacks. For example, the nodes may be compromised by an attacker and therefore deviate arbitrarily from the protocol. 
+\label{sec:twin:taxonomy:replication:failure}
+Replication protocols are complex because they need to maintain consistency
+under failure. Under the crash failure model, in which nodes only fail by
+crashing, the protocols need to tolerate hardware and software failures. Under
+the Byzantine failure model, in which nodes fail arbitrarily, the protocols need
+to tolerate any software and hardware failures, as well as any malicious
+behavior. This model is suitable for achieving security, since it considers
+attacks that fully compromise some nodes in the system.
 
-CFT protocols have lower security guarantees than BFT, but they can achieve higher performance for
-a given number of failures. In particular, to tolerate $f$ failures, CFT requires $2f+1$ replicas, whereas BFT
-requires $3f+1$. We observe that some permissioned blockchains support both failure models. For example,
-Quorum provides both Raft~\cite{raft}, a CFT protocol, and Istanbul consensus, a BFT protocol,
-implementation. These systems allow application developers to make different tradeoffs between security and performance. 
+An orthogonal dimension to the node failure model is the network assumption. The
+network is {\em synchronous} when the network delay is bounded and known. It is
+{\em asynchronous} when the network delay is unbounded. Protocols that tolerate
+crash failures, or CFT, require $f+1$ replicas to tolerate $f$ failures under
+the synchronous network model~\cite{budhiraja1993primary}, and $2f+1$ under the
+asynchronous network model~\cite{raft,lamport2001paxos}. Protocols that tolerate
+Byzantine failure, or BFT, require $2f+1$ and $3f+1$ replicas to tolerate $f$
+failures under the synchronous and asynhronous network models,
+respectively~\cite{castro1999practical, yin2019hotstuff,buchman2016tendermint}.
 
-
-\subsubsection{Consensus protocol}
-Permissionless blockchains adopt proof-of-work (PoW) or other variants such as proof-of-stake (PoS) and proof-of-elapsed time (PoE). In contrast, both permissioned blockchains and distributed databases adopt classic CFT or BFT protocols, such as Paxos~\cite{lamport2001paxos, lamport2006fast}, Raft~\cite{raft}, and PBFT~\cite{castro1999practical}. Detailed comparisons between PoW and other consensus protocols can be found in~\cite{dinh2018untangling,consensus_survey}. Here, we discuss the reason and implication of adopting PoW for permissionless blockchains. Our discussion also extends to other PoW variants.    
-
-In the permissionless setting, a node or user can have many identities. The lack of strong identity
-renders voting-based protocols --- most classic CFT and BFT protocols in the literature are voting-based ---
-infeasible. PoW overcomes the identity problem by relying on incentives. In PoW, a node's probability of
-solving a computational puzzle, thereby solving consensus and gaining rewards, is proportional to its
-physical resources which are difficult to forge. Thus, the node has no advantage in having multiple
-identities. 
-
-In an asynchronous network, FLP theorem~\cite{fischer1982impossibility} rules out any deterministic
-consensus protocol that can achieve both safety and liveness. Permissionless blockchains assume that nodes communicate
-over the Internet which is subject to unpredictable performance and frequent partitioning. They opt for
-liveness over safety, which means the system continues to work under network partitions, but these partitions may be in disagreement in the form of
-chain forks, as shown in Figure~\ref{diagram:twin:fork}. For safety, permissionless blockchains rely on the network synchrony. In particular, when the partition time is longer than the block interval, nodes in each network partition independently append to the ledger. But when the network partition heals, transactions in shorter forks are discarded. This is the reason why permissionless blockchains require users to wait for transactions committed several blocks behind, before considering them in effect. We note that choosing liveness over safety is inevitable in the Internet environment because otherwise, the system will be unavailable for most of the time. 
+Databases assume the crash failure model, since they are considered internal
+systems which are not subject to security attacks. For example,
+Spanner~\cite{web:spanner} uses Paxos~\cite{lamport2005generalized}, a CFT
+protocol.  Permissioned blockchains support both failure models. For example,
+Quorum provides implementations for both Raft~\cite{raft}, a CFT protocol, and
+IBFT, a BFT protocol. These systems allow applications to make different
+tradeoffs between security and performance.
+Public blockchains, on the other hand, ubiquitously adopt BFT protocols because they admit
+any nodes to the system. In particular, PoW protocols are often used because
+they address one fundamental problem in the public settings: a node can have
+many identities. In PoW, a node's probability of solving a computational puzzle,
+thereby reaching consensus and gaining rewards, is proportional to its physical
+resources which are difficult to forge.
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.9\textwidth]{diagram/twin/fork.pdf}
-    \caption{Permissionless vs. permissioned blockchains during network partition after Block 11. The former keeps appending
-    blocks in each partition, while the later becomes unavailable but remains consistent.} 
-    \label{diagram:twin:fork} 
+    \includegraphics[width=0.975\textwidth]{diagram/twin/fork.pdf}
+	\caption{Permissonless vs. permissioned blockchains during the asynchronous period} 
+	\subcaption*{When the network partition occurs after Block 11, The former keep appending blocks in each partition, while
+    the later become unavailable but remain consistent.}
+    \label{diagram:twin:fork}
 \end{figure}
 
-PoW protocols are less sensitive to network conditions than classic CFT and BFT protocols because the latter are communication bound. In particular, most CFT and BFT incur $O(N)$ and $O(N^2)$ message complexity respectively, where $N$ is the network size. The delay of a single message may trigger the expensive recovery mode, which may worsen the delay and lead to performance collapse~\cite{dinh2017blockbench}. PoW protocols, on the other hand, are computation bound, in which the difficulty of the computational puzzle is adjusted gradually to approximate a fixed block interval. %%%
-By not relying heavily on network communication, PoW blockchains achieve higher availability than permissioned blockchains and distributed databases.
+In an asynchronous network and under failures, the FLP
+theorem~\cite{fischer1982impossibility} rules out any deterministic consensus
+protocol that can achieve both safety and liveness. Public blockchains choose
+liveness over safety, meaning that the systems remain available under network
+partitions, but these partitions may be in disagreement which takes the form of
+forks, as shown in Figure~\ref{diagram:twin:fork}.
+Here, availability refers to the system's behavior, that is, new
+blocks are appended to the ledger. Individual transactions may be
+censored and excluded from the blockchain.
+
+PoW protocols have low throughputs mainly due to the resource
+requirements~\cite{dinh2017blockbench}.
+CFT protocols have better performance than BFT protocols, because the former
+incur $O(N)$ network cost, whereas the latter incur $O(N^2)$, where $N$ is the
+number of nodes. As a result, BFT protocols do not scale to a large number of
+nodes, and their performance is more sensitive to network conditions at scale.
+Specifically, when $N$ is large, BFT protocols are more likely to enter view
+change --- an expensive phase of the protocol for replacing the current leader.
+
 
 \subsection{Concurrency}
 
-Most blockchains execute transactions sequentially, while distributed databases employ sophisticated
-concurrency control mechanisms to extract as much concurrency from the execution as possible. The reason for
-blockchains' choice of serial execution is two-fold. First, serial execution may not affect the overall
-performance because execution is often not the bottleneck. For example, in Bitcoin, the consensus protocol may
-take several minutes, while transaction execution takes only a few seconds. Second, enforcing serial execution means the behavior of smart contracts
-is deterministic when the transaction execution is replicated over many nodes. 
-The benefit of determinism is that it is easy to reason about the states of the ledger, 
-which simplifies the achievement of ACID equivalence in blockchains. 
+Concurrency refers to the extent to which transactions are executed at the same
+time. There are two choices: transactions are executed either serially (or
+sequentially), or concurrently. Most blockchains support only serial execution,
+while distributed databases employ sophisticated concurrency control mechanisms
+to extract as much concurrency as possible.
 
-Unlike blockchains, concurrency remains a major research topic in databases. To exploit more concurrency
-inherent in the workloads, complex mechanisms are being proposed to ensure some forms of correctness. In
-particular, there exists a wide range of isolation levels~\cite{computer1986american,bailis2013highly} which
-make different tradeoffs between correctness and performance. Most production-grade databases today offer
-more than one isolation level. 
+There are two reason behind blockchains' lack of support for concurrency. First,
+serial execution may not affect the overall performance because transaction
+execution is often not the bottleneck~\cite{dinh2017blockbench}.   For
+example, in Bitcoin, the consensus protocol may take several minutes to
+complete, which is the block interval required by the protocol, whereas the
+transaction execution, which invokes the Bitcoin script to validate a
+cryptocurreny flow, can be done in milliseconds. Second, serial execution means
+the behavior of smart contracts is deterministic when the transaction execution
+is replicated over many nodes. The benefit of determinism is that it is easy to
+reason about the states of the ledger.
 
-We note that some blockchains start to employ parallelism and simple concurrency techniques used in databases. In Hyperledger Fabric,
-for example, transactions are simulated (executed) in parallel against the ledger states before sent for ordering. During the later sequential commit, the
-  system uses a simple optimistic concurrency control to achieve serializability which aborts
-  transactions whose simulated states are stale. More established techniques to reduce abort have
-  also been proposed~\cite{sharma2019blurring, ruan2020transactional}.
+Unlike blockchains, concurrency remains a major research topic in databases, as
+it is the main source of performance improvement. The challenge in extracting
+concurrency is to ensure the correctness of the concurrent execution. In fact,
+there is a wide range of isolation
+levels~\cite{computer1986american,bailis2013highly} which make different
+tradeoffs between correctness and performance. Most production-grade databases
+today offer more than one isolation level.
+
+We observe that recent blockchains are adopting some simple concurrency
+techniques often found in databases. In Hyperledger Fabric, for example,
+transactions are simulated (executed) in parallel against the ledger states
+before being sent for ordering. During the later commit phase, the system uses a
+simple optimistic concurrency control to achieve serializability which aborts
+transactions whose simulated states are stale. More established techniques to
+reduce abort have also been proposed~\cite{sharma2019blurring,
+ruan2020transactional}.
 
 \subsection{Storage}
-In this section, we describe how blockchains and distributed databases build different models and data
-structures on the storage.  
+
+In this section, we describe how blockchains and distributed databases build
+different models and data structures for storage.
 
 \subsubsection{Storage model}
-The storage in blockchains exposes an append-only ledger abstraction. The ledger records historical
-transactions and the changes made to the global states. Some systems allow applications to access only
-the latest states, for example, Hyperledger Fabric v0.6. Novel storage systems have been proposed to
-enable access to any historical states during smart contract execution~\cite{ruan2019fine}. The storage in distributed databases, on the other hand, exposes direct access to data records. In databases without explicit provenance support, historical data is maintained in limited forms, for example as write-ahead logs.
-We note that such logs are used primarily for failure recovery, and they are periodically pruned. 
+Storage can be built upon the latest states only, amenable for mutation, or upon
+all historical information, amenable for appending.
+The storage in distributed databases only exposes direct access to up-to-date
+records. In databases without explicit provenance support, historical data is
+maintained in limited forms, for example as write-ahead logs.
+We note that such logs are used primarily for failure recovery, and they are
+periodically pruned.
+Blockchains, besides the state storage, additionally expose an append-only
+ledger abstraction.
+The ledger, a chain of blocks, records historical transactions and the changes
+made to the global states.
+We note that such a ledger is hash protected to conserve historical integrity.
+Some blockchains allow applications to access only the latest states, for
+example, Hyperledger Fabric v0.6.
+Recently, novel blockchain-tailored storage systems have been proposed to enable
+access to any historical states during smart contract
+execution~\cite{ruan2019fine}.
 
 \subsubsection{Index}
-One of the most important properties of blockchains is data integrity, which means any tampering with the
-data on the ledger must be detected. As a result, blockchains employ an authenticated data structure, such as Merkle tree index, to provide both efficient data access and integrity protection. For example, Ethereum uses a prefix trie, named Merkle
-Patricia Trie (MPT)~\cite{web:mpt}. In the MPT, the states are stored at the leaves, and the ones with a common key
-prefix are organized into the same branch. Each node is associated with the cryptographic hash of its
-content, such that the root hash represents the complete global states. The access path serves as the
-integrity proof for the retrieved value. Older versions of Hyperledger Fabric use a Merkle Bucket Tree (MBT)
-in which the size of the tree is fixed. 
+Indexes play an instrumental role on the state storage to facilitate data
+access.
+Apart from the performance consideration, some security-oriented systems
+additionally rely on the index to compute a digest, which uniquely identifies
+the state contents.
+Distributed databases are more concerned by performance, i.e., any small
+optimization on the index can translate to a significant improvement in
+performance. Modern indexes are designed to be hardware-conscious in order to
+extract the most efficiency from the hardware. For example, in-memory databases
+abandon the disk-friendly B-tree structure for other structures such as
+FAST~\cite{kim2010fast} and PSL~\cite{xie2017parallelizing} which are designed
+for better cache utilization and multi-core parallelism.
 
-Indexes play such an instrumental role in databases that any small optimization on the index can translate
-to significant improvement in performance. Modern indexes are designed to be hardware-conscious in order to
-extract the most efficiency from the hardware. For example, in-memory databases abandon the disk-friendly B-tree
-structure for other structures such as FAST~\cite{kim2010fast} and PSL~\cite{xie2017parallelizing} which
-are designed for better cache utilization and multi-core parallelism.
+To compute the content-unique digest, blockchains employ an authenticated data
+structure, such as the Merkle tree index, to provide integrity protection on top
+of the state storage.
+For example, Ethereum uses a prefix trie, named Merkle Patricia Trie
+(MPT)~\cite{web:mpt}. In MPT, the states are stored in the leaves. The states
+with a common key prefix are organized under the same branch. Each node is
+associated with the cryptographic hash of its content in the storage engine,
+such that the root hash represents the complete global states. The access path
+serves as the integrity proof for the retrieved value. Older versions of
+Hyperledger Fabric use a Merkle Bucket Tree (MBT) in which the size of the tree
+is fixed.
+Unlike the ledger abstraction which is ubiquitous in blockchains, we note that
+not all blockchains adopt the authenticated data structure for the state
+organization. For example, Hyperledger Fabric abandons this design from version
+1 onwards.	
 
 
 \subsection{Sharding}
 
-Sharding is a common technique in distributed databases for achieving scalability, in which data is
-partitioned into multiple shards. Although it has been studied extensively
-in databases, sharding has only recently been introduced to blockchains. In this section, we discuss two key
-challenges in any sharded systems, that are (i) how to form a shard, and (ii) how to ensure atomicity for cross-shard
-transactions.  
+Sharding is a common technique in distributed databases for achieving
+scalability, in which data is partitioned into multiple shards. Although it has
+been studied extensively in databases, sharding has only recently been
+introduced to blockchains to harness concurrency across shards. In
+this section, we discuss two key challenges in any sharded system, that are (i)
+how to form a shard, and (ii) how to ensure atomicity for cross-shard
+transactions.
 
 \subsubsection{Shard formation}
-A shard formation protocol determines which nodes and data go to which shard. 
-The security of blockchains depends on the assumption that the number of failures is below a certain
-threshold. The shard formation protocol must, therefore, ensure that the assumption holds for every shard.  In
-particular, the shard size must be large enough so that the fraction of Byzantine nodes is small.
-Furthermore, the attacker must not be able to influence the shard assignment, otherwise, it could put enough
-resources into one shard to break the security assumption. State-of-the-art sharded blockchains have different
-approaches. For example, Elastico uses PoW for shard formation~\cite{luu2016secure},
-OmniLedger~\cite{kokoris2018omniledger} employs a complex cryptographic protocol, while
-AHL~\cite{dang2019towards} uses trusted hardware. The last two systems perform regular shard reconfiguration,
-by re-executing the shard formation protocol, in order to guard against adaptive adversaries. 
+A shard formation protocol determines which nodes and data go to which shard.
+The security of blockchains depends on the assumption that the number of
+failures is below a certain threshold. The shard formation protocol must,
+therefore, ensure that the assumption holds for every shard.
+In particular, the shard size must be large enough so that the fraction of
+Byzantine nodes is small.
+Furthermore, the attacker must not be able to influence the shard assignment,
+otherwise, it could reserve enough resources for one shard to break the security
+assumption. State-of-the-art sharded blockchains have different approaches. For
+example, Elastico uses PoW for shard formation~\cite{luu2016secure}, while
+ the recent version of Ethereum uses Proof-of-Stake to select
+validators for each shard~\cite{web:eth2}.
+OmniLedger~\cite{kokoris2018omniledger} employs a complex cryptographic
+protocol, while AHL~\cite{dang2018towards} uses trusted hardware.
+These protocols are secured against Sybil attacks, and executed
+regularly, in the form of shard reconfiguration, to guard against adaptive
+attackers.
 
-The goal of sharding in distributed databases is scalability. As such, the systems aim to assign
-data to shards in a way that optimizes the performance of certain workloads. In practice, they offer a variety of partitioning
-schemes, for example, hash partitioning and range partitioning, so that users can select the most suitable
-for their workloads.  Some systems, for instance, Cassandra\cite{lakshman2010cassandra}, even allow users to specify workload distributions so that data can be partitioned in a locality-aware manner. Unlike blockchains, shard reconfiguration is not necessary for databases, unless when there are significant changes in the workload distribution. 
+The goal of sharding in distributed databases is scalability. As such, the
+systems aim to assign data to shards in a way that optimizes the performance of
+certain workloads. In practice, they offer a variety of partitioning schemes,
+for example, hash partitioning and range partitioning, so that users can select
+the most suitable for their workloads. Some systems, for instance,
+Cassandra\cite{lakshman2010cassandra}, even allow users to specify workload
+distributions so that data can be partitioned in a locality-aware manner. Unlike
+blockchains, shard reconfiguration is not necessary for databases, unless when
+there are significant changes in the workload distribution.
 
 \subsubsection{Atomicity}
-Sharding introduces the problem of transaction atomicity when a transaction can touch data at multiple shards.
-Atomicity requires the cross-shard transaction to either commit at all shards or not at all. In databases, this problem
-is addressed by the two-phase commit (2PC) protocol. This protocol requires a dedicated transaction coordinator. This coordinator is trusted, but it may fail and leave
-the transaction blocked forever. 
-In a recent work, researchers propose Parallel Commit to reduce the commit path into a single round trip\cite{taft2020cockroachdb}. 
+Sharding introduces the problem of transaction atomicity when a transaction
+touched data in multiple shards.
+Atomicity requires a cross-shard transaction to either commit or abort in all
+shards. In databases, this problem is addressed by the two-phase commit (2PC)
+protocol. This protocol requires a dedicated transaction coordinator that must
+be trusted, but may fail and leave the transaction blocked forever. A recent
+work proposed Parallel Commit to reduce the commit duration to a single round
+trip~\cite{taft2020cockroachdb}.
 
-Sharded blockchains face additional challenges in ensuring atomicity because under the Byzantine failure
-model the coordinator cannot be trusted. To overcome this, both~\cite{dang2019towards,herlihy2019cross} propose to implement a 2PC state machine in the shard that runs a BFT protocol. The BFT protocol ensures that the shard is less vulnerable to attacks and does not become a point of failure.
-Any cross-shard transaction must involve this 2PC BFT replicated state machine to ensure atomicity. The consensus liveness guarantees the service high availability, therefore mitigating the blocking problem. 
-But the Byzantine setup in blockchains imposes considerable overhead to the 2PC process.
-
+Sharded blockchains face additional challenges in ensuring atomicity because the
+coordinator cannot be trusted under the Byzantine failure model.
+To overcome this, Eth2 introduces a separate chain running Casper
+consensus~\cite{buterin2017casper}, called Beacon Chain, that coordinates
+cross-shard transactions~\cite{web:eth2}.
+Similarly, \cite{dang2018towards,herlihy2019cross} propose to implement the 2PC
+coordinator as a state machine in a shard that runs a BFT protocol. The BFT
+protocol ensures that the shard is less vulnerable to attacks and does not
+become a point of failure.
+Any cross-shard transaction must involve this 2PC BFT replicated state machine
+to ensure atomicity.
+The consensus liveness guarantees the high availability of the coordinator,
+therefore mitigating the blocking problem.
+But the Byzantine setup in blockchains imposes considerable overhead to the 2PC
+process.
 
 \subsection{Fusion of Blockchains and Databases}
-The taxonomy above  provides a comprehensive design space of distributed transactional systems, which helps
-illustrate the similarities and differences between blockchains and distributed databases. It also serves as a principled framework for understanding the recently emerging hybrid blockchain-database systems. In this section, we compare these systems under our framework.
+The taxonomy above provides a comprehensive description of the design space of
+distributed transactional systems. This taxonomy helps in illustrating the
+similarities and differences between blockchains and distributed databases. It
+also serves as a principled framework for understanding the recently emerging
+hybrid blockchain-database systems. In this section, we discuss how these
+systems fit into the design space. We provide a deeper analysis of their
+performance in Chapter~\ref{sec:twin:exp:hybrids}.
 
-\textbf{Out-of-the-blockchain Databases.} One approach for hybrid design is to start with a blockchain and
-build database features on top of it. Examples of this approach include BlockchainDB~\cite{el2019blockchaindb}, Veritas~\cite{veritas}, and
-FalconDB~\cite{peng2020falcondb},  which provide shared and verifiable databases for multiple distrusting
-parties.  They use blockchain only as an integrity-protected storage, and build other database components on
-top of it. More specifically, BlockchainDB supports get/put/verify data operations.  FalconDB enables
-verification from light-weight clients which do not have the full copy of the states. Veritas stores states in
-a local database, and relies on voting and state digest in blockchains for disputes. In these
-systems, replication is transaction-oblivious, with duplicated states, logs and meta-data.  Since
-blockchain is on the critical path, these systems have limited performance.
-BlockchainDB~\cite{el2019blockchaindb} employs multiple blockchains for storage, therefore it is amenable to
-sharding.
+\textbf{Out-of-the-blockchain Databases.} One approach toward a hybrid design is
+to start with a blockchain (or a blockchain-like system) and build database
+features on top of it. Examples of this approach include
+BlockchainDB~\cite{el2019blockchaindb}, Veritas~\cite{veritas}, and
+FalconDB~\cite{peng2020falcondb}, which provide shared and verifiable databases
+for multiple distrusting parties.
+They use blockchains as an integrity-protected storage, and build other database
+components on top of it.
+In these systems, replication is transaction-oblivious, with duplicated states,
+logs, and meta-data.
+BlockchainDB replicates storage operations and uses PoW for
+consensus. It inherits the authenticated state organization from the underlying
+blockchain and employs multiple blockchains for storage. Therefore, it is
+amenable to sharding. However, transactions are executed sequentially within
+each shard.
+FalconDB and Vertias also adopt storage-based replication, but use
+Tendermint~\cite{buchman2016tendermint} for consensus and Kafka~\cite{web:kafka}
+as the shared log, respectively.
+They use a similar optimistic concurrency control mechanism as Fabric. FalconDB
+outsources the authentication task to IntegriDB~\cite{zhang2015integridb}, which
+enables a light-weight client to produce a proof without holding the entire
+ledger. Veritas relies on trusted verifiers for the state integrity.
 
-\textbf{Out-of-the-database Blockchains.} Another approach for hybrid design is to start with a database,
-then add blockchain features to it. Examples of this approach include
-BigchainDB~\cite{mcconaghy2016bigchaindb}, Blockchain Relational Database (BRD)~\cite{BlockchainMeetsDatabase}
-and ChainifyDB~\cite{schuhknecht2019chainifydb}. In these systems, each node has
-its own stand-alone full-fudged database, and executes transactions on its database according to a global order achieved through
-consensus. 
-This is different from blockchains, such as Quorum, which embed LevelDB as a slim storage component and run it in the same process. 
-In particular, BRD uses PostgreSQL and transactions contain invocation contexts of stored
-procedures. BigchainDB uses MongoDB, thus its transactions are in JSON format.
-ChainifyDB allows heterogeneous databases, and the nodes use consensus to agree on transaction effects instead
-of transaction order. Both ChainifyDB and BRD use
-Kafka broker service, a crash-tolerant consensus protocol that trades performance for security. In contrast,
-BigchainDB uses Tendermint consensus protocol which tolerates Byzantine failures at the expense of performance.
-In terms of concurrency, these systems inherit the concurrency support of their underlying databases, with
-serializable constraints according to the ledger order.  However, these systems do not protect the local
-states with Merkle trees, and only rely on the integrity protection of the ledger. 
+\textbf{Out-of-the-database Blockchains.} Another hybrid design approach is to
+start with a database, then add blockchain features to it. Examples of this
+approach include BigchainDB~\cite{mcconaghy2016bigchaindb}, Blockchain
+Relational Database (BRD)~\cite{BlockchainMeetsDatabase}, and
+ChainifyDB~\cite{schuhknecht2019chainifydb}. In these systems, each node has its
+own database and executes transactions on its database according to a global
+order achieved through consensus.
+These systems adopt the transaction-based replication model where the
+ledger serves as a secure shared log that stores transactions.
+The nodes execute the same sequence of transactions, but on different local
+databases.
+In particular, BRD uses PostgreSQL~\cite{postgres} and the transactions contain
+invocation contexts of stored procedures. BigchainDB uses
+MongoDB~\cite{web:mongodb}, thus its transactions are in JSON format.
+ChainifyDB allows heterogeneous relational databases, and transactions are in
+the form of standardized SQL statements.
+ChainifyDB uses a Kafka broker to share logs for efficiency. In contrast,
+BigchainDB uses the Tendermint consensus protocol which tolerates Byzantine
+failures at the expense of performance.
+BRD jointly uses Kafka~\cite{web:kafka} and BFT-SMaRt~\cite{bftsmart}, an
+implementation of PBFT.
+These systems inherit the concurrency support of their underlying databases,
+with serializable constraints according to the ledger order. However, these
+systems do not protect the local states with Merkle trees and only rely on the
+integrity protection of the ledger.
 Finally, these systems do not support sharding.
 
-In summary, out-of-the-database blockchains retain many design choices of distributed databases, as their
-main goal is performance. In contrast, out-of-the-blockchain databases inherit many design choices of
-blockchains, as their main goal is security.
+In summary, out-of-the-database blockchains retain many design choices of
+distributed databases, as their main goal is performance. In contrast,
+out-of-the-blockchain databases inherit many design choices of blockchains, as
+their main goal is security.
+
+\subsection{Discussion}
+
+Table~\ref{tab:twin:systems} summarizes some representative transactional systems and
+their design choices based on our proposed taxonomy.
+We only consider blockchains with generic smart contracts and NoSQL databases
+with key-value data model.
+We exclude permissionless blockchains from our quantitative analysis, as their
+security-performance tradeoffs have been extensively
+studied~\cite{gervais2016security}.
+One can observe from Table~\ref{tab:twin:systems} that the hybrid systems, just like
+permissioned blockchains, share some security-oriented design choices with
+blockchains and some performance-oriented design choices with databases.
+
+\begin{landscape}
+
+	\begin{table*}[tp]
+		\centering
+		\caption{System comparison based on our taxonomy }
+		\subcaption*{ 
+		For each hybrid system, we mark their security-oriented designs with red and performance-oriented designs with blue.
+		}
+		\label{tab:twin:systems}
+		
+		\definecolor{highlighted}{rgb}{0.7, 0.75, 0.71}
+	
+		\newcommand{\security}[1]{{\color{red}{#1}}}
+		\newcommand{\performance}[1]{{\color{blue}{#1}}}
+	
+	
+		\resizebox{1.5\textwidth}{!}{%
+		\begin{tabular}{cclcccccc} 
+			\toprule
+			\multirow{2}{*}{\textbf{Category}} & \multirow{2}{*}{\textbf{System}} & \multicolumn{3}{c}{\textbf{Replication} }                                                                                                                                                  & \multirow{2}{*}{\textbf{Concurrency} } & \multicolumn{2}{c}{\textbf{Storage} } & \multirow{2}{*}{\begin{tabular}[c]{@{}c@{}}\textbf{Sharding }\\\textbf{ Support (2PC)} \end{tabular}}  \\
+									  &                          & \begin{tabular}[c]{@{}l@{}}Replication \\ Model \end{tabular} & \begin{tabular}[c]{@{}c@{}}Replication \\Approach \end{tabular} & \begin{tabular}[c]{@{}c@{}}Failure Model\\(Consensus Protocol) \end{tabular} &                                        & Ledger Abstraction & Index(Storage Engine)                 &                                                                                                  \\
+	
+			\midrule
+			\multirow{2}{*}{\makecell{Permissionless \\ Blockchains}} & Ethereum~\cite{web:ethereum} & Txn-based & Consensus & BFT(PoW) & Serial & \cmark & LSM Tree(LevelDB)+MPT & \xmark(\xmark)\\
+	
+			\cdashline{2-9} \\
+			& Eth2~\cite{web:eth2} & Txn-based & Consensus & BFT(PoS + Casper) & Serial (in each shard) & \cmark & LSM Tree(LevelDB)+MPT & \cmark(\xmark)\\
+	
+			\midrule
+	
+			\multirow{5}{*}{ \makecell{Permissioned \\ Blockchains}} & \cellcolor{highlighted}Quorum v2.2~\cite{web:quorum} &  \cellcolor{highlighted}Txn-based &  \cellcolor{highlighted}Consensus &  \cellcolor{highlighted}Raft(CFT)/IBFT(BFT) &  \cellcolor{highlighted}Serial &  \cellcolor{highlighted}\cmark & \cellcolor{highlighted} LSM Tree(LevelDB)+MPT &  \cellcolor{highlighted}\xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+	
+			&\cellcolor{highlighted} Fabric v2.2~\cite{web:fabric} &\cellcolor{highlighted} Txn-based &\cellcolor{highlighted} Shared log &\cellcolor{highlighted} CFT(\textit{Orderer} with Raft) &\cellcolor{highlighted} \makecell{Concurrent Execution \\ Serial Commit}&\cellcolor{highlighted} \cmark &\cellcolor{highlighted} LSM Tree(LevelDB) &\cellcolor{highlighted} \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+	
+			& Fabric v0.6~\cite{web:fabric06} & Txn-based & Consensus & BFT(PBFT) & Serial & \cmark & \makecell{LSM Tree(RocksDB) \\ + MBT} & \xmark(\xmark)
+			\\
+	
+			\cdashline{2-9} \\
+			& EOS~\cite{web:eos} & Txn-based & Consensus & BFT(DPoS) & Serial & \cmark & B-tree(MongoDB) &  \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+	
+			& \multirow{2}{*}{FISCO BCOS~\cite{web:fisco}} & \multirow{2}{*}{Txn-based} &  Consensus & CFT(Raft) & \multirow{2}{*}{Serial} & \multirow{2}{*}{\cmark} & \multirow{2}{*}{\makecell{LSM Tree(LevelDB) \\+MPT}} & \multirow{2}{*}{\xmark(\xmark)} \\
+			& &  & & BFT(PBFT) & &  &  &  \\
+	
+			\midrule
+			\multirow{3}{*}{\makecell{NewSQL \\ Databases}} & \cellcolor{highlighted} {TiDB v4.0~\cite{web:tidb}} & \cellcolor{highlighted}{Storage-based} & \cellcolor{highlighted}Consensus &\cellcolor{highlighted} CFT(Raft) &\cellcolor{highlighted} Concurrent &\cellcolor{highlighted} \xmark &\cellcolor{highlighted} LSM Tree(TiKV) &\cellcolor{highlighted}  \cmark(\cmark) \\
+	
+			\cdashline{2-9} \\
+			 & CockroachDB~\cite{web:cockroach} & Storage-based & Consensus & CFT(Raft) & Concurrent & \xmark & LSM Tree(RocksDB) &  \cmark(\cmark) \\
+			\cdashline{2-9} \\
+			 & Spanner~\cite{web:spanner} & Storage-based & Consensus & CFT(Paxos) & Concurrent & \xmark & LSM Tree &  \cmark(\cmark) \\
+	
+			\cdashline{2-9} \\
+			 & H-store~\cite{kallman2008h} & Storage-based & Primary-backup & CFT & Concurrent & \xmark & B Tree &  \cmark(\cmark) \\
+	
+			\midrule
+			\multirow{3}{*}{\makecell{NoSQL \\ Databases}} &\cellcolor{highlighted} Etcd v3.3~\cite{web:etcd} &\cellcolor{highlighted} Storage-based &\cellcolor{highlighted} Consensus &\cellcolor{highlighted} CFT(Raft) &\cellcolor{highlighted} Serial &\cellcolor{highlighted} \xmark &\cellcolor{highlighted} B Tree(BoltDB) & \cellcolor{highlighted} \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+			& Cassandra~\cite{web:cassandra}& Storage-based & Primary-backup & CFT & Concurrent & \xmark & LSM Tree &  \cmark(\xmark) \\
+			\cdashline{2-9} \\
+			& DynamoDB~\cite{web:dynamodb} & Storage-based & Primary-backup & CFT & Concurrent & \xmark & B Tree &  \cmark(\xmark) \\
+	
+			\midrule
+			\multirow{3}{*}{\makecell{Out-of-the \\ Blockchain \\ Databases}} & BlockchainDB~\cite{el2019blockchaindb} & \performance{Storage-based} & Consensus & \security{BFT(PoW)} & \security{Serial (in each shard)} & \security{\cmark} & \security{\makecell{LSM Tree(LevelDB)\\+MPT}} &  \cmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+			& Veritas~\cite{veritas} & \performance{Storage-based} & Shared log& \performance{CFT(Kafka)} & \performance{\makecell{Concurrent Execution \\ Serial Commit}} &  \security{\makecell{\cmark}} & \performance{Skip List(Redis)} &  \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+			& FalconDB~\cite{peng2020falcondb} & \performance{Storage-based} & Consensus & \security{BFT(Tendermint)} & \performance{\makecell{Concurrent Execution \\ Serial Commit}} &  \security{\makecell{\cmark }} & \security{\makecell{B Tree(MySQL)\\+Merkle Tree(IntegriDB)}} &  \xmark(\xmark) \\
+	
+			\midrule
+			\multirow{3}{*}{\makecell{Out-of-the \\ Database \\ Blockchains}} & \makecell{Blockchain Relational\\
+		Database (BRD)~\cite{BlockchainMeetsDatabase}} & \security{Txn-based} & \makecell{Shared log} & \makecell{\performance{CFT(Kafka)} \\ \security{BFT(BFT-SMaRt)}} & \performance{Concurrent} & \security{\cmark} & \performance{\makecell{B Tree(PostgreSQL)}} &  \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+			& ChainifyDB~\cite{schuhknecht2019chainifydb} & \security{Txn-based} & Shared log& \performance{CFT(Kafka)} & \performance{Concurrent} &  \security{\cmark} & \performance{\makecell{B Tree\\(MySQL/PostgreSQL)}} &  \xmark(\xmark) \\
+	
+			\cdashline{2-9} \\
+			& BigchainDB~\cite{mcconaghy2016bigchaindb} & \security{Txn-based} & Consensus & \security{BFT(Tendermint)} & \performance{Concurrent} &  \security{\cmark} & \performance{B Tree(MongoDB)} &  \xmark(\xmark) \\
+	
+			\bottomrule
+			\end{tabular}
+		}
+	\end{table*}
+
+\end{landscape}
 
 \section{Experimental Setup}
-\label{twin:sec:setup}
+\label{sec:twin:setup}
 \subsection{Systems}
-We select five representative systems: two permissioned blockchains, namely Quorum~\cite{web:quorum} and Hyperledger Fabric~\cite{androulaki2018hyperledger}, two NewSQL distributed databases, namely CockroachDB~\cite{taft2020cockroachdb} and TiDB~\cite{huang13tidb}, and one NoSQL distributed database, namely Etcd~\cite{web:etcd}. 
-Table~\ref{twin:tab:systems} summarizes their design choices according to the taxonomy in Section~\ref{twin:sec:anatomy}.
 
-\begin{table*}[]
-	\centering
-	\caption{Comparison of the five selected systems based on our taxonomy}
-	\label{twin:tab:systems}
-	\resizebox{\textwidth}{!}{%
-	\begin{tabular}{clcccccc}
+We select four representative systems: two permissioned blockchains, namely Quorum~\cite{web:quorum} and Hyperledger Fabric~\cite{web:fabric}, and two distributed databases, namely TiDB~\cite{web:tidb} and etcd~\cite{web:etcd}.
+Quorum represents order-execute blockchains, while Fabric represents execute-order-validate blockchains. 
+They also employ different replication approaches, as shown in Figure~\ref{diagram:literature:execution}.
+Fabric employs an external ordering service while Quorum relies on Raft consensus.
 
-		\toprule
+Quorum is a fork of \textit{geth}, the Golang implementation of Ethereum. 
+Quorum replaces the original Proof of Work (PoW) of Ethereum with a CFT protocol, namely Raft, and a BFT protocol called
+Istanbul BFT (IBFT). However, it inherits Ethereum Virtual Machine (EVM) to invoke smart contracts.
 
-		\multirow{2}{*}{System \& Version} & \multicolumn{3}{c}{\textbf{Replication}} & \multirow{2}{*}{\textbf{Concurrency}} & \multicolumn{2}{c}{\textbf{Storage}} & \multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}c@{}}Sharding \\ Support\end{tabular}}} \\
-		& \begin{tabular}[c]{@{}c@{}}Replication \\ Model\end{tabular} & \begin{tabular}[c]{@{}c@{}}Failure \\ Model\end{tabular} & \begin{tabular}[c]{@{}c@{}}Consensus \\ Protocol\end{tabular} &  & Storage Model & Index &  \\
+Fabric is featured for its modularized design. 
+In particular, a node role is separated into \textit{orderer} and \textit{peer}, as also detailed in Figure~\ref{diagram:literature:execution}.
 
-		\midrule
+TiDB~\cite{web:tidb} and etcd~\cite{web:etcd} represent NewSQL and NoSQL
+distributed databases, respectively.
+TiDB consists of three independent modules, namely Placement Driver for
+coordinating cluster management, TiKV as the replicated key-value storage, and
+TiDB-server for parsing and scheduling SQL queries in a stateless manner. TiDB
+only supports snapshot isolation.
+Etcd provides a simple key-value data model with relaxed transactional
+restrictions but focuses on the tradeoff between availability and consistency.
+Similar to blockchains, etcd employs a single consensus instance to sequence all
+the requests.
+Without sharding, etcd fully replicates the data on each node.
+We also benchmarked CockroachDB~\cite{web:cockroach}, another NewSQL database. Since it exhibits similar performance trends as TiDB, we decide to omit it in this paper. 
 
-		\multirow{2}{*}{\textbf{Quorum v1.8.2}} & \multirow{2}{*}{Transaction-based} & CFT & Raft & \multirow{2}{*}{Serial} & \multirow{2}{*}{Ledger-based} & \multirow{2}{*}{MPT} & \multirow{2}{*}{NO} \\
-		&  & BFT & IstanbulBFT &  &  &  &  \\
-
-		\multirow{2}{*}{\textbf{Fabric v2.2.0}} & \multirow{2}{*}{Transaction-based} & \multirow{2}{*}{CFT} & \multirow{2}{*}{Raft} & Parallel Execution & \multirow{2}{*}{Ledger-based} & \multirow{2}{*}{LSM Tree} & \multirow{2}{*}{NO} \\
-		&  & &  &  Serial Commit &  &  &  \\
-
-		% \textbf{Hyperledger Fabric v1.3} & Transaction-based & CFT & Kafka & Parallel Execution Sequential Commit & Ledger-based & LSM Tree & NO \\
-		\textbf{CockroachDB}\\ \textbf{v20.1.2} & Storage-based & CFT & Raft & Parallel & State-based & LSM Tree & YES \\
-		\textbf{TiDB v2.1.0} & Storage-based & CFT & Raft & Parallel & State-based & LSM Tree & YES \\
-		\textbf{Etcd v3.3.13} & Storage-based & CFT & Raft & Parallel & State-based & B-tree & NO \\
-
-        \bottomrule
-	\end{tabular}%
-	}
-\end{table*}
-
-\textbf{Quorum}~\cite{web:quorum} (version $1.8.12$) is a permissioned blockchain based on Ethereum. It
-targets the financial sector which requires greater efficiency and data privacy than what is provided by Ethereum.
-Quorum replaces Ethereum's Proof of Work (PoW) with a CFT protocol, namely Raft, and a BFT protocol called
-Istanbul BFT. However, it inherits the original Order-execute execution paradigm from Ethereum. \Cref{sec:literature:execution:order-execute} clarifies this architecture. 
-
-\textbf{Fabric}~\cite{androulaki2018hyperledger} (version $2.2$) is a popular permissioned
-blockchain started by IBM and the Linux Foundation. It has a modular design and features a novel execute-order-validate paradigm, as detailed in~\Cref{sec:literature:execution:execute-order-validate}. The system has two types
-of nodes. 
-{\em Peers} participate in the first execution and the last validation steps, simulating smart contracts, endorsing transactions and validating blocks. {\em Orderers} operate in the middle of the pipeline, reaching consensus on the transaction sequence and batch them into blocks. 
-
-\textbf{CockroachDB}~\cite{taft2020cockroachdb} (version $20.1.2$) is 
-a distributed NewSQL relational database that supports both ACID transactions and horizontal scalability. It relies on the Raft consensus protocol to synchronize replicas. As an open-source solution inspired by Spanner~\cite{corbett2013spanner}, CockroachDB utilizes a synchronized clock to coordinate Parallel Commit for transaction atomicity. 
-
-\textbf{TiDB}~\cite{huang13tidb} (version $2.1.0$) is another distributed NewSQL database system that supports both SQL semantics and horizontal scalability. 
-While CockroachDB takes a monolithic approach, TiDB is featured for its modular design. TiDB consists of three independent components, namely Placement Driver for coordinating cluster management, TiKV servicing as the replicated key-value storage, and TiDB-server for parsing and scheduling SQL queries in a stateless manner. 
-TiDB also employs optimistic concurrency control and 2PC for transaction management, as well as Raft for replica consistency. However, its data isolation level only support snapshot isolation, more lenient than serializable in CockroachDB. 
-
-\textbf{Etcd}~\cite{web:etcd} (version $3.3.13$) is a NoSQL database used in many large-scale
-systems~\cite{web:etcd_user}.  
-Etcd provides a simpler key-value data model with relaxed transactional restriction but focuses on the tradeoff between availability and consistency. 
-Similar to blockchains, etcd employs a single consensus instance to sequence all the requests.
-Without sharding, data are fully replicated on each node.
+% \begin{figure}[tp] 
+% 	\centering
+% 		\begin{subfigure}{0.99\textwidth}
+% 			\includegraphics[width=0.99\textwidth]{diagram/twin/quorum_arch.pdf}
+% 			\caption{Quorum transaction lifecycle}
+% 			\label{chart:twin:quorum-arch}     
+% 		\end{subfigure}
+% 		\begin{subfigure}{0.99\textwidth}
+% 			\includegraphics[width=0.99\textwidth]{diagram/twin/fabric_arch.pdf}
+% 			\caption{Fabric transaction lifecycle}
+% 			\label{chart:twin:fabric-arch}
+% 		\end{subfigure}
+% 	\caption{Transaction execution in Quorum vs. Fabric.}
+% 	\subcaption*{In Quorum, a node
+% 	assembles pre-executed transactions into blocks before running the consensus.
+% 	In Fabric, a client collects simulation results and endorsements from peer
+% 	nodes to form a transaction. Orderer nodes order the transactions and batch
+% 	them into blocks, which are then pulled by the peer nodes for independent
+% 	validation and commit.} 
+% 	\label{chart:twin:fabric_vs_quorum}
+% \end{figure}
 
 \subsection{Setup}
-For a fair comparison, we run the five systems in full replication mode in which each node has a complete
-copy of the states. In particular, for Fabric we use the endorsement policy under which a transaction
-is executed and endorsed by all peers. For CockroachDB and TiDB, we set the replication factor to be the
-same as the number of nodes. 
+For a fair comparison, we run all systems in full replication mode where each
+node has a complete copy of the states. In particular, for Fabric the
+endorsement policy is set such that a transaction is executed and endorsed by
+all peers. For TiDB, we set the replication factor to be the same as the number
+of nodes. In other words, even though TiDB partitions data to multiple
+shards and manages the shards separately, each node has a copy of the entire
+system state. We configure Quorum and Fabric to use Raft, a CFT consensus.
+For Fabric, we fix the number of orderers to three while scaling the peers.
+For TiDB, we scale all its modules with the number of nodes.
 
-We use CFT protocols in all five systems. In particular, we configure both Quorum and Fabric to use Raft. 
-We also disable all optional security features, such as data encryption and
-Transport Layer Security (TLS) communication. 
-
-We set the number of transactions per block to $100$ in Fabric and the block interval to the
-minimum in Quorum. We scale all TiDB's modules with the number of nodes so that each node runs all three
-modules in different processes. For Fabric, we run the orderers on two nodes and Kafka on three nodes.
-
-Unless otherwise specified, we use the YCSB and Smallbank workloads in our experiments. The experiment
-parameters for YCSB are summarized in Table~\ref{twin:tab:parameter} with the default values underlined. 
-All the experiments are repeated three times and we report the average .
+Unless otherwise specified, we use YCSB and Smallbank workloads in our
+experiments. The experiment parameters for YCSB are summarized in
+Table~\ref{tab:twin:parameter} with the default values underlined.
 
 \begin{table}
 	\centering
-	\caption{Experiments parameters in YCSB workload to benchmark blockchains and distributed databases. }
-	\label{twin:tab:parameter}
+	\caption{Experiments parameters}
+	\label{tab:twin:parameter}
 	\begin{tabular}{@{}ll@{}}
 	\toprule
 	\textbf{Variable}               & \textbf{Values}               \\
@@ -451,30 +805,28 @@ All the experiments are repeated three times and we report the average .
 	\end{tabular}
 \end{table}
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{diagram/twin/driver_diff.pdf}
+	\caption{Differences between synchronous and asynchronous drivers. }
+	\subcaption*{Asynchronous drivers can issue more transactions, as they do not have to wait for their completion, as opposed to the synchronous ones.}
+	\label{diagram:twin:driver_diff} 
+\end{figure}
 
 \subsection{Benchmark Driver}
 We note that existing benchmark drivers for databases are synchronous (or closed-loop), meaning that a next
 request is sent only after the current request is completed. In contrast, blockchain benchmark
-drivers, such as Fabric's Caliper and BLOCKBENCH driver~\cite{dinh2017blockbench}, are asynchronous (or
+drivers, such as Hyperledger Caliper and BLOCKBENCH driver~\cite{dinh2017blockbench}, are asynchronous (or
 open-loop) in which a new request is sent as soon as the current request is acknowledged by a
 node in the blockchain. 
 Figure~\ref{diagram:twin:driver_diff} illustrates the difference between the two types of drivers. 
 In a synchronous driver, a separate status thread is responsible for computing statistics. In an
-asynchronous driver, the status thread needs to keep track of outstanding requests and to periodically poll
-the blockchain for newly completed requests. 
+asynchronous driver, the status thread needs to keep track of the outstanding requests and to periodically poll
+the blockchain for newly completed requests.
 
 Asynchronous drivers are suitable for blockchains because of the long request latency which requires a large number of outstanding requests to saturate the system. In other words, benchmarking a blockchain with synchronous drivers would require many nodes to run the driver. 
 To verify this, we implement a synchronous YCSB driver for Fabric using its Java SDK.  
-Our results show that its measured peak throughput is capped around 20 tps, while Caliper reports 400 tps. 
-In other words, the synchronous driver severely underestimates Fabric's performance, even with a large number of client-side requests issued.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.7\textwidth]{diagram/twin/driver_diff.pdf}
-    \caption{Differences between synchronous and asynchronous drivers.}
-    \subcaption*{Asynchronous drivers can issue more transactions, as they do not have to wait for their completion, as opposed to the synchronous ones.}
-    \label{diagram:twin:driver_diff} 
-\end{figure}
+Our results show that the synchronous driver severely underestimates Fabric's performance, even with a large number of client-side requests issued.
 
 For the database experiments we use the open-source driver for YCSB workload~\cite{web:ycsb} and 
 the OLTPBench~\cite{difallah2013oltp} driver for Smallbank workload.  Both Fabric and Quorum are
@@ -482,19 +834,611 @@ benchmarked using Caliper~\cite{web:caliper}. We note that although there are di
 drivers for benchmarking blockchains and databases, they alone do not account for the large performance gap
 reported in the following section. 
 
-\section{Performance Analysis}
-\label{twin:sec:result}
-We start by summarizing our main experimental findings and continue with the detailed analysis.
+\section{Result and Analysis}
+\label{sec:twin:exp}
+We first summarize the main findings, then provide the detailed experimental analysis. Based on these findings,
+we propose an empirical framework that compares the performance of recent hybrid blockchain-database systems.
+The framework not only explains the performance differences in existing systems, but it is also useful for
+understanding future hybrid systems.
+
 \begin{itemize}
-  \item \textbf{Peak performance. }  The performance gap between blockchains and distributed databases is large. However, the gap is not as significant as previously reported. 
-  \item \textbf{Replication. } The single-instance replication in blockchains hinders their horizontal 
-  scalability. The performance of systems with BFT consensus is more sensitive to network conditions compared to systems with  
-  CFT consensus. 
-  \item \textbf{Concurrency. } Both databases and blockchains that adopt the execute-order-validate execution 
-  model have low performance under workloads with high contention and constraints.  On the other hand, their
-  performance is not impacted by long-lasting transactions, unlike blockchains with the order-execute model.
-  \item \textbf{Storage. } The ledger abstraction in blockchains incurs significant storage overhead. On the 
+  \item \textbf{Peak performance.} The performance gap between blockchains and distributed databases is large. However, the gap is not as significant as previously reported.
+  \item \textbf{Replication. }
+    The transaction-based replication model restricts concurrency, which limits the impact of different
+	replication approaches and failure models on the system's peak performance. 
+  \item \textbf{Concurrency.} Execute-order-validate blockchains have low performance under workloads with high contention and constraints.
+  The impact of workloads on the performance is prominent in NewSQL databases, where concurrency is
+  on top of replication.
+  \item \textbf{Storage. } The ledger abstraction in blockchains incurs significant storage overhead. On the
   other hand, the overhead needed to guarantee state tamper evidence is small.
   \item \textbf{Sharding. } The performance of sharded blockchains is far behind that of distributed
   databases, due to the security requirements on shard formation and periodic reconfiguration.
 \end{itemize}
+
+\subsection {Peak Performance}
+\subsubsection{YCSB}
+
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=0.99\textwidth]{chart/twin/ycsb-update.pdf}
+        \caption{Update}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=0.99\textwidth]{chart/twin/ycsb-query.pdf}        
+        \caption{Query}
+    \end{subfigure}
+    \caption{Throughput of YCSB workload (log scale).}
+    \label{chart:twin:ycsb-thruput}
+\end{figure}
+
+\begin{figure}[tp]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/ycsb-update-delay.pdf}
+        \caption{Update}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/ycsb-query-delay.pdf}		
+        \caption{Query}
+	\end{subfigure}
+	\caption{Latency of YCSB workload.}
+	\label{chart:twin:ycsb-delay}
+\end{figure}
+
+We first analyze the peak performance of the four systems under the default
+configurations shown in Table~\ref{tab:twin:parameter}.
+Specifically, we populate each system with 100K records, each of size $1$ KB.
+We then measure the throughput and latency against two YCSB workloads: uniform
+update-only (100\% writes) and uniform query-only (100\% reads). We also measure
+independently the performance of TiKV, the replicated storage of TiDB, and
+include it in this comparison.
+
+Figure~\ref{chart:twin:ycsb-thruput} shows the peak throughput of the five systems.
+The relational NewSQL database (TiDB) outperforms the blockchains, while the
+replicated storages (etcd and TiKV) outperform the relational database.
+Specifically, the two blockchains achieve update throughputs of below $1500$
+transactions per second (tps), whereas TiDB achieves $5159$ tps.
+The two key-value storages, etcd and TiKV, achieve around $15,000$ tps.
+Both outperform the NewSQL database because they do not incur the overhead of
+supporting ACID transactions.
+This is evidenced by the gap between TiDB and TiKV, caused by the overhead of
+the TiDB-server that wraps around the key-value storage.
+But this gap is less evident under the query workload, as ACID semantics impose
+less constraints on read-only transactions.
+
+Figure~\ref{chart:twin:ycsb-delay} shows the latency when the systems are unsaturated.
+Similar to throughput, we observe a clear separation between the blockchains and
+the databases.
+We note that the blockchains have weaker guarantees for read-only transactions
+compared to those offered by the databases (linearizability).
+Responses to read requests in the former still take longer (up to $6\times$ in
+Fabric) than the linearizable reads in the latter.
+The update (query) latency in Fabric and Quorum is around $3500$ms ($9$ms) and
+$500$ms ($4$ms) respectively, while in databases it is below $100$ms ($1$ms).
+
+Our results confirm the conclusion drawn in~\cite{dinh2017blockbench} that the
+performance of blockchains lags far behind state-of-the-art databases.
+However, we observe a smaller gap than that reported
+in~\cite{dinh2017blockbench}.
+In particular, the relational database, TiDB, achieves $4\times$ greater
+throughput than the fastest blockchain, Fabric, under the uniform update
+workload (5159 vs.
+1294 tps).
+This is in contrast with~\cite{dinh2017blockbench}, where H-Store exhibits more
+than $120\times$ speedup over blockchains.
+The key reason is that H-Store is an in-memory, distributed database with
+primary-backup replication.
+H-Store represents an extreme point of the design space that makes it rather
+dissimilar to blockchains.
+In contrast, all systems considered in our work incur some overheads from the
+consensus protocols.
+
+\begin{figure}[tp]
+	\begin{minipage}{0.45\textwidth}
+		\centering
+        \includegraphics[width=0.99\textwidth]{chart/twin/smallbank.pdf}
+		\caption{Throughput of the skewed Smallbank workload (1M records).}
+		\label{fig:sb} 
+	\end{minipage} \hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=0.99\textwidth]{chart/twin/quorum-consensus.pdf}
+		\caption{Quorum throughput with CFT(Raft) and BFT(IBFT).}
+		\label{chart:twin:quorum-consensus}
+	\end{minipage}
+\end{figure}
+
+\subsubsection{Smallbank}
+
+Figure~\ref{fig:sb} compares the OLTP performance under the Smallbank workload.
+The request key follows a Zipfian distribution with coefficient $\theta=1$ on 1M
+records.
+We do not include etcd because it does not support general transactional
+workloads.
+Compared to YCSB, besides skewness, a Smallbank transaction imposes more
+constraints and may touch up to two records, but the record size is smaller.
+% For example, sufficient funds must be available for the payment transactions
+% to succeed
+To our astonishment, the experiments show that the performance difference
+between blockchains and distributed databases is small. For example, Faric and
+Quorum exhibit throughputs of $835$ and $655$ tps, respectively, while TiDB
+exhibits only $1031$ tps.
+The performance of Fabric and TiDB drops when switching from YCSB to Smallbank,
+while the performance of Quorum improves with a peak throughput under Smallbank
+that is $2.5\times$ greater compared to YCSB.
+We attribute this improvement to the smaller record size of Smallbank.
+As we shall see in Chapter~\ref{sec:twin:exp:txn:record_size}, Quorum's performance
+is vulnerable to transactions that access large records.
+Likewise, the request skewness accounts for the throughput drop reported by Fabric and TiDB. 
+
+\begin{figure}[tp]
+	\centering
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/update-breakdown-v2.pdf}
+		\caption{Update}
+		\label{chart:twin:update-breakdown}
+	\end{subfigure}
+	\begin{subfigure}{0.49\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/query-breakdown.pdf}
+		\caption{Query}							
+		\label{chart:twin:query-breakdown}		
+	\end{subfigure}
+	\caption{Latency breakdown.}
+\end{figure}
+
+\subsection{Replication}
+
+In this experiment, the workload updates only distinct records. 
+By reducing the effects of concurrency, we focus on the implications of replication. 
+
+\subsubsection{Effect of replication model}
+\label{sec:twin:exp:replication:model}
+To understand the impact of the replication model, we focus on Fabric and TiDB
+because they support different transaction lifecycles.
+Figure~\ref{chart:twin:update-breakdown} compares the latency of a transaction when the
+systems are both unsaturated and saturated. Besides its higher latency compared
+to TiDB, Fabric exhibits a significant increase in latency when the system is
+saturated. To investigate this issue, we instrument Fabric codebase to record
+detailed latency breakdown at each phase of a transaction. In particular, we
+measure the latency of the execute, order, and validate phases.
+When Fabric is unsaturated, the order and validate phases take roughly $700$ms
+each, while the execute phase takes below $500$ms.
+But when the request rate exceeds the system capacity, validation phase
+becomes the bottleneck, as shown in Figure~\ref{chart:twin:update-breakdown}.
+
+We attribute this increase in latency to the serial validation of
+blocks in Fabric, where blocks pile up before committing their transactions.
+Even inside a block, transactions persist their effects sequentially
+based on their internal order.
+Worst still, substantial overhead in transaction processing is attributed to
+factors other than data processing.
+For example, we observe that Fabric, under the saturated scenario, spends $42\%$
+of the block validation time to verify the transaction signature.
+We note that serial validation is Fabric's implementation choice, i.e., it could
+commit transactions concurrently.
+However, most of the blockchains impose a strict transaction order to achieve
+deterministic execution for security reasons.
+In contrast, database transactions do not suffer from such strict sequentiality
+under their storage-based replication, nor do they incur security overhead.
+
+The security overhead is the most prominent in query transactions,
+which involve no consensus in both systems.
+We show in Figure~\ref{chart:twin:query-breakdown} that Fabric spends most of the query
+time to authenticate the clients.
+In contrast, TiDB incurs no cryptographic overhead and most of its query time is
+spent on getting the data.
+
+
+\subsubsection{Effect of replication approach}
+\label{sec:twin:exp:replication:approach}
+
+\begin{table}[tp]
+    \centering
+    \caption{Throughput (in tps) with varying number of nodes under full replication.}
+    \begin{tabular}{@{}lrrrrr@{}}
+    \toprule
+    \textbf{} & \textbf{3} & \textbf{7} & \textbf{11} & \textbf{15} & \textbf{19} \\ \midrule
+    Fabric             & 1560        & 1288        & 1031         & 749         & 528         \\
+    % Fabric(solo)       & 1484        & 1207        & 1015         & 729         & 400         \\
+    Quorum             & 237        & 236        & 229         & 217         & 219         \\
+    TiDB               & 5726       & 8301       & 8898        & 6235        & 5465        \\
+    Etcd               & 16492      & 16849      & 9123        & 7801        & 6076        \\ 
+	TiKV               & 10369       & 7765       & 7236        & 5516        & 5195        \\
+	\bottomrule
+    \end{tabular}
+    \label{tab:twin:scale}
+\end{table}
+
+We increase the number of nodes to compare the scalability of shared log and
+consensus-based systems under the full replication mode, and summarize the
+results in Table~\ref{tab:twin:scale}.
+Here, Fabric is the only shared log system.
+Even though Fabric employs the Raft consensus to obtain the transaction order,
+this is an external service with 3 fixed orderers. 
+The increasing number of Fabric peers consume the same shared ordered log while for the other systems, all their nodes participate in the consensus.
+
+Contrary to our expectations on the two blockchains, we observe neither a constant performance of the
+shared log system nor performance degradation in the consensus-based system.
+In particular, Fabric's throughput drops $3\times$ from 3 to 19 nodes, while
+Quorum's throughput is roughly unchanged.
+In Fabric, we find a $38\%$ increase in the block validation latency.
+This is because the endorsement policy requires a transaction to be endorsed by
+all the nodes.
+Hence, more nodes lead to transactions with more signatures and, therefore,
+longer validation.
+Due to the sequentiality in transaction-based replication, this increase in
+validation time translates to the decrease in throughput, as we explained in
+Chapter~\ref{sec:twin:exp:replication:model}.
+On the other hand, Quorum underutilizes Raft, making its performance insensitive
+to the consensus group size.
+Specifically, Quorum first pre-executes transactions at the tip of the ledger,
+before batching these transactions into a block for the consensus.
+Thus, the block proposal rate is affected by the ledger's sequentiality.
+
+Under the same Raft protocol, both NoSQL databases (etcd and TiKV) achieve
+higher peak performance compared to the blockchains, but the performance
+degrades with the number of nodes.
+We attribute this to the consensus protocol.
+The NewSQL database does not exhibit either a constant or decreasing performance
+trend.
+Instead, TiDB reaches its peak performance on 11 nodes.
+This is because of the interplay between the consensus overhead in TiKV and the
+transaction processing on TiDB servers.
+Finally, we conclude that the transaction-based replication model has an obvious
+impact on the performance of blockchains, while replication approaches have plain
+effects on the performance of distributed databases.
+
+\subsubsection{Effect of failure model}
+\label{sec:twin:exp:replication:consensus}
+We compare the performance of Raft and Istanbul Byzantine Fault Tolerant (IBFT)
+consensus in Quorum to illustrate the impact of different failure models.
+Recall that Raft tolerates only crash failures, whereas IBFT can tolerate
+Byzantine failures.
+IBFT shares the crux of PBFT, which consists of a three-phase commit.
+But IBFT is heavily optimized for blockchains.
+For example, by embedding the consensus meta-data in the ledger, IBFT saves PBFT
+checkpointing efforts.
+IBFT additionally accommodates dynamic validators, while PBFT assumes fixed
+membership.
+
+% IBFT's distinction from PBFT can be found at Sec 1.2 at
+% https://arxiv.org/pdf/1901.07160.pdf.
+
+Figure~\ref{chart:twin:quorum-consensus} shows similar peak throughputs that remain
+relatively constant when increasing the number of tolerated failures.
+However, we observe that IBFT's throughput exhibits higher variance in larger
+networks, as evidenced by the greater error bar. This is due to the larger
+quorums needed in IBFT, which are $2f+1$ out of $3f+1$, compared to $f+1$ out of
+$2f+1$ replicas needed in Raft.
+IBFT needs to contact more replicas in a time window compared to Raft to avoid
+the view change, during which the corresponding transaction processing is
+interrupted.
+When $f$ increases, the probability of such interruption increases accordingly,
+hence, this leads to larger variances in performance.
+
+\subsection{Concurrency} 
+\label{sec:twin:exp:concurrency}
+In the following experiments, we twist the workload to understand the effects of
+concurrency on system performance.
+To reduce the effects of replication, the number of nodes is fixed to 5 and full
+replication is used.
+
+\subsubsection{Effect of skewness}
+
+\begin{figure}[tp]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/skew.pdf}
+		\caption{Throughput (log scale)}        
+		\label{chart:twin:skew-thruput}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/skew-abort.pdf}
+		\caption{Abort rate}        
+		\label{chart:twin:skew-abort}
+	\end{subfigure}
+	\caption{Throughput and abort rate with skewed workloads. Each transaction modifies a single record.}
+	\label{chart:twin:skew}
+\end{figure}
+
+To analyze the effect of concurrency control mechanisms, we use skewed workloads
+in which each transaction modifies (first read, then update and write back) a
+single record.
+The records' keys follow a Zipfian distribution that varies based on the
+skewness coefficient $\theta$.
+Figure~\ref{chart:twin:skew} shows the throughputs and the corresponding abort rates
+under different skewness.
+Our key observation here is that blockchains and databases are comparable under
+a high contention workload, given the fact that TiDB drastically drops from
+$5461$ to $173$ tps when $\theta$ increases from $0$ to $1$.
+Etcd and Quorum do not have concurrency control because they execute
+transactions serially. Thus, their performance is not affected by skewness.
+
+Although Fabric commits transactions sequentially, we observe a $31\%$ drop in
+throughput from a uniform to a skewed workload with $\theta=1$.
+This is due to Fabric's optimistic concurrency control on read-write conflicts.
+That is, a transaction contains the versions of the records read during the
+proposal phase, which are then checked in the validation phase.
+If the versions are not the latest, the transaction aborts.
+A skewed workload means that many transactions are accessing the same records,
+leading to a higher probability of transaction abort.
+For example, Figure~\ref{chart:twin:skew-abort} shows that $44\%$ of the transactions
+in Fabric abort when $\theta=1$.
+
+Another interesting observation is that TiDB's throughput drop is
+disproportional to its increase in abort rate.
+Specifically, when $\theta=1$, only $30\%$ of TiDB's transactions fail but the
+throughput decreases by $90\%$.
+This is because each transaction coordinator must obtain a latch on a primary
+record, whose write outcome determines the overall transaction status.
+But write must undergo the consensus for replication.
+Under a highly skewed workload, such a latching mechanism makes the transaction
+coordinator spend more time on contention resolution than the actual execution
+of the transaction payload, resulting in a remarkable decrement of the overall
+throughput.
+Hence we conclude that the workload skewness exerts a tremendous impact on
+storage-based replicated, concurrency-over-replication architectures.
+
+\subsubsection{Effect of operation count}
+
+\begin{figure}[tp]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/txn-size.pdf}
+		\caption{Throughput (log scale)}        
+		\label{chart:twin:txn-size}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/txn-size-abort.pdf}
+        \caption{Abort rate}
+		\label{chart:twin:txn-size-abort}
+	\end{subfigure}
+	\caption{Throughput and abort rate with uniformly modified records in a single
+	transaction.}
+	\label{chart:twin:txn-size-fig}
+\end{figure}
+
+We gradually include more update operations per transaction to analyze the
+impact of transaction atomicity on performance. 
+To remove the effect of transaction size, for a given number of operations we
+vary the record size such that the total transaction size is $1000$ bytes. 
+For example, if a transaction writes 10 records, then each record contains
+100 bytes.
+
+As shown in Figure~\ref{chart:twin:txn-size}, the performance of Fabric, TiDB, and etcd
+drops when the number of operations per transaction increases.
+In particular, with 10 operations per transaction, TiDB achieves only $32\%$ of
+the throughput of single operation transactions.
+Two sources of overheads contribute to this drop in performance.
+First, there are more conflicts when a transaction writes to more records, which
+leads to a higher abort rate.
+Second, TiDB uses sharding, which means that a 10-operation transaction may span
+multiple shards.
+As there are more shards, the overhead of the 2PC coordination in TiDB
+increases.
+Etcd and Quorum are unaffected because they do not entail cross-shard
+transactions.
+
+Figure~\ref{chart:twin:txn-size-abort} shows the abort rate of TiDB and Fabric as the
+number of operations per transaction increases.
+Both systems experience high abort rates: $26.9\%$ for TiDB and $87\%$ for
+Fabric.
+Interestingly, while TiDB aborts are mostly due to write-write conflicts, aborts
+in Fabric come from two sources: inconsistent reads and the read-write
+conflicts.
+On the one hand, during the proposal phase in Fabric, a client must collect
+identical read results from the peers.
+This is because we mandate that each transaction proposal must be simulated and
+endorsed by all peers.
+But different results may be returned, as the peers have disjoint states, which
+is highly likely since they commit blocks at different rates.
+In this case, the client immediately aborts the transaction.
+On the other hand, any of the modified records exhibiting a read-write conflict
+may render the transaction invalid.
+Under 10 operations per transaction, these two sources take up $14\%$ and $86\%$
+of all the aborts, respectively.
+
+\subsubsection{Effect of record size}
+\label{sec:twin:exp:txn:record_size}
+
+\begin{figure}[tp]
+	\centering
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/record-size-thruput.pdf}        
+		\caption{Throughput}
+		\label{chart:twin:record-size-thruput}
+	\end{subfigure}
+	\begin{subfigure}{0.45\textwidth}
+		\includegraphics[width=0.99\textwidth]{chart/twin/record-size-breakdown.pdf}     
+		\caption{Latency breakdown}
+		\label{chart:twin:record-size-breakdown}
+	\end{subfigure}
+	\caption{Performance under uniform update workload with increasing record size.
+	Both plots use log scale.}
+\end{figure}
+
+We enlarge the record in the uniform-update workload to increase the complexity
+per transaction without aggravating the inter-transaction conflicts.
+As shown in Figure~\ref{chart:twin:record-size-thruput}, all the databases exhibit
+moderate throughput decrease and latency increase.
+However, the two blockchains behave differently.
+When the record grows from $10$ to $1,000$ bytes, Fabric's performance remains
+roughly constant at 1400 tps and drops by half on $5,000$ bytes.
+But Quorum suffers a significant drop in throughput, from $1547$ tps on
+$10$-byte to $58$ tps on $5000$-byte records.
+To understand this, we analyze the transaction latency breakdown in Fabric and
+Quorum, and present the results in Figure~\ref{chart:twin:record-size-breakdown}.
+The block commit time in Fabric only doubles, whereas in Quorum there is a
+$70\times$ increase from $3$ms for $10$-byte records to $221$ms for $5000$-byte
+records, reducing the proportion of the consensus from $88\%$ to $50\%$ in a
+transaction lifecycle.
+For each commit, Quorum's virtual machine needs to reconstruct an MPT data
+structure, which involves many expensive cryptographic hash computations.
+At the same time, the cost of a hash function increases with the record size.
+In particular, we find that the cost of MPT reconstruction increases from $56$us
+to $2.5$ms when the record size grows from $10$ to $5000$ bytes.
+
+Another interesting observation from Figure~\ref{chart:twin:record-size-breakdown} is
+that the delay of the proposal phase in Quorum grows at the same rate as the
+delay of the commit phase.
+This is due to Quorum's order-execute model, where transactions are firstly
+batched and serially executed during the proposal phase by the proposer.
+After consensus, the batched transactions are serially executed again by all the
+other nodes for validation and commit.
+Hence, Quorum's performance suffers from both double execution and the overhead
+of sequential validation of in-block transactions.
+In contrast, Fabric adopts an execute-order-commit model where transactions are
+executed concurrently during the proposal phase, before being ordered and
+batched in the consensus phase. 
+The serial processing only occurs once during the commit phase. 
+However, concurrency comes at the cost of potentially aborted in-block
+transactions that would break the serializability, as we saw in the previous
+section.
+Hence, when the transactions are computationally heavy, execute-order-commit
+blockchains outperform order-execute blockchains by introducing the
+sequentiality requirement later.
+But compared with blockchains, NewSQL databases with storage-based replication
+can harness more concurrency.
+
+\subsection{Storage}
+In this section, we analyze the storage overhead for the ledger abstraction and
+the authenticated data structures.
+
+\begin{figure}[tp]
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=0.99\textwidth]{chart/twin/record-size-storage.pdf}
+		\caption{Storage breakdown \\ in Fabric and TiDB.}
+		\label{chart:twin:record-size-storage}
+	\end{minipage}\hfill
+	\begin{minipage}{0.45\textwidth}
+		\centering
+		\includegraphics[width=0.99\textwidth]{chart/twin/record-size-antitamper.pdf}
+		\caption{Storage overhead to achieve tamper evidence (log scale).}
+		\label{chart:twin:record-size-antitamper}
+	\end{minipage}\hfill
+ \end{figure}
+
+ \subsubsection{Effect of record size on storage}
+
+Figure~\ref{chart:twin:record-size-storage} shows the storage cost per record as we
+increase the record size.
+Fabric incurs a much higher storage overhead than TiDB.
+For a $5000$-byte record, the state storage consumes around $5000$ bytes, while
+the block storage consumes $21,725$ bytes.
+There is no additional storage used by TiDB because no historical information is
+maintained and the associated metadata is negligible.
+This result demonstrates that blockchains incur significantly higher storage
+costs than databases because of the underlying ledger abstraction.
+
+\subsubsection{Security overhead for tamper evidence}
+\label{sec:twin:exp:storage:tamper}
+
+To quantify the overhead incurred by the integrity protection mechanism in
+blockchains, we compare the performance of Merkle Bucket Tree (MBT) from
+Hyperledger Fabric v0.6\footnote{Fabric v1.0 and later relax the security model
+and no longer require tamper-evident indexes.} and Merkle Patricia Trie (MPT)
+from Quorum.
+This comparison is done on the system behavior in its entirety. We
+refer readers to~\cite{yue2020analysis} for an in-depth analysis.
+
+For this comparison, we insert 10K records of different sizes and measure the
+state storage cost per record. 
+Figure~\ref{chart:twin:record-size-antitamper} shows
+that MBT adds extra $24$ bytes per record, while MPT adds over 1KB per record.
+Since both MBT and MPT store data records in the leaves, their differences come
+from the tree structures: the deeper the tree, the higher the storage overhead.
+The scale of MBT is fixed.
+Specifically, MBT first hashes all the records into $1,000$ buckets, on top of
+which a Merkle tree with a given fan-out is built.
+Considering $1,000$ buckets and a fan-out of $4$ in our experiments, the depth
+of the tree is capped at 5 ($\ceil{log_4 1000}$).
+As a prefix tree, the depth of MPT is affected by the key length, which is 16
+bytes in our setting.
+Specifically, each internal MPT node holds 4 bits of the key, hence, the depth
+and fan-out can go up to 32 and 16, respectively.
+This explains why MPT needs more space.
+
+\subsection{Sharding}
+\label{sec:twin:exp:shard}
+
+\begin{figure}[tp]
+
+	\centering
+	\includegraphics[width=0.6\textwidth]{chart/twin/skewed-scale.pdf}
+	\caption{Throughput of the skewed workload (log scale).}
+	\label{chart:twin:shard}
+\end{figure}
+
+To compare the impact of sharding on databases and blockchains, we disable full
+replication in TiDB, and compare its performance with Spanner, a cloud-based
+NewSQL database, and Attested Hyperledger (AHL)~\cite{dang2018towards}, a
+state-of-the-art sharded blockchain based on Hyperledger Fabric v0.6.
+AHL leverages trusted hardware to reduce shard size and to improve throughput
+per shard.
+It supports cross-shard transactions by running a BFT shard that implements a
+2PC state machine, and periodically reconfigures shards to mitigate adaptive
+adversaries.
+This experiment is run on Google Cloud Platform since Spanner is a cloud-only
+service.
+We set the number of nodes in a shard to 3 for all the systems, and we
+pre-populate the state with 1M 1KB-size records.
+We evaluate the systems with a skewed workload with a Zipfian coefficient of
+$\theta=1$, in which each transaction modifies two records.
+
+Figure~\ref{chart:twin:shard} shows that TiDB achieves higher throughput compared to
+Spanner when increasing the number of nodes (and shards).
+This is because TiDB instantly aborts a transaction once detecting a conflict.
+In contrast, conflicting transactions in Spanner would contend for locks under
+the pessimistic concurrency control.
+To achieve stronger security, AHL with periodic shard re-configuration trades
+off $30\%$ in performance compared to AHL with fixed shards.
+Nonetheless, the gap between AHL and both the databases is large, due to the
+high cost of PBFT and other security overheads.
+
+\subsection{Performance of Hybrid Systems}
+\label{sec:twin:exp:hybrids}
+\begin{figure}
+	\centering
+	\includegraphics[width=0.8\textwidth]{diagram/twin/performance_framework.pdf}
+	\caption{The framework for understanding the throughput of hybrid systems.
+	The systems are color-coded based on the design choices.} 
+	\label{diagram:twin:perf_framework}
+\end{figure}
+
+Based on our taxonomy and experimental results, we propose a framework for
+comparing the performance of existing hybrid systems.
+We emphasize that the framework only supports high-level, back-of-the-envelope
+comparison, and is not a replacement for detailed experimental analysis.
+It focuses on throughput as the key performance metric and does not consider all
+the dimensions in our taxonomy.
+However, this framework explains the performance differences among systems
+according to their reported results.
+More importantly, it can guide the design of future hybrid systems.
+
+Figure~\ref{diagram:twin:perf_framework} presents our framework together with the
+reported performance of some hybrid systems.
+We note that the replication model is the deciding factor in determining the
+peak throughput.
+The results in Chapter~\ref{sec:twin:exp:replication:model} show that the replication
+model affects concurrency.
+In particular, transaction-based replication exposes lower concurrency than
+storage-based replication, which results in lower throughput.
+The next factor that affects throughput is the failure model.
+As explained in Chapter~\ref{sec:twin:taxonomy:replication:failure}, CFT protocols
+are more efficient than BFT protocols due to their lower network overhead,
+therefore, systems using CFT are likely to have higher throughput.
+This is true especially when the CFT protocol is implemented as a shared log
+service.
+We note that even though our experiments do not show much difference between CFT
+and BFT in Quorum, it is because these protocols are not the bottleneck.
+
+Figure~\ref{diagram:twin:perf_framework} illustrates the reported performance of six
+hybrid systems within our framework.
+Using the two factors stated above, we can predict the throughput effectively.
+For instance, Vertias exhibits better throughput than Chainify ($29k$ vs.
+$6.1k$) because it uses storage-based replication and CFT protocols.
+But its performance has a high variance because, under high contention, the
+throughput can decrease significantly, as explained in
+Chapter~\ref{sec:twin:exp:concurrency}.
