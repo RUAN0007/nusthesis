@@ -10,20 +10,12 @@ def main():
         diagram_path = sys.argv[1]
     else:
         diagram_path = ""
-    
 
-    curDir = os.path.dirname(os.path.realpath(__file__))
-    data_path = os.path.join(curDir, "data", "ycsb")
-    x_axis, series_names, series = config.parse(data_path)
-    # print x_axis
-    # print series_names
-    # print series
-    
-    blk_sizes = x_axis
-    xlabels = [str(int(x)/100) for x in blk_sizes]
+    xlabels = ["Silicon", "Quartz"]
+    series_names = [config.kFabricPlusLabel, config.kFabricSharpLabel]
+    series = {config.kFabricSharpLabel: [849, 338], config.kFabricPlusLabel: [973, 363]}
 
-    series_count = len(series_names)
-    width, offsets = config.compute_width_offsets(series_count)
+    width, offsets = config.compute_width_offsets(len(series[config.kFabricSharpLabel]))
 
     f, (ax) = plt.subplots()
     # # f.set_size_inches(, 4)
@@ -37,15 +29,15 @@ def main():
         # print series_data
         ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
 
-    ax.set_title("Throughput")
-    ax.set(xlabel=r'# Txns per Block (x100)', ylabel='tps')
+    # ax.set_title("Throughput")
+    ax.set(ylabel='us')
     ax.set_xticks(base_xticks)
-    ax.set_xticklabels(xlabels)
-    ax.set_ylim([0, 2500])
+    ax.set_xticklabels(xlabels, fontsize=24)
+    ax.set_ylim([300, 1200])
 
     handles, labels = ax.get_legend_handles_labels()
     f.legend(handles, labels,
-             loc='upper center', ncol=1, bbox_to_anchor=(0.47, 0.85), 
+             loc='upper center', ncol=1, bbox_to_anchor=(0.67, 0.90), 
              columnspacing=1, handletextpad=1, fontsize=20)
 
     if diagram_path == "":

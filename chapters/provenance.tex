@@ -855,10 +855,43 @@ supplies relevant context, such as access to the ledger states, to the smart con
 We add the helper method, called \texttt{ProvHelper}, to the \texttt{Chaincode} interface. This method's signature,
 and how to write user-defined provenance rules with it, are explained in \Cref{prov:sec:capture}. The
 execution engine intercepts \texttt{PutState} and \texttt{GetStates} during execution to record the read set and the
-write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. 
+write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. Fig
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}
 and therefore previously-stored provenance is accessible to all contract methods. 
 
 
 \section{Performance Evaluation}
 \label{prov:sec:exps}
+\subsection{Baselines and Experimental Setup}
+
+We evaluate {\fs} against two baselines. 
+The first baseline is the original Fabric, without any provenance support.
+The second one, which we refer as {\fsPlus}, directly enhances the original storage engine LevelDB for the provenance. 
+To be specific, previously Fabric associates the state IDs only with their latest values in LevelDB. 
+With our modification, historical values and dependencies are now associated with the concatenations of their IDs and versions. 
+For example, with respect to the example in Figure~\ref{diagram:prov:dag}, the storage entries (in the format of \textit{key:value}) for state ID $k_1$ are organized as follows: 
+\begin{equation*}
+  \begin{aligned}
+    Hist\_k1\_v1: S_{k1\_v1} \\
+    Hist\_k1\_v2: S_{k1\_v2} \\
+    Hist\_k1\_v3: S_{k1\_v3} \\
+    Backward\_k1\_v1: \{\} \\
+    Backward\_k1\_v2: \{k1\_v1,k2\_v1\} \\
+    Backward\_k1\_v3: \{k1\_v2,k2\_v1\} \\
+    Forward\_k1\_v1: \{k1\_v2\} \\
+    Forward\_k1\_v2: \{k1\_v3, k2\_v4\} \\
+    Backward\_k1\_v3: \{\} \\
+  \end{aligned}
+\end{equation*}
+With the help of built-in LevelDB iterator, such flat organization facilitates the provenance retrieval for states at a specific version. 
+However, compared with our ForkBase in {\fs}, it does not protect the provenance integrity, nor does it support the discriminated version retrieval as our DASL. 
+Despite the storage differences, {\fsPlus} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
+
+We perform three sets of experiments. First, we repeat the YCSB and Smallbank experiments to evaluate the performance implication with the provenance support. 
+Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{sec:twin:exp:replication:model}) to understand the exact overhead. 
+In the last one, we place a specific analysis on the provenance query and space consumption of the storage engine. 
+Only in this experiment we involve {\fsLite}, which strips away DASL out of {\fs} but still employs ForkBase.
+
+\subsection{Peak Performance}
+\subsection{Provenance Utility and Overhead}
+\subsection{Provenance Query and Space}

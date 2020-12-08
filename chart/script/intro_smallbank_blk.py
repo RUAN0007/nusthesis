@@ -14,7 +14,7 @@ def main():
         diagram_path = ""
     
     curDir = os.path.dirname(os.path.realpath(__file__))
-    data_path = os.path.join(curDir, "data", "smallbank_blk")
+    data_path = os.path.join(curDir, "data", "intro", "smallbank_blk")
     x_axis, series_names, series = config.parse(data_path)
     blk_sizes = x_axis
     req_rate_label, effective_thruput_label, raw_thruput_label, abort_label = series_names[0], series_names[1],series_names[2],series_names[3],
@@ -39,9 +39,7 @@ def main():
     axis.set_xticks(xticks)
     request_rate_series = series[req_rate_label]
     xlabels = ["{}\n({})".format(int(blk_sizes[i]), int(request_rate_series[i])) for i in range(len(x_axis))]
-    axis.set_xticklabels(xlabels)
-
-    # axis.axvline(x=0.5, ymin=0, ymax=1, color="black", linestyle="--")
+    axis.set_xticklabels(xlabels, fontsize=15)
 
     axis.set_yticks(range(000, 1701, 400))
 
@@ -51,8 +49,8 @@ def main():
     axis.yaxis.set_label_coords(-0.01,0.9)
 
     abort_ax = axis.twinx()
-
-    # abort_ax.plot(xticks, series[abort_label], "v", **config.LINE_OPTS[config.kFabricLabel])
+    config.LINE_OPTS[config.kFabricLabel]["label"] = "Abort Rate"
+    abort_ax.plot(xticks, series[abort_label], config.Fabric_FMT, **config.LINE_OPTS[config.kFabricLabel])
     abort_ax.set_ylim([-0.5, 1.2])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])
@@ -60,8 +58,9 @@ def main():
 
 
     handles, labels = axis.get_legend_handles_labels()
-    f.legend(handles, labels,
-             loc='upper center', ncol=2, bbox_to_anchor=(0.52, 0.82), fontsize=20)
+    abort_handles, abort_labels = abort_ax.get_legend_handles_labels()
+    f.legend(handles + abort_handles, labels + abort_labels,
+             loc='upper center', ncol=2, bbox_to_anchor=(0.47, 0.92), fontsize=18)
             #  columnspacing=1, handletextpad=1, fontsize=24)
 
     if diagram_path == "":

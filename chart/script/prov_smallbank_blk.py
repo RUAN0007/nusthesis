@@ -14,7 +14,7 @@ def main():
         diagram_path = ""
     
     curDir = os.path.dirname(os.path.realpath(__file__))
-    data_path = os.path.join(curDir, "data", "smallbank_thruput")
+    data_path = os.path.join(curDir, "data", "provenance","smallbank_thruput")
     x_axis, series_names, series = config.parse(data_path)
 
     xlabels = x_axis
@@ -48,7 +48,7 @@ def main():
     ax.set_yticks([0, 250, 500, 750, 1000, 1250, 1500])
 
     curDir = os.path.dirname(os.path.realpath(__file__))
-    data_path = os.path.join(curDir, "data", "smallbank_abort")
+    data_path = os.path.join(curDir, "data", "provenance", "smallbank_abort")
     x_axis, series_names, series = config.parse(data_path)
 
     abort_ax = ax.twinx()
@@ -63,7 +63,7 @@ def main():
     abort_ax.set_ylim([-0.5, 1.2])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])
-    abort_ax.set(ylabel='percent(%)')
+    abort_ax.set(ylabel='abort rate(%)')
 
     if diagram_path == "":
         plt.tight_layout()

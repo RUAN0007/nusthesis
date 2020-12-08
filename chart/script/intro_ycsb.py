@@ -22,7 +22,7 @@ def main():
     xticks = [x + 0.5 for x in range(len(xlabels))]
     ax.bar(xticks, thruputs, width=0.6, color="blue", edgecolor='black')
 
-    ax.set_title("YCSB Throughput")
+    # ax.set_title("YCSB Throughput")
     ax.set(xlabel=r'# Txns per Block (x100)', ylabel='tps')
     ax.set_xticks(xticks)
     ax.set_xticklabels(xlabels)
