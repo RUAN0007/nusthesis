@@ -1,28 +1,28 @@
 kMarkerSize=14
 kLineWidth=1
 kLineStyle="-"
-kFabricPlusColor, kFabricSharpColor, kFabricColor, kFabricSharpLiteColor= "green", "red", 'blue', 'orange'
-kFabricPlusMarker, kFabricSharpMarker, kFabricMarker, kFabricSharpLiteMarker = "x", "X", 'v', 's'
-kFabricPlusLabel, kFabricSharpLabel, kFabricLabel, kFabricSharpLiteLabel = "FabricPlus", "FabricSharp", "Fabric", "FabricSharpLite"
-base_colors = {kFabricPlusLabel: kFabricPlusColor, kFabricSharpLabel: kFabricSharpColor, kFabricLabel: kFabricColor, kFabricSharpLiteLabel:kFabricSharpLiteColor}
-base_hatches = {kFabricPlusLabel: "xxx", kFabricSharpLabel: "ooo", kFabricLabel: "///", kFabricSharpLiteLabel: "\\\\\\"}
+kFabricProvOColor, kFabricSharpOColor, kFabricColor, kFabricSharpOLiteColor= "green", "red", 'blue', 'orange'
+kFabricProvOMarker, kFabricSharpOMarker, kFabricMarker, kFabricSharpOLiteMarker = "x", "X", 'v', 's'
+kFabricProvOLabel, kFabricSharpOLabel, kFabricLabel, kFabricSharpOLiteLabel = "FabricProv-O", "Fabric#-O", "Fabric", "Fabric#-Lite"
+base_colors = {kFabricProvOLabel: kFabricProvOColor, kFabricSharpOLabel: kFabricSharpOColor, kFabricLabel: kFabricColor, kFabricSharpOLiteLabel:kFabricSharpOLiteColor}
+base_hatches = {kFabricProvOLabel: "xxx", kFabricSharpOLabel: "ooo", kFabricLabel: "///", kFabricSharpOLiteLabel: "\\\\\\"}
 
 
-FabricPlus_FMT=kFabricPlusMarker
-FabricPlus_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricPlusColor, "color":kFabricPlusColor, "label": kFabricPlusLabel}
+FabricProvO_FMT=kFabricProvOMarker
+FabricProvO_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricProvOColor, "color":kFabricProvOColor, "label": kFabricProvOLabel}
 
-FabricSharp_FMT=kFabricSharpMarker
-FabricSharp_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpColor, "color":kFabricSharpColor, "label": kFabricSharpLabel}
+FabricSharpO_FMT=kFabricSharpOMarker
+FabricSharpO_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpOColor, "color":kFabricSharpOColor, "label": kFabricSharpOLabel}
 
 Fabric_FMT=kFabricMarker
 Fabric_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricColor, "color":kFabricColor, "label": kFabricLabel}
 
-FabricSharpLite_FMT=kFabricSharpLiteMarker
-FabricSharpLite_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpLiteColor, "color":kFabricSharpLiteColor, "label": kFabricSharpLiteLabel}
+FabricSharpOLite_FMT=kFabricSharpOLiteMarker
+FabricSharpOLite_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpOLiteColor, "color":kFabricSharpOLiteColor, "label": "Fabric#-O(No DASL)"}
 
-FMTS={kFabricPlusLabel: FabricPlus_FMT, kFabricSharpLabel: FabricSharp_FMT, kFabricLabel: Fabric_FMT, kFabricSharpLiteLabel: FabricSharpLite_FMT}
+FMTS={kFabricProvOLabel: FabricProvO_FMT, kFabricSharpOLabel: FabricSharpO_FMT, kFabricLabel: Fabric_FMT, kFabricSharpOLiteLabel: FabricSharpOLite_FMT}
 
-LINE_OPTS={kFabricPlusLabel: FabricPlus_LINE_OPTS, kFabricSharpLabel: FabricSharp_LINE_OPTS, kFabricLabel: Fabric_LINE_OPTS, kFabricSharpLiteLabel: FabricSharpLite_LINE_OPTS}
+LINE_OPTS={kFabricProvOLabel: FabricProvO_LINE_OPTS, kFabricSharpOLabel: FabricSharpO_LINE_OPTS, kFabricLabel: Fabric_LINE_OPTS, kFabricSharpOLiteLabel: FabricSharpOLite_LINE_OPTS}
 
 def parse(statPath, is_numeric_x=False):
     series = {}
@@ -80,9 +80,9 @@ mpl.rcParams["legend.handletextpad"] = 0.4
 mpl.rcParams['axes.titlesize'] = 30
 mpl.rcParams['axes.titleweight'] = "bold"
 mpl.rcParams['axes.labelsize']=20
-mpl.rcParams['font.size'] = 14
+mpl.rcParams['font.size'] = 18
 
 mpl.rcParams['pdf.fonttype'] = 42
 mpl.rcParams['ps.fonttype'] = 42
 
-# export chart=ycsb; python chart/provenance/script/${chart}.py chart/provenance/${chart}.pdf && xdg-open chart/provenance/${chart}.pdf
+# export chapter=provenance; export chart=forward; python chart/script/${chapter}_${chart}.py chart/${chapter}/${chart}.pdf && xdg-open chart/${chapter}/${chart}.pdf

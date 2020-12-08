@@ -2,7 +2,7 @@
 \label{ch:prov}
 
 \section{Introduction}
-\label{prov:sec:intro}
+\label{sec:provenance:intro}
 Blockchains are disrupting many industries, including
 finance~\cite{tapscott2017blockchain,nguyen2016blockchain}, supply
 chain~\cite{korpela2017digital,tian2016agri}, and healthcare~\cite{medilot}. These industries are exploiting
@@ -90,13 +90,13 @@ In summary, we make the following contributions:
   its efficient query and small storage overhead. 
 \end{itemize}
 
-The remainder of the chapter is organized as follows. \Cref{prov:sec:background} provides necessary blockchain preliminaries for the understanding. \Cref{prov:sec:capture} describes our design for capturing provenance, and the interface
-exposed to smart contracts. \Cref{prov:sec:storage} discusses how we store provenance, and
-\Cref{prov:sec:index} describes our new index. \Cref{prov:sec:implementation} presents our
-implementation. \Cref{prov:sec:exps} reports the performance of {\fs} on provenance-related matters. 
+The remainder of the chapter is organized as follows. \Cref{sec:provenance:background} provides necessary blockchain preliminaries for the understanding. \Cref{sec:provenance:capture} describes our design for capturing provenance, and the interface
+exposed to smart contracts. \Cref{sec:provenance:storage} discusses how we store provenance, and
+\Cref{sec:provenance:index} describes our new index. \Cref{sec:provenance:implementation} presents our
+implementation. \Cref{sec:provenance:exps} reports the performance of {\fs} on provenance-related matters. 
 
 \section{Preliminary}
-\label{prov:sec:background}
+\label{sec:provenance:background}
 In this section, we present more background on blockchain systems.
 We especially focus on the block structure and the procedure to validate a block. 
 And we explain the design choices of state organization that affect index structure requirements.
@@ -223,7 +223,7 @@ contract developer.
 
 
 \section{Fine-Grained Provenance}
-\label{prov:sec:capture}
+\label{sec:provenance:capture}
 In this section, we describe our approach to capture provenance during smart contract execution. We present
 APIs that allow the contract to query provenance at runtime. 
 
@@ -384,7 +384,7 @@ transactions is with a suspected address.
 
 
 \section{Secure Provenance Storage} 
-\label{prov:sec:storage}
+\label{sec:provenance:storage}
 In this section, we discuss how {\fs} enhances existing blockchain storage layer to provide efficient
 tracking and tamper evidence for the captured provenance. Our key insight is to reorganize the flat leaf
 nodes in the original Merkle tree into a Merkle DAG. We first describe the Merkle DAG structure, then discuss
@@ -496,7 +496,7 @@ the DAG from this hash to read the required version. Because the DAG is tamper e
 read version is guaranteed.
 
 \subsection{Support for Forward Tracking}
-\label{prov:sec:storage:forward}
+\label{sec:provenance:storage:forward}
 One problem of the above DAG model is that it does not support forward tracking, because the hash pointers
 only reference {\em backward} dependencies. When a state is updated, these backward
 dependencies are permanently established, so that they belong to the immutable derivation history of the
@@ -531,7 +531,7 @@ F_{s_{k,v}} = \{hash (E_{s'}) | s_{k,v} \in dep(s')\}
 $s_{k,v'}$.  
 
 \section{Efficient Provenance Queries}
-\label{prov:sec:index}
+\label{sec:provenance:index}
 The Merkle DAG structure supports efficient access to the latest state version, since the state index at block
 $b$ contains pointers to all the latest versions at this block. To read the latest version of $s$, one simply
 reads $\chi_b$, follows the index to the entry for $s$, and then reads the state value from the entry.
@@ -678,7 +678,7 @@ repeats the process (line \ref{alg:prov:append:head_begin} -
 level $L_5$, but then discards it because node $16$ will not be appended since it belongs to same
 interval of $[0,32)$ with node $1$. 
 
-\subsection{Discussion} \label{prov:sec:model_discuss}
+\subsection{Discussion} \label{sec:provenance:model_discuss}
 \textbf{Integrating to Merkle DAG. } 
 The DASL is integrated to the Merkle DAG as follows. The node structure (Figure \ref{code:prov:node}) is stored in
 the state entry (Definition~\ref{def:entry}).  The node pointers are implemented entry hashes. The Merkle tree
@@ -702,7 +702,7 @@ Another benefit is that the performance of such recent-version queries does not 
 \textbf{Extending to permissionless blockchains. } 
 We note that DASL incurs storage overhead. The version query also incurs some computation cost, even though it
 is more efficient with DASL than without it. These costs may be small enough such that they do not
-affect the performance of a permissioned blockchain, as we demonstrate in \Cref{prov:sec:exps}.  However,
+affect the performance of a permissioned blockchain, as we demonstrate in \Cref{sec:provenance:exps}.  However,
 they need to be carefully managed in a permissionless blockchain where any overhead directly translates to
 monetary cost to the miners. In particular, any additional cost to the miner triggers the Verifier
 Dilemma~\cite{luu2015demystifying} and compromises the incentive mechanism of the blockchain.  
@@ -724,18 +724,18 @@ fee. In particular, a query that requires more hops to find the requested versio
 fee. Users may empirically estimate the hops (as well as the cost) based on the above-derived theoretical upper bound. 
 
 \section{Implementation}
-\label{prov:sec:implementation}
+\label{sec:provenance:implementation}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{diagram/provenance/lineagechain.pdf}
-  \caption{The {\fs}'s instrumentation on Fabric to support data provenance. }
+  \caption{The {\fs}'s instrumentation on Fabric to support data provenance }
   \subcaption*{The original storage layer is replaced with the implementation that
   supports fine-grained provenance. The original execution layer is instrumented with a provenance capture
   engine. The application layer contains the new helper method and provenance query APIs. The consensus layer is unchanged. } 
   \label{diagram:prov:arch} 
 \end{figure}
 
-\begin{algorithm}[t]
+\begin{algorithm}
   \caption{Provenance update and digest Computation} \label{prov:fabric_change} 
   \tcc{fb is the shorthand for ForkBase. fb.Map is the built-in map data type in Forkbase.}     
   fb.Map<id,vid> $\textit{latest}$\;
@@ -821,7 +821,7 @@ value <- GetLastValue(key, branch);
 value <- GetValue(key, vid);
 meta <- GetMetadata(key, vid);
 \end{verbatim}
-\caption{ForkBase APIs to implement the {\fs}'s storage. }
+\caption{ForkBase APIs to implement the {\fs}'s storage}
 \subcaption{\textit{metadata} is a user provided string that describes the updated value. And \textit{vid} is uniquely determined by the updated value, key, branch and the metedata. }
 \label{code:prov:api}
 \end{figure}
@@ -853,7 +853,7 @@ invocation respectively. Both methods take as input an instance of \texttt{Chain
 supplies relevant context, such as access to the ledger states, to the smart contract. 
 
 We add the helper method, called \texttt{ProvHelper}, to the \texttt{Chaincode} interface. This method's signature,
-and how to write user-defined provenance rules with it, are explained in \Cref{prov:sec:capture}. The
+and how to write user-defined provenance rules with it, are explained in \Cref{sec:provenance:capture}. The
 execution engine intercepts \texttt{PutState} and \texttt{GetStates} during execution to record the read set and the
 write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. Fig
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}
@@ -861,12 +861,13 @@ and therefore previously-stored provenance is accessible to all contract methods
 
 
 \section{Performance Evaluation}
-\label{prov:sec:exps}
+\label{sec:provenance:exps}
 \subsection{Baselines and Experimental Setup}
+\label{sec:provenance:exps:setup}
 
 We evaluate {\fs} against two baselines. 
 The first baseline is the original Fabric, without any provenance support.
-The second one, which we refer as {\fsPlus}, directly enhances the original storage engine LevelDB for the provenance. 
+The second one, which we refer as {\fsPr}, directly enhances the original storage engine LevelDB for the provenance. 
 To be specific, previously Fabric associates the state IDs only with their latest values in LevelDB. 
 With our modification, historical values and dependencies are now associated with the concatenations of their IDs and versions. 
 For example, with respect to the example in Figure~\ref{diagram:prov:dag}, the storage entries (in the format of \textit{key:value}) for state ID $k_1$ are organized as follows: 
@@ -885,13 +886,219 @@ For example, with respect to the example in Figure~\ref{diagram:prov:dag}, the s
 \end{equation*}
 With the help of built-in LevelDB iterator, such flat organization facilitates the provenance retrieval for states at a specific version. 
 However, compared with our ForkBase in {\fs}, it does not protect the provenance integrity, nor does it support the discriminated version retrieval as our DASL. 
-Despite the storage differences, {\fsPlus} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
+Despite the storage differences, {\fsPr} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
 
 We perform three sets of experiments. First, we repeat the YCSB and Smallbank experiments to evaluate the performance implication with the provenance support. 
 Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{sec:twin:exp:replication:model}) to understand the exact overhead. 
-In the last one, we place a specific analysis on the provenance query and space consumption of the storage engine. 
-Only in this experiment we involve {\fsLite}, which strips away DASL out of {\fs} but still employs ForkBase.
+In the remaining experiments, we place a specific analysis on the provenance query and space consumption of the storage engine. 
+Note that in the following paragraphs and charts throughout this chapter, we refer {\fsPr} as {\fsPrO} and {\fs} as {\fsO}. The additional suffix \textit{O} denote that both Fabric variants use the original transaction scheduler. 
+We vary the transaction scheduler in the next chapter. 
 
 \subsection{Peak Performance}
-\subsection{Provenance Utility and Overhead}
-\subsection{Provenance Query and Space}
+
+Figure~\ref{chart:provenance:basic} presents the effective throughput for YCSB and Smallbank at their respective optimal setup, as previous identified in Chapter~\ref{sec:intro:basis}. 
+In the YCSB experiment, {\fsPrO} and {\fsO} track each value of for all historical versions of records, while the original Fabric only maintains the latest state. 
+For Smallbank, we implement the provenance helper method (which is detailed in Chapter~\ref{sec:provenance:capture}) to capture the monetary flow. 
+So besides the historical versions, {\fsPrO} and {\fsO} also preserve the dependency information. 
+Despite all these provenance features, we observe from Figure~\ref{chart:provenance:basic} that the performance overhead is negligible. 
+To be specific, under 1000 transactions per block with the YCSB workload, Fabric, {\fsPrO} and {\fsO} respectively achieve $1521$, $1449$, and $1387$ tps. The discrepancy is within 10\%. 
+Similarly, the abort rate for three systems increases from around 20\% to 66\% when $\theta$ grows from $0$ to $1.5$.
+Correspondingly, all the effective throughputs reduce to around 300 tps. 
+However, under a similar performance, {\fsO} additionally guarantees the provenance integrity. 
+In a word, {\fsO} is more secure than {\fsPrO}. 
+Interestingly from Figure~\ref{chart:provenance:basic:ycsb}, we observe {\fsPrO}'s throughputs are constantly lower than other systems with smaller blocks. 
+We leave its answer to Chapter~\ref{sec:provenance:exps:util}, when we dissect the bottleneck. 
+
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_thruput.pdf}
+      \caption{YCSB}
+      \label{chart:provenance:basic:ycsb}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/smallbank_skew.pdf}
+      \caption{Smallbank (skewed)}
+      \label{chart:provenance:basic:smallbank_skew}
+    \end{subfigure}
+    \caption{Effective throughput }
+    % \subcaption*{ }
+    \label{chart:provenance:basic}
+\end{figure}
+
+\subsection{Provenance Overhead and Utility}
+\label{sec:provenance:exps:util}
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_breakdown.pdf}
+      \caption{}
+      \label{chart:provenance:ycsb_breakdown}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/smallbank_util.pdf}
+      \caption{}
+      \label{chart:provenance:smallbank_util}
+    \end{subfigure}
+    \caption{Provenance overhead and utility }
+    \subcaption*{(a) The breakdown of the block validation delay in YCSB (b) The delay to invoke the provenance-dependent \textit{Refund} logic in Smallbank.}
+    % \label{chart:provenance:util_overhead}
+\end{figure}
+Figure~\ref{chart:provenance:ycsb_breakdown} breaks down the latency of block validation into multiple phases, block persistence, state persistence, transaction verification and others. 
+As we have demonstrated in Chapter~\ref{sec:twin:exp:replication:model}, the sequential validation rate decides on the system capacity. 
+Figure~\ref{chart:provenance:ycsb_breakdown} reveals a greater delay in {\fsPrO}, especially under small blocks. 
+In particular, we observe that {\fsPrO} takes $25$\% more time to persist blocks than Fabric and {\fsO}.
+By our careful inspection of the codebase, we realize that all Fabric variants construct an index on transactions when persisting a block. 
+The index is persisted into the same storage (LevelDB) engine, which also maintains the latest state in Fabric.
+However, that storage in {\fsPrO} incurs a heavier role: as explained in Chapter~\ref{sec:provenance:exps:setup}, it tracks all data provenance. 
+The overloaded usage accounts for the increased delay to build the transaction index, which ultimately translates into the lower throughput in {\fsPrO}. 
+On the other hand,  {\fsO} delegates the provenance tracking responsibility separately to ForkBase. 
+It is why the block persistence in {\fsO} saves around $10$\% time compared with Fabric. 
+However, {\fsO} takes more than 3 times to persist states (provenance) to ForkBase as Fabric and {\fsPrO} persist states (provenance) to LevelDB. 
+For example with 1000 transactions per block, this delay in {\fsO} reports $242$ms while 69ms and 81ms in Fabric and {\fsPrO}.
+This is understandable as {\fsO} additionally maintains the DASL and hash DAG for the provenance integrity. 
+But fortunately, the delay ratio of the state persistence with respect to the overall block validation is small:
+given the overall block validation delay is $723$ms in {\fsO}, this ratio is below $1/3$.
+It explains why the total block validation delay in {\fsO} is within $14$\% and $4$\% more than Fabric and {\fsO}. 
+So that {\fsO} reports the negligible performance overhead, even though it additionally preserves the provenance with the integrity guarantee.
+
+The provenance-provided utility is abundant. In the Smallbank contract of {\fsPrO} and {\fsO}, we additionally encode a provenance-dependent code, which refunds an account with an amount computed from its recent transactions in latest blocks.
+This is similar to the \texttt{Refund} example in Figure~\ref{code:prov:enhanced_contract}
+Figure~\ref{chart:provenance:smallbank_util} compares the end-to-end invocation latency with Fabric, without the provenance support. 
+The utility to expose smart contracts with provenance is tremendous. 
+Both {\fsO} and {\fsPrO} are capable to consolidate the above provenance-dependent logic into a single invocation, which takes around 2s. 
+In contrast, Fabric has to break the flow into two phases: first scan blocks for relevant transactions and then invoke the contract to perform the refund with the self-computed parameter. 
+Worst still, the delay of the sequential block scanning increases with the number of requested recent blocks. 
+Even though the block fetching can be done in parallel, 
+the separation of two phases is not only error-prone but also security-flawed, as explained in Chapter~\ref{sec:provenance:intro}.
+
+\subsection{Provenance Historical Query}
+In the following experiments, we strip away the storage components from {\fsO} and {\fsPrO} for the specific analysis with the tailored workload. 
+
+We first create 500 key-value tuples and then continuously issue update transactions until there are more 10k blocks in the ledger. We use 500 tuples, which is the same number of transactions in a block, so that every block contains a version of every tuple.  
+We then execute a query for
+the values of a key at different block numbers. Figure~\ref{chart:provenance:ycsb_dist_query} illustrates the query latency with  
+increasing block distance from the last block. One can observe that when the distance is small, {\fsO} without DASL has the lowest latency. Without special index support for the query, it performs linear scan from the latest
+version. Therefore, it is fast when the requested version is very recent because the number of read is small.
+However, its performance degrades quickly as the distance increases. In particular, when the block distance
+reaches $128$, the query is $4\times$ slower than {\fsO} with DASL. We observe that the query latency in
+{\fsPrO} is independent of the block distance. It is because the query uses storage index directly. {\fsO}
+outperforms the other two. Due to DASL, the query latency in {\fsO} is low when the block distance is
+large. When the block distance increases, the latency in {\fsO} increases logarithmically, as opposed to
+linearly without DASL.  
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.3\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_dist_query.pdf}
+      \caption{Version query I}
+      \label{chart:provenance:ycsb_dist_query}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_blk_query.pdf}
+      \caption{Version query II}
+      \label{chart:provenance:ycsb_blk_query}
+    \end{subfigure}
+    \begin{subfigure}{0.3\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_version_scan.pdf}
+      \caption{Version scan}
+      \label{chart:provenance:ycsb_version_scan}
+    \end{subfigure}
+    \caption{Latency of historical queries}
+    % \label{chart:provenance:util_overhead}
+\end{figure}
+We repeat the experiment above while fixing the block distance to $64$ and varying the total number of blocks.
+Figure~\ref{chart:provenance:ycsb_blk_query} shows the results for the version query when the number of block increases.
+It can be seen that the query latency in both {\fsO} with and without DASL remains roughly the same. In other words,
+the performance of version queries in these systems are independent of the block numbers, which is due to the
+DAG data model that tracks state versions. But the index reduces the
+number of hops needed to be read. An interesting observation is that the latency of {\fsPrO} fluctuates
+significantly. We attribute this fluctuation to the log-structure-merge tree index in the storage, in which the
+requested version may reside at different levels of the tree when the total number of block increases. 
+
+Next, we measure the latency for the operation that scan the entire version history of a given key.
+Figure~\ref{chart:provenance:ycsb_version_scan} shows the scan latency with increasing number of blocks between {\fsPrO} and {\fsO}.  
+For {\fsPrO}, we first construct the key range and rely on iterator for the scanning.  As the number of block
+increases, the version history becomes longer which accounts for the linear increase in latency in both
+systems.  However, {\fsO} outperforms {\fsPrO} by a constant factor. We attribute this difference to ForkBase's
+optimizations for version tracking. 
+
+
+\subsection{Provenance Dependency Query}
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.68\textwidth}
+      \includegraphics[width=0.99\textwidth]{diagram/provenance/supplychain.pdf}
+      \caption{Dependency in the supply chain}
+      \label{diagram:provenance:supply_chain_dag}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/forward.pdf}
+      \caption{Delay of forward query}
+      \label{chart:provenance:supply_chain_forward}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/bfs.pdf}
+      \caption{Delay of BFS traversal}
+      \label{chart:provenance:supply_chain_bfs}
+    \end{subfigure}
+    \caption{Dependency queries on a simulated supply chain}
+\end{figure}
+
+For multi-state dependency tracking, we implement a contract for a supply chain
+application shown in Figure~\ref{diagram:provenance:supply_chain_dag}.  In this application, a phone is assembled from intermediary
+components which are made from other components or raw material. 
+We pre-populate raw materials in both {\fsPrO} and {\fsO} and then issue transactions for the above transformation process. 
+Each transaction consumes (reads) the source materials and generates (writes) new components. 
+The steps after the phone production represent ownership changes from producers, retailers and end users.
+This supply chain is more complex than the example in Figure~\ref{code:prov:contract}, as it consists of a DAG with
+maximum depth of $6$. We generate synthetic data for this contract, and measure the latency of operations
+using  \texttt{Forward} and \texttt{Backward} version tracking.
+
+We evaluate the query performance with multi-state dependency. We populate the blockchain states with
+raw materials and issue transactions that create new phones.  We perform two experiments. First, we assume
+that one piece of silicon and quartz is found defected, and use forward tracking to find the
+affected materials and phones. Second, we perform a standard DAG traversals, breadth-first search (BFS), to retrieve all the dependencies of a phone. 
+Figure~\ref{chart:provenance:supply_chain_forward} compares the latency of forward tracking, and Figure
+\ref{chart:provenance:supply_chain_bfs} shows the BFS traversal performance with varying depths.  For forward tracking, we observe that
+{\fsO}'s delay is 10\% smaller than that of {\fsPrO}.  It takes less time to track the affected quartz than
+the affected the silicon, because the silicon is at a deeper position in the supply
+chain.  The gap between {\fsO} and {\fsPrO} is much more evident in the BFS traversal, 
+in which the latencies of both systems grow exponentially with increasing depths.  However,
+{\fsO} outperforms the baseline.  It is because the index in {\fsO} directly captures the dependencies,
+whereas each backtrack operation in {\fsPrO} requires traversing the storage index.  As the number of queries
+increases with the search depth, their performance gap accumulates.  
+
+\subsection{Provenance Storage}
+\begin{figure}[tp]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_blksize_storage.pdf}
+      \caption{}
+      \label{chart:provenance:ycsb_blksize_storage}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/provenance/ycsb_recordsize_storage.pdf}
+      \caption{}
+      \label{chart:provenance:ycsb_recordsize_storage}
+    \end{subfigure}
+    \caption{Provenance storage size}
+    \subcaption*{The storage space with (a) the varying block size and fixed record size (1000 bytes) (b) the varying record size and the fixed block size (1000 transactions per block). \textit{Meta} measures the size for all provenance information, such as hash pointers of Merkle DAG and DASL. }
+    % \label{chart:provenance:util_overhead}
+\end{figure}
+In the last experiment, we populate 100 blocks with the YCSB workload. 
+We place our focus solely on {\fsO} to understand the storage constitution for a blockchain application. 
+Even though there might be differences if with {\fsPrO}, the differences are specific to their storages, that is, ForkBase in {\fsO} and LevelDB in{\fsPrO}. 
+Their comparison is out of the scope of this thesis. 
+
+We measure the consumed storage space with the varying block size and the record size, 
+which are respectively reported in Figure~\ref{chart:provenance:ycsb_blksize_storage} and~\ref{chart:provenance:ycsb_recordsize_storage}. 
+One can observe that the storage consumption grows linearly with the number of blocks. 
+The storage increase is not evident until the record size grows to 5000 bytes. 
+But the block content constantly accounts for the majority of the storage cost.
+In particular, despite the different settings, blocks occupy around $66$\% of the entire space. 
+The result further confirms the conclusion drawn in Chapter~\ref{sec:twin:exp:storage}: compared with the state storage, the ledger abstraction incurs the most storage overhead. 
+But to our astonishment, we find that the storage consumption for data provenance is far less than expected, as shown in the negligible \texttt{Meta} bar. 
+Their storage ratios are all below $1$\% when a block contains 1000 transactions. 
+In the worst case with 100 transactions per block, the ratio is only $6.7$\%.
+Hence we conclude that the storage overhead for the extra provenance and DASL index is insignificant. 

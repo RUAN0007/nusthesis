@@ -48,21 +48,19 @@ endorsing peers to enhance confidentiality and exploit concurrency. But such
 concurrency comes at the cost of aborting transactions that do not abide
 serializability.
 %
-We have quantified this cost with respect to the Smallbank workload in Figure~\ref{chart:intro:basic:smallbank}.
+We have quantified this cost with respect to the Smallbank workload in Figure~\ref{chart:intro:basic:smallbank_skew}.
 %
-Figure~\ref{chart:intro:basic:smallbank} report both the raw and effective peak throughputs under the contention-free workload(, as depicted in \textit{Load} bar) and the transaction workload with contention. 
+Figure~\ref{chart:intro:basic:smallbank_skew} report both the raw and effective peak throughputs under the transaction workload with contention. 
 %
 In the latter, the Zipfian coefficient $\theta$ of the request distribution controls the contention. 
 %
 The raw throughput represents the in-ledger transaction rate, while the effective throughput represents committed transactions by excluding the aborted transactions from raw throughput. 
 %
-In Figure~\ref{chart:intro:basic:smallbank}, a bar shows the raw throughput, while its blue part reports the effective throughput. 
+In Figure~\ref{chart:intro:basic:smallbank_skew}, a bar shows the raw throughput, while its blue part reports the effective throughput. 
 %
-As we can see, the transaction workload achieve similar raw throughput as in the contention-free workload. 
+As we can see with higher skewness, a substantial fraction of the in-ledger transactions are aborted for serializability. 
 %
-But with higher skewness, a substantial fraction of the in-ledger transactions are aborted for serializability. 
-%
-To be specific, this ratio grows to 57\% when $\theta=1$, severely reducing the system processing volume. 
+To be specific, this ratio grows to $67$\% when $\theta=1.5$, severely reducing the system processing volume. 
 
 % \begin{figure}
 %   \centering     
@@ -1349,7 +1347,7 @@ For security, all orderers must use the same value for $max\_span$.
 \label{sec:txn:impl:sharp}
 When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
 It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
-In addition, the historical query powered by DASL in ~\Cref{prov:sec:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+In addition, the historical query powered by DASL in ~\Cref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
 
 \begin{figure}
   \centering
@@ -1367,7 +1365,7 @@ In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and co
 \texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
 Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
 Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
-In~\Cref{prov:sec:storage:forward}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
+In~\Cref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
 However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
 To address this issue, we directly drop \texttt{Txn2}. 
 In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 

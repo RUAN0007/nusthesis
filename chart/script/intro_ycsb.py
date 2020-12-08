@@ -23,7 +23,7 @@ def main():
     ax.bar(xticks, thruputs, width=0.6, color="blue", edgecolor='black')
 
     # ax.set_title("YCSB Throughput")
-    ax.set(xlabel=r'# Txns per Block (x100)', ylabel='tps')
+    ax.set(xlabel=r'# of Txns per Block (x100)', ylabel='tps')
     ax.set_xticks(xticks)
     ax.set_xticklabels(xlabels)
     ax.set_ylim([0, 2000])

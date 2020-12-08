@@ -29,6 +29,7 @@ def main():
     # # f.set_size_inches(, 4)
     for i, series_name in enumerate(series_names):
         series_data = series[series_name]
+        effective_thruputs = series_data
         series_offsets = [offsets[i]] * len(series_data)
         base_xticks = range(len(series_data))
         xticks = config.sum_list(base_xticks, series_offsets) 
@@ -36,12 +37,6 @@ def main():
         # print series_name
         # print series_data
         ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
-
-    # handles, labels = ax.get_legend_handles_labels()
-    # f.legend(handles, labels,
-    #          loc='upper center', ncol=1, bbox_to_anchor=(0.37, 0.94), fontsize=20) 
-            #  columnspacing=1, handletextpad=1, fontsize=20)
-    
 
     # ax.set_title("Throughput and Abort Rate")
     ax.set(xlabel=r'Zipfian coefficient $\theta$', ylabel='tps')
@@ -59,16 +54,25 @@ def main():
     abort_ax = ax.twinx()
     for i, series_name in enumerate(series_names):
         series_data = series[series_name]
+        abort_rates = series_data
         base_xticks = range(len(series_data))
         # print xticks
         # print series_name
         # print series_data
         # print series_name, config.FMTS[series_name]
         abort_ax.plot(base_xticks, series_data,  config.FMTS[series_name], **config.LINE_OPTS[series_name])
-    abort_ax.set_ylim([-0.75, 1.0])
+    abort_ax.set_ylim([-0.75, 1.5])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])
-    abort_ax.set(ylabel='abort rate(%)')
+    abort_ax.set(ylabel='Percent(%)')
+
+    aborted_thruputs = [effective_thruputs[i] / (1 - abort_rates[i]) * abort_rates[i] for i in range(len(abort_rates))]
+    h = ax.bar(xticks, aborted_thruputs, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', bottom=effective_thruputs)
+
+    handles, _ = ax.get_legend_handles_labels()
+    abort_handles, _ = abort_ax.get_legend_handles_labels()
+    f.legend(handles + [h] + abort_handles, ["Effective", "Aborted", "Abort Rate"],
+             loc='upper center', ncol=1, bbox_to_anchor=(0.48, 0.91), fontsize=20) 
 
     if diagram_path == "":
         plt.tight_layout()

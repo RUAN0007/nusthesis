@@ -1,7 +1,7 @@
 %!TEX root = ../main.tex
 
 \chapter{Introduction}
-\label{ch:intro}
+\label{sec:intro}
 % \vspace{2em}
 \section{Blockchain Overview}
 Blockchains shake the industry, academia, and the entire world with storms. 
@@ -90,6 +90,7 @@ We now explain the three principles that our enhancement follows:
 \end{itemize}
 
 \section{Optimization Basis}
+\label{sec:intro:basis}
 We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this thesis. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
 
 We now evaluate its throughput under out testbed and setup, which serves as the baseline. 
@@ -102,33 +103,44 @@ Unless otherwise mentioned, all our following experiments in this thesis are con
 We now present the primary results, after averaging over 3 times, in Figure~\ref{chart:intro:basic}. 
 The first experiment is adapted from YCSB~\cite{cooper2010benchmarking}. 
 Its workload consists of uniform write-only transactions, each inserting 1KB record. 
-Fabric attains its maximum throughput at around 1500 tps when the number of transactions per block is 1000 and beyond. 
-In the second experiment, we fix the block size at its optimal, i.e., 1000 transactions per block, and evaluate against the Smallbank workload~\cite{smallbank}. 
-We first measure the peak performance without contention by uniformly creating bank accounts (loading records). 
-As shown in the leftmost bar of Figure~\ref{chart:intro:basic:smallbank}, Fabric achieves similar throughout as in the previous YCSB experiment, around 1500 tps. 
-Then we saturate the system with the transaction workload at a request rate of 1700 tps, which is slightly greater than the above-mentioned throughput.
-The transaction workload simulates the monetary transfer between 100k bank accounts. 
-And the accessed accounts(records) follow Zipfian distribution, whose skewness is proportional to its coefficient $\theta$. 
+From Figure~\ref{chart:intro:basic:ycsb}, Fabric attains its peak throughput at around 1500 tps when the number of transactions per block is 1000 and beyond. 
+In the second experiment, we evaluate Fabric against the Smallbank workload with 100K records, which follows a Zipfian distribution with $\theta=1$. 
+We also vary the block size but control the requests at a rate which just saturates the system. 
+We derive the saturated request rates from the previous YCSB experiment. 
+For example, when a block contains 100 transactions, the request rate is 300 tps.
+One can observe in Figure~\ref{chart:intro:basic:smallbank_blk} that the peak effective throughout reaches its peak at 600 transactions per block and 1200 tps request rate, instead of 1000 transactions per block in the previous experiment. 
+It is because the block size introduces two interplay factors. 
+On the one hand, a small block limits the system capacity.
+As shown in Figure~\ref{chart:intro:basic:smallbank_blk}, the raw throughput, which includes the aborted transactions, grows with the block size. 
+On the other hand, a large block implies that more transactions are concurrent. 
+As explained in Chapter~\ref{sec:txn:theory}, concurrency exaggerates the conflicts, which leaves more transactions aborted and reduces the effective throughput. 
+This aligns with our observation that the abort rate also increases with the block size.
+The third experiment fixes the optimal setup for Smallbank, which is 600 transactions per block and 1200 tps request rate. 
+We vary the Zipfian coefficient $\theta$ to control the skewness and present the effective throughout in Figure~\ref{chart:intro:basic:smallbank_skew}. 
 One can observe that the Fabric's performance is susceptible to the request skewness, i.e., the greater $\theta$ leads to the lower throughput. 
-In particular, as illustrated by the blue bar, it only attains 580 tps when $\theta=1$, around 38.6\% of the peak. 
-This baseline experiment again motivates for the performance speedup of permissioned blockchains. 
+In particular, as illustrated by the blue bar, it only attains 331 tps for the effective throughput when $\theta=1.5$, around 43.7\% of the peak. 
+This set of experiments demonstrates the limited performance of Fabric and again calls for the speedup of permissioned blockchains. 
 
 \begin{figure}[tp]
 	\centering
-    \begin{subfigure}{0.45\textwidth}
+    \begin{subfigure}{0.30\textwidth}
       \includegraphics[width=0.99\textwidth]{chart/intro/ycsb.pdf}
       \caption{YCSB}
       \label{chart:intro:basic:ycsb}
     \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/intro/smallbank.pdf}
-      \caption{Smallbank}
-      \label{chart:intro:basic:smallbank}
+    \begin{subfigure}{0.30\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/intro/smallbank_blk.pdf}
+      \caption{Smallbank ($\theta=1$)}
+      \label{chart:intro:basic:smallbank_blk}
     \end{subfigure}
-    \caption{Primary evaluation results for Fabric. }
-    \subcaption*{(a) Fabric attains around 1500 tps at 1000 transactions per block, reaching its peak under the contention-free workload. (b) The skewness of the workload impacts on the Fabric's behavior. }
+    \begin{subfigure}{0.30\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/intro/smallbank_skew.pdf}
+      \caption{Smallbank (skewed)}
+      \label{chart:intro:basic:smallbank_skew}
+    \end{subfigure}
+    \caption{Primary evaluation results for Fabric }
+    \subcaption*{(a) Fabric attains around 1500 tps at 1000 transactions per block, reaching its peak under the contention-free workload.(b) When Smallbank workload follows Zipfian distribution with $\theta=1$, Fabric reaches its peak (around 600 tps) at 600 transactions per block and 1200 tps request rate. (c) The skewness of the workload impacts on the Fabric's behavior. }
     \label{chart:intro:basic}
-    % \vspace{-1.0em}
 \end{figure}
 
 \section{Thesis Synopsis}
@@ -153,4 +165,5 @@ Borrowed from the well-established transactional analysis from databases, we rea
 And the improvement is empirically demonstrated with our remarkable speedup, compared with the vanilla Fabric and the other state-of-the-art. 
 
 At last, we wrap up the thesis with the conclusion and future directions in Chapter~\ref{ch:conclu}. 
+In light of a variety of Fabric variants referenced and benchmarked in this thesis, we compile all for the clarity in Appendix~\ref{sec:append:variants}. 
 
