@@ -25,25 +25,29 @@ def main():
     f, (ax) = plt.subplots()
     # # f.set_size_inches(, 4)
 
+    original_label = config.make_label(config.original_label)
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+
     invocation_delay = series["Invocation"]
     base_xticks = range(len(invocation_delay))
 
     series_offsets = [offsets[0]] * len(invocation_delay)
     xticks = config.sum_list(base_xticks, series_offsets) 
-    ax.bar(xticks, invocation_delay, width=width, color=config.base_colors[config.kFabricLabel], edgecolor='black',align='center', label="Invocation(Fabric)")
+    ax.bar(xticks, invocation_delay, width=width, color=config.colors[original_label], edgecolor='black',align='center', label="Invocation(Fabric)")
 
     blkscan_delay = series["BlkScan"]
-    ax.bar(xticks, blkscan_delay, width=width, color="white", edgecolor=config.base_colors[config.kFabricLabel],align='center', label="Block Scan(Fabric)", bottom=invocation_delay, hatch=config.base_hatches[config.kFabricLabel])
+    ax.bar(xticks, blkscan_delay, width=width, color="white", edgecolor=config.colors[original_label],align='center', label="Block Scan(Fabric)", bottom=invocation_delay, hatch="xxx")
 
-    fabricplus_delay = series[config.kFabricProvOLabel]
+    fabricplus_delay = series[fabricprov_label]
     series_offsets = [offsets[1]] * len(fabricplus_delay)
     xticks = config.sum_list(base_xticks, series_offsets) 
-    ax.bar(xticks, fabricplus_delay, width=width, color=config.base_colors[config.kFabricProvOLabel], edgecolor='black',align='center', label=config.kFabricProvOLabel)
+    ax.bar(xticks, fabricplus_delay, width=width, color=config.colors[fabricprov_label], edgecolor='black',align='center', label=fabricprov_label)
 
-    fabricsharp_delay = series[config.kFabricSharpOLabel]
+    fabricsharp_delay = series[fabricsharp_label]
     series_offsets = [offsets[2]] * len(fabricsharp_delay)
     xticks = config.sum_list(base_xticks, series_offsets) 
-    ax.bar(xticks, fabricplus_delay, width=width, color=config.base_colors[config.kFabricSharpOLabel], edgecolor='black',align='center', label=config.kFabricSharpOLabel)
+    ax.bar(xticks, fabricplus_delay, width=width, color=config.colors[fabricsharp_label], edgecolor='black',align='center', label=fabricsharp_label)
 
     handles, labels = ax.get_legend_handles_labels()
     f.legend(handles, labels,

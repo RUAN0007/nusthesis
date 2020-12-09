@@ -128,7 +128,7 @@ In summary, our paper makes the following contributions:
   
 
 \item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
-  Fabric, {\fabricPlusplus}, and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
+  Fabric, {\fabricPlusplus}(simulated by our baseline {\fsP}), and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
   %
   The experimental results show that the throughput of {\fs} is more than 25\% higher compared to the other systems.
   %
@@ -143,7 +143,7 @@ reordering algorithm.
 %
 \Cref{sec:txn:impl} describes the implementation of our approach.
 %
-\Cref{sec:txn:experiment} reports our experimental results.
+\Cref{sec:txn:exp} reports our experimental results.
 
 \section{Background}
 \label{sec:txn:background}
@@ -1021,7 +1021,7 @@ In light of this, we present the details of designing the dependency graph and e
 
 Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
 %
-We then dedicate~\Cref{sec:txn:impl:sharp} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
+We then dedicate~\Cref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
 
 \subsection{Snapshot Read}
 \label{sec:txn:impl:snapshot_read}
@@ -1343,8 +1343,8 @@ Algorithm~\ref{alg:txn:reachability} (line~\ref{alg:txn:age}).
 %
 For security, all orderers must use the same value for $max\_span$.
 
-\subsection{{\fs} Specifics}
-\label{sec:txn:impl:sharp}
+\subsection{Intervention with data provenance}
+\label{sec:txn:impl:intervention}
 When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
 It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
 In addition, the historical query powered by DASL in ~\Cref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
@@ -1373,4 +1373,134 @@ Notably, the abort only applies when \texttt{Txn1} is already committed in earli
 If \texttt{Txn1} and \texttt{Txn2} are both pending, our reordering procedure guarantees to place \texttt{Txn2} ahead and avoid the above scenario. 
 
 \section{Experiments}
-\label{sec:txn:experiment}
+\label{sec:txn:exp}
+\subsection{Baselines and Workloads}
+First, we compare our proposed fine-grained concurrency control with the original First-in-first-out one on both {\fs} and {\fsPr}. 
+In a nutshell, {\fs} relies on ForkBase to provide the multi-version storage, while {\fsPr} utilizes our enhanced LevelDB which is illustrated in Chapter~\ref{sec:provenance:exp:setup}. 
+Following the naming convention in Appendix~\ref{sec:append:variants}, those with our \textbf{F}ine-grained concurrency control are respectively denoted as {\fsF} and {\fsPrF}, and those with the \textbf{O}riginal are suffixed with \textit{O} instead of \textit{F}. 
+We also include the original Fabric in the comparison. 
+On the above systems, we repeat the YCSB and Smallbank experiments. 
+The YCSB workload inserts distinct records. 
+Given its contention-free nature, we use YCSB to investigate the overhead of ours when the workload entails no conflicts. 
+In contrast, Smallbank simulates a realistic workload with the more skewness.
+For a fair comparison, we turn off the provenance capture in the Smallbank contract. 
+But we perform an additional experiment solely on ours.
+This is to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
+
+In the second experiment, we evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
+To be specific, all these baselines are built on top of ForkBase-powered {\fs} with different transaction concurrency methods.
+Besides the aforementioned {\fsO} and {\fsF}, we introduce additional three variants: {\fsP}, {\fsL} and {\fsS}. 
+{\fsP} implements the reordering technique as described in Fabric++(\textbf{P}lus plus) \cite{sharma2019blurring}.
+{\fsS} follows the \textbf{S}tandard serializable OCC approach in ~\cite{CahillRF08}. 
+This approach considers a dangerous pattern formed by two consecutive concurrent read-write conflicts with at least one \textit{anti-rw}. 
+In {\fsS}, we modify our Algorithm~\ref{alg:txn:txn} such that incoming transactions with a \textit{c-ww} conflict or a dangerous pattern are immediately aborted. 
+{\fsS} does nothing on the block formation.
+{\fsL} uses a \textbf{L}atest OCC technique~\cite{ding2018improving}, based upon which we construct the read-write
+dependency graph and apply its \textit{Sort-Based Greedy Algorithm} in Algorithm~\ref{alg:txn:blk} for reordering. 
+{\fsL} does not filter any transactions in Algorithm~\ref{alg:txn:txn}.
+
+The complex workload is adapted from Smallbank but subject to more configurations.
+In the workload, a transaction reads and writes 4 bank accounts, respectively, out of 10k accounts.
+We set 1\% of them as hot accounts.
+Each read has a certain probability to access the
+hot accounts, controlled by the \textit{Read hot ratio} parameter. 
+Similarly, writing to hot accounts is controlled by the \textit{Write hot ratio}. 
+We introduce two more workload parameters, namely \textit{Client Delay} and \textit{Read Interval}.
+The former controls the delay of a client's broadcast to \textit{orderers} after
+it receives the execution results from a \textit{peer}.
+This parameter simulates the network transmission delay at the client side. 
+The latter simulates computation-heavy transactions by controlling the interval
+between consecutive reads. 
+Table~\ref{tab:txn:parameter} tabulates all the parameters, with the default value underlined and with the fixed $max\_span$ to 10. 
+The default parameters serves as the basis to determine the optimal setup (block size x request rate) in terms of the effective throughput for each Fabric variants, as we did for the Smallbank experiment in Figure~\ref{chart:intro:basic:smallbank_blk}. 
+Then we incrementally modify each workload parameter in Table~\ref{tab:txn:parameter} to investigate their implication. 
+Unless otherwise specified, all reported throughputs denote the effective throughput, which represents the transactions that pass the serializability check and persist their states.
+
+\begin{table}
+	\centering
+	\caption{Experiment parameters}
+	\label{tab:txn:parameter}
+	\begin{tabular}{@{}ll@{}}
+	\toprule
+	\textbf{Parameter}
+  & \textbf{Value} \\
+	\midrule
+
+  Write hot ratio (\%)
+  & 0, \underline{10}, 20, 30, 40, 50 \\
+
+	Read hot ratio (\%)
+  & 0, \underline{10}, 20, 30, 40, 50 \\
+
+  Client delay (x100 ms)
+  & \underline{0}, 1 ,2 ,3, 4, 5 \\
+
+	Read interval (x10 ms)
+  & \underline{0}, 4, 8, 12, 16, 20 \\
+
+	\bottomrule
+	\end{tabular}
+\end{table}
+
+\subsection{Peak Performance}
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.75\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/ycsb_thruput.pdf}
+      \caption{YCSB}
+      \label{chart:txn:ycsb_thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_skew.pdf}
+      \caption{Smallbank(Skewed) I}
+      \label{chart:txn:smallbank_skew}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_prov.pdf}
+      \caption{Smallbank(Skewed) II}
+      \label{chart:txn:smallbank_prov}
+    \end{subfigure}
+    \caption{Effective throughput}
+    \subcaption*{In (a)(b), the bar segments with the cross and the blank pattern respectively denote the speedup and overhead brought by our proposed approach compared to the original one. In (c), the bar segments with the stripped pattern denote the overhead when the Smallbank contract tracks state dependency(monetary flow). }
+    % \label{chart:provenance:util_overhead}
+\end{figure}
+
+Figure~\ref{chart:txn:ycsb_thruput} presents the effective throughput on the YCSB workload.
+Despite the storage, our concurrency control overhead poses negligible overhead 
+when transactions are without contention.
+In particular, when systems reach maximum volume at 1000 transactions per block, {\fsO} and {\fsF} achieve $1372$ and $1300$ tps, less than $5.5$\% on the throughput reduction. 
+This ratio is even smaller with LevelDB storage: $2.8$\%({\fsPrO}'s $1464$ tps v.s. {\fsPrF}'s $1462$ tps). 
+From Chapter~\ref{sec:txn:exp:complex}, we conclude that the major overhead of our approach is due to the reachability update, as explained in Chapter~\ref{sec:txn:impl:graph}. 
+This process traverses the dependency graph along edges between conflicted transactions. 
+However, given that each YCSB transaction does not conflict with others, this bottleneck is not exaggerated.
+
+The speedup brought by our approach is most prominent under the Smallbank workload. 
+The greatest improvement $48$\% achieves on {\fsPrF} when Zipfian coefficient $\theta=1$,
+On {\fsF}, the ratio is capped at $18$\%.
+Interestingly, we do not observe a constant trend of improvement along with the increasing skewness. 
+We attribute it to the interplay of the two following two factors. 
+On the one hand, the increasing skewness opens up the opportunity for the fine-grained concurrency management. 
+The aforementioned YCSB workload stands for an extreme case where no transactions need to save from the abort. 
+On the other hand, based on Theorem~\ref{theory:unreorderable}, transactions that could be serialized(reordered) are fundamentally restricted in a severely skewed workload. 
+And the overhead to recover them would outweigh the gains to reach this theoretical limit. 
+
+The above two experiments both disable the state dependency capture for the fair comparison on concurrency control. 
+In this experiment, we vary this factor but fix to our approach. 
+Figure~\ref{chart:txn:smallbank_prov} presents the results on {\fsPrF} and {\fsF}. 
+The unchanged performance of {\fsF} is enough to show the minimum intervention
+between the state dependency and our fine-grained transaction management. 
+In a nutshell, the scenario illustrated in Chapter~\ref{sec:txn:impl:intervention} is rare at least in Smallbank workload. 
+The straightforward abort approach in Chapter~\ref{sec:txn:impl:intervention} will not drastically degrade the performance. 
+To our astonishment, the state dependency imposes non-negligible effects on our approach in {\fsPrF}.
+In particular, the throughput reduction rate reports $14$\% when $\theta=0$.
+By the careful inspection, this reduction is attributed to the overloaded usage on the LevelDB again. 
+With the state dependency tracking, more provenance information need to be persisted into LevelDB.
+As explained in Chapter~\ref{sec:provenance:exp:util}, this is the same instance to maintain transaction indices during block persistence. 
+{\fsF} does not suffer from this factor due to the separated usage of ForkBase. 
+This is also consistent with our observation on {\fsPrF} that 
+the overloaded usage gets cured under the greater workload skewness:
+simply because the amount of the captured provenance decrease with more transactions aborted. 
+
+\subsection{Behavior on Complex Workloads}
+\label{sec:txn:exp:complex}

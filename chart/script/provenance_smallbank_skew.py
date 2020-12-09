@@ -32,7 +32,7 @@ def main():
         # print xticks
         # print series_name
         # print series_data
-        ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
+        ax.bar(xticks, series_data, width=width, color=config.colors[series_name], edgecolor='black',align='center', label=series_name)
 
     handles, labels = ax.get_legend_handles_labels()
     f.legend(handles, labels,
@@ -41,7 +41,7 @@ def main():
     
 
     # ax.set_title("Throughput and Abort Rate")
-    ax.set(xlabel=r'Zipfian coefficient $\theta$', ylabel='tps')
+    ax.set(xlabel=r'Zipfian coefficient $\theta$', ylabel='Bar (tps)')
     ax.set_xticks(base_xticks)
     ax.set_xticklabels(xlabels, fontsize=16)
     ax.set_ylim([0, 2200])
@@ -59,11 +59,11 @@ def main():
         # print series_name
         # print series_data
         # print series_name, config.FMTS[series_name]
-        abort_ax.plot(base_xticks, series_data,  config.FMTS[series_name], **config.LINE_OPTS[series_name])
+        abort_ax.plot(base_xticks, series_data,  config.fmts[series_name], **config.line_opts[series_name])
     abort_ax.set_ylim([-0.5, 1.2])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])
-    abort_ax.set(ylabel='abort rate(%)')
+    abort_ax.set(ylabel='Line (abort rate %)')
 
     if diagram_path == "":
         plt.tight_layout()

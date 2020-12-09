@@ -12,10 +12,12 @@ def main():
         diagram_path = ""
 
     xlabels = ["Silicon", "Quartz"]
-    series_names = [config.kFabricProvOLabel, config.kFabricSharpOLabel]
-    series = {config.kFabricSharpOLabel: [849, 338], config.kFabricProvOLabel: [973, 363]}
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+    series_names = [fabricprov_label, fabricsharp_label]
+    series = {fabricsharp_label: [849, 338], fabricprov_label: [973, 363]}
 
-    width, offsets = config.compute_width_offsets(len(series[config.kFabricSharpOLabel]))
+    width, offsets = config.compute_width_offsets(len(series[fabricsharp_label]))
 
     f, (ax) = plt.subplots()
     # # f.set_size_inches(, 4)
@@ -27,7 +29,7 @@ def main():
         # print xticks
         # print series_name
         # print series_data
-        ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
+        ax.bar(xticks, series_data, width=width, color=config.colors[series_name], edgecolor='black',align='center', label=series_name)
 
     # ax.set_title("Throughput")
     ax.set(ylabel='us')

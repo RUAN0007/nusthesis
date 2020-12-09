@@ -11,11 +11,23 @@ def main():
     else:
         diagram_path = ""
     
-    series_names = [config.kFabricProvOLabel, config.kFabricSharpOLiteLabel, config.kFabricSharpOLabel]
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+    fabricsharplite_label = fabricsharp_label + "(No DASL)"
+
+    series_names = [fabricprov_label, fabricsharp_label, fabricsharplite_label]
     series = {}
-    series[config.kFabricProvOLabel] = [x / 1000000.0 for x in [29166, 42222, 25575, 23483, 35100, 33435, 31574, 41922]]
-    series[config.kFabricSharpOLiteLabel] = [x / 1000000.0 for x in [8751, 7486, 9015, 11836, 17098, 36527, 61952, 114019]]
-    series[config.kFabricSharpOLabel] = [x / 1000000.0 for x in [13340, 12170, 14337, 16347, 18840, 22401, 25084, 27829]]
+    series[fabricprov_label] = [x / 1000000.0 for x in [29166, 42222, 25575, 23483, 35100, 33435, 31574, 41922]]
+    series[fabricsharp_label] = [x / 1000000.0 for x in [8751, 7486, 9015, 11836, 17098, 36527, 61952, 114019]]
+    series[fabricsharplite_label] = [x / 1000000.0 for x in [13340, 12170, 14337, 16347, 18840, 22401, 25084, 27829]]
+
+    # Fabric# without DASL reuses the format of Fabric#, except the color.
+    config.fmts[fabricsharplite_label] = config.fmts[fabricsharp_label]
+    config.line_opts[fabricsharplite_label] = config.line_opts[fabricsharp_label].copy()
+    config.line_opts[fabricsharplite_label]["color"] = "orange"
+    config.line_opts[fabricsharplite_label]["markerfacecolor"] = "orange"
+    config.line_opts[fabricsharplite_label]["label"] = fabricsharplite_label
+
 
     xlabels = [2**i for i in range(0, 9)]
 
@@ -24,7 +36,7 @@ def main():
     for series_name in series_names:
         series_data = series[series_name]
         xticks = range(len(series_data))
-        ax.plot(xticks, series_data, config.FMTS[series_name], **config.LINE_OPTS[series_name])
+        ax.plot(xticks, series_data, config.fmts[series_name], **config.line_opts[series_name])
 
     # ax.set_title("Throughput")
     ax.set(xlabel='Block distance', ylabel='ms')

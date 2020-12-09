@@ -12,12 +12,14 @@ def main():
         diagram_path = ""
 
     xlabels = range(1, 7)
-    series_names = [config.kFabricProvOLabel, config.kFabricSharpOLabel]
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+    series_names = [fabricprov_label, fabricsharp_label]
     series = {}
     base = 1000000.0
 
-    series[config.kFabricProvOLabel] =  [x / base for x in [30973, 65782, 146790, 340255, 621393, 917434]]
-    series[config.kFabricSharpOLabel] =  [x / base for x in [10079, 14037, 24466, 63795, 123161, 169151]]
+    series[fabricprov_label] =  [x / base for x in [30973, 65782, 146790, 340255, 621393, 917434]]
+    series[fabricsharp_label] =  [x / base for x in [10079, 14037, 24466, 63795, 123161, 169151]]
 
     series_count = len(series_names)
     width, offsets = config.compute_width_offsets(series_count)
@@ -32,7 +34,7 @@ def main():
         # print xticks
         # print series_name
         # print series_data
-        ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
+        ax.bar(xticks, series_data, width=width, color=config.colors[series_name], edgecolor='black',align='center', label=series_name)
 
     # ax.set_title("Throughput")
     ax.set(xlabel=r'Search level', ylabel='ms')

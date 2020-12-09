@@ -49,8 +49,12 @@ def main():
     axis.yaxis.set_label_coords(-0.01,0.9)
 
     abort_ax = axis.twinx()
-    config.LINE_OPTS[config.kFabricLabel]["label"] = "Abort Rate"
-    abort_ax.plot(xticks, series[abort_label], config.Fabric_FMT, **config.LINE_OPTS[config.kFabricLabel])
+
+    format_label=config.make_label(config.original_label) # Use the original Fabric format style
+    line_opt = config.line_opts[format_label]
+    line_opt["label"] = "Abort Rate"
+
+    abort_ax.plot(xticks, series[abort_label], config.fmts[format_label], **line_opt)
     abort_ax.set_ylim([-0.5, 1.2])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])

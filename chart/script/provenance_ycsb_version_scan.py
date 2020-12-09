@@ -11,9 +11,11 @@ def main():
     else:
         diagram_path = ""
     
-    series_names = [config.kFabricProvOLabel, config.kFabricSharpOLabel]
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+    series_names = [fabricprov_label, fabricsharp_label]
     series = {}
-    series[config.kFabricProvOLabel] = [x / 1000000.0 for x in [1045175, # 1000
+    series[fabricprov_label] = [x / 1000000.0 for x in [1045175, # 1000
                                1568381, # 2000
                                2757734, # 3000
                                3248646, # 4000,
@@ -24,7 +26,7 @@ def main():
                                7384893, # 9000
                                10380770] # 10000
                                 ]
-    series[config.kFabricSharpOLabel] = [x / 1000000.0 for x in [323971, # 1000
+    series[fabricsharp_label] = [x / 1000000.0 for x in [323971, # 1000
                                718925, # 2000
                                1061239, # 3000
                                1258163, # 4000,
@@ -43,7 +45,7 @@ def main():
     for series_name in series_names:
         series_data = series[series_name]
         xticks = range(len(series_data))
-        ax.plot(xticks, series_data, config.FMTS[series_name], **config.LINE_OPTS[series_name])
+        ax.plot(xticks, series_data, config.fmts[series_name], **config.line_opts[series_name])
 
     # ax.set_title("Throughput")
     ax.set(xlabel='# of blocks (x1000)', ylabel='ms')

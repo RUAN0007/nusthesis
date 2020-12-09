@@ -17,8 +17,9 @@ def main():
     # We reuse the Fabric results in provenance experiment, but strip away for others
     data_path = os.path.join(curDir, "data", "provenance","smallbank_thruput")
     x_axis, series_names, series = config.parse(data_path)
-    series_names = [config.kFabricLabel]
-    series = {config.kFabricLabel: series[config.kFabricLabel]}
+    fabric_label = config.make_label(config.original_label)
+    series_names = [fabric_label]
+    series = {fabric_label: series[fabric_label]}
 
     xlabels = x_axis
 
@@ -36,7 +37,7 @@ def main():
         # print xticks
         # print series_name
         # print series_data
-        ax.bar(xticks, series_data, width=width, color=config.base_colors[series_name], edgecolor='black',align='center', label=series_name)
+        ax.bar(xticks, series_data, width=width, color=config.colors[series_name], edgecolor='black',align='center', label=series_name)
 
     # ax.set_title("Throughput and Abort Rate")
     ax.set(xlabel=r'Zipfian coefficient $\theta$', ylabel='tps')
@@ -48,8 +49,8 @@ def main():
     curDir = os.path.dirname(os.path.realpath(__file__))
     data_path = os.path.join(curDir, "data", "provenance", "smallbank_abort")
     x_axis, series_names, series = config.parse(data_path)
-    series_names = [config.kFabricLabel]
-    series = {config.kFabricLabel: series[config.kFabricLabel]}
+    series_names = [fabric_label]
+    series = {fabric_label: series[fabric_label]}
 
     abort_ax = ax.twinx()
     for i, series_name in enumerate(series_names):
@@ -60,14 +61,14 @@ def main():
         # print series_name
         # print series_data
         # print series_name, config.FMTS[series_name]
-        abort_ax.plot(base_xticks, series_data,  config.FMTS[series_name], **config.LINE_OPTS[series_name])
+        abort_ax.plot(base_xticks, series_data,  config.fmts[series_name], **config.line_opts[series_name])
     abort_ax.set_ylim([-0.75, 1.5])
     abort_ax.set_yticks([0, .5, 1.0])
     abort_ax.set_yticklabels(["0", "50", "100"])
     abort_ax.set(ylabel='Percent(%)')
 
     aborted_thruputs = [effective_thruputs[i] / (1 - abort_rates[i]) * abort_rates[i] for i in range(len(abort_rates))]
-    h = ax.bar(xticks, aborted_thruputs, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', bottom=effective_thruputs)
+    h = ax.bar(xticks, aborted_thruputs, width=width, color="white", edgecolor=config.colors[series_name],align='center', bottom=effective_thruputs)
 
     handles, _ = ax.get_legend_handles_labels()
     abort_handles, _ = abort_ax.get_legend_handles_labels()

@@ -11,11 +11,22 @@ def main():
     else:
         diagram_path = ""
     
-    series_names = [config.kFabricProvOLabel, config.kFabricSharpOLiteLabel, config.kFabricSharpOLabel]
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+    fabricsharplite_label = fabricsharp_label + "(No DASL)"
+
+    series_names = [fabricprov_label, fabricsharplite_label, fabricsharp_label]
     series = {}
-    series[config.kFabricProvOLabel] = [x / 1000000.0 for x in [41559, 33669, 42458, 31646, 31574]]
-    series[config.kFabricSharpOLiteLabel] = [x / 1000000.0 for x in [55509, 58855, 57440, 59480, 62494]]
-    series[config.kFabricSharpOLabel] = [x / 1000000.0 for x in [24201, 24789, 24216, 22860, 25084]]
+    series[fabricprov_label] = [x / 1000000.0 for x in [41559, 33669, 42458, 31646, 31574]]
+    series[fabricsharplite_label] = [x / 1000000.0 for x in [55509, 58855, 57440, 59480, 62494]]
+    series[fabricsharp_label] = [x / 1000000.0 for x in [24201, 24789, 24216, 22860, 25084]]
+
+    # Fabric# without DASL reuses the format of Fabric#, except the color.
+    config.fmts[fabricsharplite_label] = config.fmts[fabricsharp_label]
+    config.line_opts[fabricsharplite_label] = config.line_opts[fabricsharp_label].copy()
+    config.line_opts[fabricsharplite_label]["color"] = "orange"
+    config.line_opts[fabricsharplite_label]["markerfacecolor"] = "orange"
+    config.line_opts[fabricsharplite_label]["label"] = fabricsharplite_label
 
     xlabels = ["2^{}".format(i) for i in range(10, 15)]
 
@@ -24,7 +35,7 @@ def main():
     for series_name in series_names:
         series_data = series[series_name]
         xticks = range(len(series_data))
-        ax.plot(xticks, series_data, config.FMTS[series_name], **config.LINE_OPTS[series_name])
+        ax.plot(xticks, series_data, config.fmts[series_name], **config.line_opts[series_name])
 
     # ax.set_title("Throughput")
     ax.set(xlabel='# of blocks', ylabel='ms')

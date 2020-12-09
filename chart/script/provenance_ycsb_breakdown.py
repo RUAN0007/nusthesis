@@ -34,7 +34,7 @@ def main():
         # print xticks
         # print series_name
         # print series_data
-        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', hatch=blk_hatch)
+        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.colors[series_name],align='center', hatch=blk_hatch)
         bottoms[series_name] = series_data
 
 
@@ -47,7 +47,7 @@ def main():
         series_offsets = [offsets[i]] * len(series_data)
         base_xticks = range(len(series_data))
         xticks = config.sum_list(base_xticks, series_offsets) 
-        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', hatch=state_hatch, bottom=bottoms[series_name])
+        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.colors[series_name],align='center', hatch=state_hatch, bottom=bottoms[series_name])
         bottoms[series_name] = config.sum_list(bottoms[series_name], series_data)
 
 
@@ -60,7 +60,7 @@ def main():
         series_offsets = [offsets[i]] * len(series_data)
         base_xticks = range(len(series_data))
         xticks = config.sum_list(base_xticks, series_offsets) 
-        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', hatch=txn_verification_hatch, bottom=bottoms[series_name])
+        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.colors[series_name],align='center', hatch=txn_verification_hatch, bottom=bottoms[series_name])
         bottoms[series_name] = config.sum_list(bottoms[series_name], series_data)
 
 
@@ -73,7 +73,7 @@ def main():
         series_offsets = [offsets[i]] * len(series_data)
         base_xticks = range(len(series_data))
         xticks = config.sum_list(base_xticks, series_offsets) 
-        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.base_colors[series_name],align='center', hatch=other_hatch, bottom=bottoms[series_name])
+        ax.bar(xticks, series_data, width=width, color="white", edgecolor=config.colors[series_name],align='center', hatch=other_hatch, bottom=bottoms[series_name])
         bottoms[series_name] = config.sum_list(bottoms[series_name], series_data)
     
     ## Fake bars for legends
@@ -86,10 +86,17 @@ def main():
              loc='upper left', ncol=1, bbox_to_anchor=(0.17, 0.89), fontsize=16) 
 
     fake_bars = []
-    fake_bars.append(ax.bar(0, 0, color=config.kFabricColor))
-    fake_bars.append(ax.bar(0, 0, color=config.kFabricProvOColor))
-    fake_bars.append(ax.bar(0, 0, color=config.kFabricSharpOColor))
-    f.legend(fake_bars, [config.kFabricLabel, config.kFabricProvOLabel, config.kFabricSharpOLabel],
+
+
+    original_label = config.make_label(config.original_label)
+    fabricprov_label = config.make_label(config.ldb_prov_label)
+    fabricsharp_label = config.make_label(config.forkbase_label)
+
+    fake_bars.append(ax.bar(0, 0, color=config.colors[original_label]))
+    fake_bars.append(ax.bar(0, 0, color=config.colors[fabricprov_label]))
+    fake_bars.append(ax.bar(0, 0, color=config.colors[fabricsharp_label]))
+
+    f.legend(fake_bars, [original_label, fabricprov_label, fabricsharp_label],
              loc='upper left', ncol=1, bbox_to_anchor=(0.61,0.89), fontsize=14) 
 
     # ax.set_title("Throughput and Abort Rate")

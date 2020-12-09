@@ -93,7 +93,7 @@ In summary, we make the following contributions:
 The remainder of the chapter is organized as follows. \Cref{sec:provenance:background} provides necessary blockchain preliminaries for the understanding. \Cref{sec:provenance:capture} describes our design for capturing provenance, and the interface
 exposed to smart contracts. \Cref{sec:provenance:storage} discusses how we store provenance, and
 \Cref{sec:provenance:index} describes our new index. \Cref{sec:provenance:implementation} presents our
-implementation. \Cref{sec:provenance:exps} reports the performance of {\fs} on provenance-related matters. 
+implementation. \Cref{sec:provenance:exp} reports the performance of {\fs} on provenance-related matters. 
 
 \section{Preliminary}
 \label{sec:provenance:background}
@@ -702,7 +702,7 @@ Another benefit is that the performance of such recent-version queries does not 
 \textbf{Extending to permissionless blockchains. } 
 We note that DASL incurs storage overhead. The version query also incurs some computation cost, even though it
 is more efficient with DASL than without it. These costs may be small enough such that they do not
-affect the performance of a permissioned blockchain, as we demonstrate in \Cref{sec:provenance:exps}.  However,
+affect the performance of a permissioned blockchain, as we demonstrate in \Cref{sec:provenance:exp}.  However,
 they need to be carefully managed in a permissionless blockchain where any overhead directly translates to
 monetary cost to the miners. In particular, any additional cost to the miner triggers the Verifier
 Dilemma~\cite{luu2015demystifying} and compromises the incentive mechanism of the blockchain.  
@@ -861,9 +861,9 @@ and therefore previously-stored provenance is accessible to all contract methods
 
 
 \section{Performance Evaluation}
-\label{sec:provenance:exps}
+\label{sec:provenance:exp}
 \subsection{Baselines and Experimental Setup}
-\label{sec:provenance:exps:setup}
+\label{sec:provenance:exp:setup}
 
 We evaluate {\fs} against two baselines. 
 The first baseline is the original Fabric, without any provenance support.
@@ -895,6 +895,7 @@ Note that in the following paragraphs and charts throughout this chapter, we ref
 We vary the transaction scheduler in the next chapter. 
 
 \subsection{Peak Performance}
+\label{sec:provenance:exp:peak}
 
 Figure~\ref{chart:provenance:basic} presents the effective throughput for YCSB and Smallbank at their respective optimal setup, as previous identified in Chapter~\ref{sec:intro:basis}. 
 In the YCSB experiment, {\fsPrO} and {\fsO} track each value of for all historical versions of records, while the original Fabric only maintains the latest state. 
@@ -907,7 +908,7 @@ Correspondingly, all the effective throughputs reduce to around 300 tps.
 However, under a similar performance, {\fsO} additionally guarantees the provenance integrity. 
 In a word, {\fsO} is more secure than {\fsPrO}. 
 Interestingly from Figure~\ref{chart:provenance:basic:ycsb}, we observe {\fsPrO}'s throughputs are constantly lower than other systems with smaller blocks. 
-We leave its answer to Chapter~\ref{sec:provenance:exps:util}, when we dissect the bottleneck. 
+We leave its answer to Chapter~\ref{sec:provenance:exp:util}, when we dissect the bottleneck. 
 
 \begin{figure}[tp]
 	\centering
@@ -927,7 +928,7 @@ We leave its answer to Chapter~\ref{sec:provenance:exps:util}, when we dissect t
 \end{figure}
 
 \subsection{Provenance Overhead and Utility}
-\label{sec:provenance:exps:util}
+\label{sec:provenance:exp:util}
 \begin{figure}[tp]
 	\centering
     \begin{subfigure}{0.45\textwidth}
@@ -950,7 +951,7 @@ Figure~\ref{chart:provenance:ycsb_breakdown} reveals a greater delay in {\fsPrO}
 In particular, we observe that {\fsPrO} takes $25$\% more time to persist blocks than Fabric and {\fsO}.
 By our careful inspection of the codebase, we realize that all Fabric variants construct an index on transactions when persisting a block. 
 The index is persisted into the same storage (LevelDB) engine, which also maintains the latest state in Fabric.
-However, that storage in {\fsPrO} incurs a heavier role: as explained in Chapter~\ref{sec:provenance:exps:setup}, it tracks all data provenance. 
+However, that storage in {\fsPrO} incurs a heavier role: as explained in Chapter~\ref{sec:provenance:exp:setup}, it tracks all data provenance. 
 The overloaded usage accounts for the increased delay to build the transaction index, which ultimately translates into the lower throughput in {\fsPrO}. 
 On the other hand,  {\fsO} delegates the provenance tracking responsibility separately to ForkBase. 
 It is why the block persistence in {\fsO} saves around $10$\% time compared with Fabric. 
