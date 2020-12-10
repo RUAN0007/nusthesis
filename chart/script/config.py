@@ -18,15 +18,19 @@ forkbase_label = "Sharp"
 storage_types = [original_label,ldb_prov_label, forkbase_label]
 
 # Use the markder to differentiate the Txn scheduler
-raw_markers = {original_scheduler_label: "o", 
+raw_markers = {original_scheduler_label: "v", 
               fabricplus_scheduler_label: "X", 
               occ_standard_scheduler_label: "s", 
               occ_latest_scheduler_label: "x", 
-              fg_scheduler_label: "v"} 
+              fg_scheduler_label: "o"} 
 
 # Use the color to differentiate the storage
-raw_colors = {original_label: "blue", ldb_prov_label: "green", forkbase_label: "purple"} 
-
+raw_colors = {original_label: "green", ldb_prov_label: "blue", forkbase_label: "red"} 
+forkbase_scheduler_colors = {original_scheduler_label: raw_colors[forkbase_label], 
+                             fabricplus_scheduler_label: "orange",
+                             occ_standard_scheduler_label: "skyblue", 
+                             occ_latest_scheduler_label: "c",
+                             fg_scheduler_label: "purple"}
 
 def make_label_by_storage(storage):
     if storage == original_label:
@@ -60,47 +64,16 @@ fmts = {}
 for storage in storage_types:
     for scheduler_label in txn_scheduler_labels:
         label =  make_label(storage, scheduler_label)
-        color = raw_colors[storage]
+        if storage == forkbase_label:
+            color = forkbase_scheduler_colors[scheduler_label]
+        else:
+            color = raw_colors[storage]
+
         labels[label] = label
         colors[label] = color
         fmts[label] = raw_markers[scheduler_label]
         line_opts[label] = {"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':color, "color":color, "label": label}
 
-
-# kFabricProvOMarker, kFabricSharpOMarker, kFabricMarker, kFabricSharpOLiteMarker = (kTxnOriginalMarker,) * 4
-# kFabricProvPMarker, kFabricSharpPMarker = (kTxnPlusMarkder, ) * 2
-# kFabricProvSMarker, kFabricSharpSMarker = (kTxnStandardMarkder, ) * 2
-# kFabricProvLMarker, kFabricSharpLMarker = (kTxnLatestMarker, ) * 2
-# kFabricProvFgMarker, kFabricSharpFgMarker = (kTxnFgMarkder, ) * 2
-
-
-# kFabricSharpOLiteColor =  kFabricSharpLiteColor
-# kFabricProvOColor, kFabricProvPColor, kFabricProvSColor, kFabricProvLColor, kFabricProvFgColor = (kFabricProvColor, ) * 5
-# kFabricSharpOColor, kFabricSharpPColor, kFabricSharpSColor, kFabricSharpLColor, kFabricSharpFgColor = (kFabricSharpColor, ) * 5
-
-
-# kFabricProvOLabel, kFabricSharpOLabel, kFabricLabel, kFabricSharpOLiteLabel = "FabricProv-O", "Fabric#-O", "Fabric", "Fabric#-Lite"
-
-
-# base_colors = {kFabricProvOLabel: kFabricProvOColor, kFabricSharpOLabel: kFabricSharpOColor, kFabricLabel: kFabricColor, kFabricSharpOLiteLabel:kFabricSharpOLiteColor}
-# base_hatches = {kFabricProvOLabel: "xxx", kFabricSharpOLabel: "ooo", kFabricLabel: "///", kFabricSharpOLiteLabel: "\\\\\\"}
-
-
-# FabricProvO_FMT=kFabricProvOMarker
-# FabricProvO_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricProvOColor, "color":kFabricProvOColor, "label": kFabricProvOLabel}
-
-# FabricSharpO_FMT=kFabricSharpOMarker
-# FabricSharpO_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpOColor, "color":kFabricSharpOColor, "label": kFabricSharpOLabel}
-
-# Fabric_FMT=kFabricMarker
-# Fabric_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricColor, "color":kFabricColor, "label": kFabricLabel}
-
-# FabricSharpOLite_FMT=kFabricSharpOLiteMarker
-# FabricSharpOLite_LINE_OPTS={"linestyle": kLineStyle, "linewidth":kLineWidth, "markersize":kMarkerSize, 'markerfacecolor':kFabricSharpOLiteColor, "color":kFabricSharpOLiteColor, "label": "Fabric#-O(No DASL)"}
-
-# FMTS={kFabricProvOLabel: FabricProvO_FMT, kFabricSharpOLabel: FabricSharpO_FMT, kFabricLabel: Fabric_FMT, kFabricSharpOLiteLabel: FabricSharpOLite_FMT}
-
-# LINE_OPTS={kFabricProvOLabel: FabricProvO_LINE_OPTS, kFabricSharpOLabel: FabricSharpO_LINE_OPTS, kFabricLabel: Fabric_LINE_OPTS, kFabricSharpOLiteLabel: FabricSharpOLite_LINE_OPTS}
 
 def parse(statPath, is_numeric_x=False):
     series = {}

@@ -100,7 +100,7 @@ def main():
              loc='upper left', ncol=1, bbox_to_anchor=(0.61,0.89), fontsize=14) 
 
     # ax.set_title("Throughput and Abort Rate")
-    ax.set(xlabel=r'# Txns per Block (x100)', ylabel='ms')
+    ax.set(xlabel='# of txns per block (x100)', ylabel='ms')
     ax.set_xticks(base_xticks)
     ax.set_xticklabels(xlabels)
     ax.set_ylim([0, 1200])

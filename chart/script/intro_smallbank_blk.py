@@ -24,18 +24,19 @@ def main():
 
     xticks = range(len(x_axis))
     effective_series = series[effective_thruput_label]
-    axis.bar(xticks, effective_series, width=0.7, color="blue", edgecolor='black',
+    color = config.raw_colors[config.original_label]
+    axis.bar(xticks, effective_series, width=0.7, color=color, edgecolor='black',
               label="Effective")
 
     abort_series = [series[raw_thruput_label][i] - effective_series[i] for i in range(len(series[raw_thruput_label]))]
-    axis.bar(xticks, abort_series, width=0.7, color="white", edgecolor='blue',
+    axis.bar(xticks, abort_series, width=0.7, color="white", edgecolor=color,
               label="Aborted", bottom=effective_series, hatch="xx")
 
     axis.tick_params(axis='both', which='major', labelsize=18)
 
     # axis.set_title("Throughput and Abort Rate")
 
-    axis.set_xlabel(r'Blk Size (Request Rate)')
+    axis.set_xlabel(r'Blk size (Request rate)')
     axis.set_xticks(xticks)
     request_rate_series = series[req_rate_label]
     xlabels = ["{}\n({})".format(int(blk_sizes[i]), int(request_rate_series[i])) for i in range(len(x_axis))]

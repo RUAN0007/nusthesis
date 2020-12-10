@@ -31,7 +31,7 @@ def main():
     thruput_ax.plot(xticks, thruput[kEtcdLabel], ETCD_FMT, **ETCD_LINE_OPTS)
 
     thruput_ax.set_title("Latency")
-    thruput_ax.set(xlabel="# nodes", ylabel='ms')
+    thruput_ax.set(xlabel="# of nodes", ylabel='ms')
     thruput_ax.set_xticks(xticks)
     thruput_ax.set_xticklabels([3, 7, 9, 15, 19], fontsize=18)
     thruput_ax.set_ylim([0, 1800])

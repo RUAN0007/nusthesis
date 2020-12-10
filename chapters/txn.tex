@@ -130,7 +130,7 @@ In summary, our paper makes the following contributions:
 \item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
   Fabric, {\fabricPlusplus}(simulated by our baseline {\fsP}), and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
   %
-  The experimental results show that the throughput of {\fs} is more than 25\% higher compared to the other systems.
+  The experimental results show that the remarkable speedup compared to the other systems.
   %
 \end{itemize}
 
@@ -162,7 +162,7 @@ reordering algorithm.
       % \caption{Procedures in Fabric Orderer}
       \label{diagram:txn:background_orderer}
     \end{subfigure}
-    \caption{Background in Execute-order-validate architecture and {\fabricPlusplus}'s instrumentation.}
+    \caption{Background in Execute-order-validate architecture and {\fabricPlusplus}'s instrumentation}
     \subcaption*{(a) Example of transaction workflow in Fabric. An arrow represents the lifespan of a transaction's execution (simulation), e.g, Txn1 starts its execution immediately after block 1 and finishs its simulation after block 2. (b) Procedures replicated in each Fabric Orderer.
     {\fabricPlusplus} introduces a reordering step before the block formation to reduce the transaction abort rate.}
     \label{diagram:txn:background}
@@ -386,7 +386,7 @@ from a global atomic clock.
 All queries reflect the state snapshot of the database at the start timestamp,
 without observing later changes.
 %
-Each transaction is also assigned an {\textit{end timestamp}. 
+Each transaction is also assigned an {\textit{end timestamp}}. 
 %
 Before committing, the database system checks the validity of a transaction
 based on these two timestamps and the accessed records.
@@ -1405,7 +1405,7 @@ We set 1\% of them as hot accounts.
 Each read has a certain probability to access the
 hot accounts, controlled by the \textit{Read hot ratio} parameter. 
 Similarly, writing to hot accounts is controlled by the \textit{Write hot ratio}. 
-We introduce two more workload parameters, namely \textit{Client Delay} and \textit{Read Interval}.
+We introduce two more workload parameters, namely \textit{Client delay} and \textit{Read interval}.
 The former controls the delay of a client's broadcast to \textit{orderers} after
 it receives the execution results from a \textit{peer}.
 This parameter simulates the network transmission delay at the client side. 
@@ -1492,7 +1492,7 @@ The unchanged performance of {\fsF} is enough to show the minimum intervention
 between the state dependency and our fine-grained transaction management. 
 In a nutshell, the scenario illustrated in Chapter~\ref{sec:txn:impl:intervention} is rare at least in Smallbank workload. 
 The straightforward abort approach in Chapter~\ref{sec:txn:impl:intervention} will not drastically degrade the performance. 
-To our astonishment, the state dependency imposes non-negligible effects on our approach in {\fsPrF}.
+To our astonishment, the state dependency imposes non-negligible effects on our reordering approach in {\fsPrF}.
 In particular, the throughput reduction rate reports $14$\% when $\theta=0$.
 By the careful inspection, this reduction is attributed to the overloaded usage on the LevelDB again. 
 With the state dependency tracking, more provenance information need to be persisted into LevelDB.
@@ -1502,5 +1502,148 @@ This is also consistent with our observation on {\fsPrF} that
 the overloaded usage gets cured under the greater workload skewness:
 simply because the amount of the captured provenance decrease with more transactions aborted. 
 
-\subsection{Behavior on Complex Workloads}
+\subsection{Performance on Complex Workloads}
 \label{sec:txn:exp:complex}
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_thruput.pdf}
+      \caption{Effective Throughput}
+      \label{chart:txn:blksize:thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_abort.pdf}
+      \caption{Abort Rate}
+      \label{chart:txn:blksize:abort}
+    \end{subfigure}
+    \caption{Performance on the block size and request rate}
+    \subcaption*{Figure~\ref{chart:txn:blksize:thruput} highlights the optimal setups with the yellow marker. }
+    \label{chart:txn:blksize}
+\end{figure}
+
+\textbf{Block Size.}
+We first determine the optimal setup (in terms of the block size and the request rate) that leads to the highest throughput for each system, and use these sizes for the remainder of the experiments.
+Figure~\ref{chart:txn:blksize:thruput} shows that the highest throughput ($526$ tps) is achieved by {\fsF} when the block size is set to 200 transactions and the request rate at $600$ tps. 
+In contrast, Fabric, {\fsP}, {\fsS} and {\fsL} reach their peak performance, $394$, $379$, $301$, and $457$ tps, respectively, when a block (and the request rate) is limited to $400$ ($1000$), $200$ ($600$), $200$ ($600$), and $400$($1000$) transactions (tps), respectively. 
+Contrary to our expectation, {\fsP} can not scale beyond the setup with $600$ transactions per block and $1200$ tps request rate. 
+With careful inspection, we found that {\fsP} is stuck at Johnson's algorithm, which aims to detect cycles from strongly connected components. 
+The complexity of Johnson's algorithm is linear in the number of cycles. 
+When the workload is extremely skewed, it has many cycles in the transaction graph, thus, the reordering performance of {\fsP} is severely degraded. 
+Figure~\ref{chart:txn:blksize:abort} reports the fraction of aborted transactions in the ledger. 
+As expected, Fabric, {\fsP} and {\fsL} all show the greater proportion of aborted ones under larger blocks. 
+As established in Proposition~\ref{proposition:concurrency}, larger blocks induce more concurrency, exaggerating the transaction conflicts. 
+In contrast, {\fsS} and {\fsF} early abort transactions before forming the block. Hence their ledgers contain no invalid transactions which may waste the system volume. 
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_thruput.pdf}
+      \caption{Effective Throughput}
+      \label{chart:txn:writehot:thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_blk_delay.pdf}
+      \caption{Block Processing Delay (Algorithm~\ref{alg:txn:blk})}
+      \label{chart:txn:writehot:delay}
+    \end{subfigure}
+    \caption{Performance on the write hot ratio}
+    \label{chart:txn:writehot}
+\end{figure}
+\textbf{Write Hot Ratio.}
+To evaluate the effect of write-write conflicts, we concentrate more write operations into a fixed number of hot accounts.
+The throughput of {\fsF} remains almost the highest among all the systems, as shown in Figure~\ref{chart:txn:writehot:thruput}.
+As expected, the throughput of {\fsS} drops significantly due to its prevention on \textit{c-ww}. 
+We also observe in Figure~\ref{chart:txn:writehot:delay} that the reordering latency of {\fsP} is constantly large, 
+while this delay in {\fsL} is smaller and proportional to the increasing skewness.
+This is because {\fsL} iterates through the dependency graph of pending transactions in rounds. 
+In each round, its \textit{Sort-Based Greedy Algorithm} keeps pruning transactions until there are only transactions without dependencies.
+In contrast, {\fsP} computes all the cycles and determines the transactions to be aborted in batch mode. 
+Hence, its reordering procedure is less sensitive to workload skewness compared to {\fsL}. 
+Figure~\ref{chart:txn:writehot:delay} also shows that the reordering latency in {\fsF} (Algorithm~\ref{alg:txn:blk}) is low.
+This is because {\fsF} shifts most of the work (e.g., the dependency graph maintenance) to Algorithm~\ref{alg:txn:txn} on the transaction arrival. 
+We notice that a large ratio (more than $50$\%) of the reordering delay in
+{\fsF} is due to the restoration of \textit{ww} conflicts, and this ratio increases
+with higher write hot ratio.
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_thruput.pdf}
+      \caption{Effective Throughput}
+      \label{chart:txn:readhot:thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_txn_delay.pdf}
+      \caption{Block Processing Delay (Algorithm~\ref{alg:txn:txn})}
+      \label{chart:txn:readhot:delay}
+    \end{subfigure}
+    \caption{Performance on the read hot ratio}
+    \label{chart:txn:readhot}
+\end{figure}
+\textbf{Read Hot Ratio.}
+We increase the read hot ratio to generate more read-write conflicts in the workload. 
+As explained in Chapter~\ref{theory:unreorderable}, dependency cycles with 
+these conflicts can never be reordered to become serializable. 
+Consistent to our explanation, we show in \Cref{chart:txn:readhot} that the throughput of all the systems, except {\fsS}, decreases at a similar rate. 
+The throughput of {\fsS} is greater compared to Fabric and {\fsL} when 50\% of the read requests are on the hot accounts. 
+This is because {\fsS} imposes a more stringent condition for serializability compared to Fabric and {\fsL}.
+{\fsS} aborts transactions if they are forming two consecutive read-write conflicts with at least one \textit{anti-rw}, while the other systems, except {\fsF}, abort immediately when there is a single \textit{anti-rw}. 
+Hence, {\fsS} can recover more serializable transactions especially under heavy read-write contention. 
+Figure~\ref{chart:txn:readhot:delay} shows the processing latency breakdown for an incoming transaction.
+As expected, the reachability update on the dependency graph takes the largest proportion of the delay in {\fsF}, as all the reachable transactions from the incoming one must be traversed.
+This overhead increases with more dependencies in the workload. 
+Compared to {\fsF}, the transaction processing delay in {\fsS} and {\fsP} is almost negligible.
+However, {\fsS} takes a bit longer than {\fsP}, as it needs to additionally identify conflicted transactions, instead of only indexing the transactions based on the accessed records as in {\fsP}. 
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_thruput.pdf}
+      \caption{Effective Throughput}
+      \label{chart:txn:clientdelay:thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_stats.pdf}
+      \caption{{\fsF}'s Statistics}
+      \label{chart:txn:clientdelay:stat}
+    \end{subfigure}
+    \caption{Performance on the client delay}
+    \label{chart:txn:clientdelay}
+\end{figure}
+
+\textbf{Client Delay.}
+Next, we simulate the network transmission latency at the client side, in order to study its impact on a transaction's end-to-end processing.
+Using the \textit{client delay} parameter, we introduce a delay between the Execution and Ordering phases.
+As expected, a longer client delay increases the end-to-end latency and the block span of a transaction.
+In turn, this leads to lower throughput, as show in Figure~\ref{chart:txn:clientdelay:thruput}.
+Moreover, a larger block span leads to more concurrent transactions and more dependencies.
+As shown in Figure~\ref{chart:txn:clientdelay:stat}, {\fsF} traverses more transactions in the dependency graph to update their reachability (Algorithm~\ref{alg:txn:txn}) when the client delay is higher.
+Despite this, {\fsF} performs better than all the other systems.
+
+\textbf{Read Interval.}
+To simulate the scenario where a transaction incurs heavy computations, we increase the interval between consecutive reads during the transaction execution.
+Figure~\ref{chart:txn:readinterval:thruput} shows the throughputs, where {\fsF} again outperforms the others. 
+When a transaction takes longer to execute, there is a higher probability to read across blocks.
+{\fsP} prevents this scenario by aborting transactions that read across blocks even though some may be serializable. 
+This is evidenced by a larger proportion of transactions that are early aborted during the Execution phase, as shown in Figure~\ref{chart:txn:readinterval:abort}.
+{\fsS} consistently reads from a valid block snapshot and, hence, the effect of extending a transaction's execution results in a higher end-to-end latency.
+This leads to more concurrent transactions which, in turn, results in a higher abort rate for both \textit{c-ww} and the dangerous pattern in {\fsS}.
+Notably, the performance of {\fsO} drops drastically with longer transaction execution.
+We attribute this to the read-write lock used during the simulation and block commit which prevents parallelism.
+{\fsO} inherits this design from the original Fabric. 
+
+\begin{figure}[t]
+	\centering
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_thruput.pdf}
+      \caption{Effective Throughput}
+      \label{chart:txn:readinterval:thruput}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_abort.pdf}
+      \caption{Abort Rate}
+      \label{chart:txn:readinterval:abort}
+    \end{subfigure}
+    \caption{Performance on the read interval}
+    \label{chart:txn:readinterval}
+\end{figure}

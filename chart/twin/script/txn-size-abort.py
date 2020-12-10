@@ -51,7 +51,7 @@ def main():
 
     # abort_ax.set_title("Abort Rate", fontsize=46)
 
-    abort_ax.set_xlabel(r'# op per txn', fontsize=28)
+    abort_ax.set_xlabel('# of ops per txn', fontsize=28)
     abort_ax.set_ylabel('percent (%)', fontsize=28)
 
     abort_ax.set_xticks(xticks)

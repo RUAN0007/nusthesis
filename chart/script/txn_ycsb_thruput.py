@@ -84,7 +84,7 @@ def main():
 
 
     # ax.set_title("Throughput")
-    ax.set(xlabel=r'# Txns per Block (x100)', ylabel='tps')
+    ax.set(xlabel='# of txns per block (x100)', ylabel='tps')
     ax.set_xticks(base_xticks)
     ax.set_xticklabels(xlabels)
     ax.set_ylim([0, 2500])

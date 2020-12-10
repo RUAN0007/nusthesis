@@ -20,10 +20,12 @@ def main():
     # f.set_size_inches(, 4)
     xlabels = [str(x/100) for x in blkSizes]
     xticks = [x + 0.5 for x in range(len(xlabels))]
-    ax.bar(xticks, thruputs, width=0.6, color="blue", edgecolor='black')
+    color = config.raw_colors[config.original_label]
+
+    ax.bar(xticks, thruputs, width=0.6, color=color, edgecolor='black')
 
     # ax.set_title("YCSB Throughput")
-    ax.set(xlabel=r'# of Txns per Block (x100)', ylabel='tps')
+    ax.set(xlabel=r'# of txns per block (x100)', ylabel='tps')
     ax.set_xticks(xticks)
     ax.set_xticklabels(xlabels)
     ax.set_ylim([0, 2000])

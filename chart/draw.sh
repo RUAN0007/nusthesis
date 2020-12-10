@@ -38,7 +38,7 @@ function ctrl_c() {
 
 function main() {
   if [ "${1:-all}" = "all" ]; then
-    chapters=("intro" "provenance" "txn")
+    chapters=("intro" "provenance" "txn") # the twin study script is managed separately
   else
     chapters=("$@")
   fi

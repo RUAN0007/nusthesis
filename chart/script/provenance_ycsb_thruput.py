@@ -38,7 +38,7 @@ def main():
         ax.bar(xticks, series_data, width=width, color=config.colors[series_name], edgecolor='black',align='center', label=series_name)
 
     # ax.set_title("Throughput")
-    ax.set(xlabel=r'# Txns per Block (x100)', ylabel='tps')
+    ax.set(xlabel=r'# of txns per block (x100)', ylabel='tps')
     ax.set_xticks(base_xticks)
     ax.set_xticklabels(xlabels)
     ax.set_ylim([0, 2500])
