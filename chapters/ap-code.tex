@@ -1,0 +1,862 @@
+\chapter{Contract Codes}
+\label{sec:append:contracts}
+\section{Stub Handler}
+\label{sec:append:contracts:stub}
+
+
+\begin{lstlisting}
+type ChaincodeStubInterface interface {
+Hist(key string, blk uint64) (string, uint64, error)
+Backward(key string, blk uint64) ([]string, []uint64, string, error)
+Forward(key string, blk uint64) ([]string, []uint64, []string, error)
+}
+\end{lstlisting}
+
+\section{Token}
+\label{sec:append:contracts:token}
+
+\lstset{language=Go,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  commentstyle=\color{green}\ttfamily}
+
+\begin{lstlisting}
+package main
+
+    import (
+        "fmt"
+        "math"
+        "strconv"
+        "strings"
+    
+        "github.com/hyperledger/fabric-chaincode-go/shim"
+        pb "github.com/hyperledger/fabric-protos-go/peer"
+    )
+    
+    const ERROR_UNKNOWN_FUNC = "Unknown function"
+    const ERROR_SYSTEM = "System exception"
+    const ERROR_WRONG_ARGS = "Wrong arguments of function"
+    
+    type TokenChaincode struct {
+    }
+    
+    const SUSPECTED_KEY = "suspected"
+    
+    func (t *TokenChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+        // Put the initial suspected address
+        if err := stub.PutState(SUSPECTED_KEY, []byte("AccountA_AccountB_AccountC")); err != nil {
+            return systemerror(err.Error())
+        }
+        return shim.Success(nil)
+    }
+    
+    func (t *TokenChaincode) ProvHelper(stub shim.ChaincodeStubInterface, 
+    reads, writes map[string][]byte) map[string][]string {
+        dependency := make(map[string][]string)
+        function, _ := stub.GetFunctionAndParameters()
+    
+        if function == "transfer" {
+            senderAccount := ""
+            recipientAccount := ""
+    
+            for acc := range reads {
+                prevBal, _ := strconv.Atoi(string(reads[acc]))
+                postBal, _ := strconv.Atoi(string(writes[acc]))
+                if prevBal < postBal {
+                    senderAccount = acc
+                } else {
+                    recipientAccount = acc
+                }
+            }
+            dependency[recipientAccount] = []string{senderAccount}
+        } else {
+            // other functions  do not involve any provenance-related relationship.
+            // Hence, do nothing.
+        }
+        return dependency
+    }
+    
+    func (t *TokenChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+        function, args := stub.GetFunctionAndParameters()
+        switch function {
+        case "open_account":
+            return t.OpenAccount(stub, args)
+        case "transfer":
+            return t.Transfer(stub, args)
+        case "refund":
+            return t.Refund(stub, args)
+        case "suspect":
+            return t.Suspect(stub, args)
+        case "query":
+            return t.Query(stub, args)
+        default:
+            return errormsg(ERROR_UNKNOWN_FUNC + ": " + function)
+        }
+    }
+    
+    func (t *TokenChaincode) Refund(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+        if len(args) != 1 { 
+            return errormsg(ERROR_WRONG_ARGS + " Refund")
+        }
+        totalBalance := 0
+        count := 0
+        account := args[0]
+        // Assume the height of the first block in the current month is 10
+        var thresholdBlkHeight uint64 = 10
+        var curBlkHeight uint64 = math.MaxUint64
+        for thresholdBlkHeight < curBlkHeight {
+            if balanceBytes, committedBlkHeight, err := 
+              stub.Hist(account, curBlkHeight); err != nil {
+                return systemerror(err.Error())
+            } else if balance, err := strconv.Atoi(string(balanceBytes)); err != nil {
+                return systemerror(err.Error())
+            } else {
+                totalBalance += balance
+                count++
+                curBlkHeight = committedBlkHeight - 1
+            }
+        }
+        refundAmount := totalBalance / count
+        newBalance := ""
+        if balanceBytes, err := stub.GetState(account); err != nil {
+            return systemerror(err.Error())
+        } else if balance, err := strconv.Atoi(string(balanceBytes)); err != nil {
+            return systemerror(err.Error())
+        } else {
+            newBalance = strconv.Itoa(balance + refundAmount)
+        }
+    
+        if err := stub.PutState(account, []byte(newBalance)); err != nil {
+            return systemerror(err.Error())
+        }
+        return shim.Success(nil)
+    }
+    
+    func (t *TokenChaincode) getSuspect(stub shim.ChaincodeStubInterface) ([]string, error) {
+        if valueBytes, err := stub.GetState(SUSPECTED_KEY); err != nil {
+            return nil, err
+        } else {
+            value := string(valueBytes)
+            accounts := strings.Split(value, "_")
+            return accounts, nil
+        }
+    }
+    
+    func (t *TokenChaincode) addToSuspect(stub shim.ChaincodeStubInterface, 
+          account string) pb.Response {
+        if valueBytes, err := stub.GetState(SUSPECTED_KEY); err != nil {
+            return shim.Success(nil)
+        } else {
+            newValue := string(valueBytes) + "_" + account
+            if err := stub.PutState(SUSPECTED_KEY, []byte(newValue)); err != nil {
+                return systemerror(err.Error())
+            } else {
+                return shim.Success(nil)
+            }
+        }
+    }
+    
+    func (t *TokenChaincode) Suspect(stub shim.ChaincodeStubInterface, 
+          args []string) pb.Response {
+        account := args[0]
+        if blackListed, err := t.getSuspect(stub); err != nil {
+            return systemerror(err.Error())
+        } else {
+            var lastBlk uint64 = math.MaxUint64
+            blackListedMap := make(map[string]bool)
+            for _, b := range blackListed {
+                blackListedMap[b] = true
+            }
+            for i := 0; i < 5; i++ {
+                if _, committedBlk, err := stub.Hist(account, lastBlk); err != nil {
+                    return shim.Success(nil) 
+                    // return nil as the total number of balance version is below 5.
+                } else {
+                    if depKeys, _, _, err := stub.Backward(account, committedBlk); err != nil {
+                        return errormsg(err.Error())
+                    } else {
+                        for _, depKey := range depKeys {
+                            if _, ok := blackListedMap[depKey]; ok {
+                                return t.addToSuspect(stub, account)
+                            }
+                        }
+                    }
+    
+                    if antiDepKeys, _, _, err := stub.Forward(account, committedBlk); err != nil {
+                        return errormsg(err.Error())
+                    } else {
+                        for _, antiDepKey := range antiDepKeys {
+                            if _, ok := blackListedMap[antiDepKey]; ok {
+                                return t.addToSuspect(stub, account)
+                            }
+                        }
+                    }
+    
+                    lastBlk = committedBlk - 1
+                }
+            }
+        }
+        return shim.Success(nil)
+    }
+    
+    func (t *TokenChaincode) OpenAccount(stub shim.ChaincodeStubInterface, 
+            args []string) pb.Response {
+        if len(args) != 2 { 
+            return errormsg(ERROR_WRONG_ARGS + " Open Account")
+        }
+        accountName := args[0]
+        if data, err := stub.GetState(accountName); err != nil {
+            return errormsg(err.Error())
+        } else if data != nil {
+            return errormsg("Can not create duplicated account")
+        }
+    
+        if _, err := strconv.Atoi(args[1]); err != nil {
+            return systemerror(err.Error())
+        }
+    
+        if err := stub.PutState(accountName, []byte(args[1])); err != nil {
+            return systemerror(err.Error())
+        }
+        return shim.Success(nil)
+    }
+    
+    func (t *TokenChaincode) Query(stub shim.ChaincodeStubInterface, args []string) 
+            pb.Response {
+        key := args[0]
+        balanceBytes, err := stub.GetState(key)
+        if err != nil {
+            return systemerror(err.Error())
+        }
+    
+        return shim.Success(balanceBytes)
+    }
+    
+    func (t *TokenChaincode) Transfer(stub shim.ChaincodeStubInterface, args []string) 
+            pb.Response {
+        if len(args) != 3 { 
+            return errormsg(ERROR_WRONG_ARGS + " Open Account")
+        }
+        senderAccount := args[0]
+        recipientAccount := args[1]
+        transferAmount := 0
+        if parsed, err := strconv.Atoi(args[2]); err != nil {
+            return systemerror(err.Error())
+        } else {
+            transferAmount = parsed
+        }
+    
+        var senderNewBalance, recipientNewBalance string
+        if senderBalanceBytes, err := stub.GetState(senderAccount); err != nil {
+            return systemerror(err.Error())
+        } else if senderBalance, err := strconv.Atoi(string(senderBalanceBytes)); 
+            err != nil {
+            return systemerror(err.Error())
+        } else if senderBalance < transferAmount {
+            return errormsg("Insufficient fund in Account " + senderAccount)
+        } else {
+            senderNewBalance = strconv.Itoa(senderBalance - transferAmount)
+        }
+    
+        if recipientBalanceBytes, err := stub.GetState(recipientAccount); err != nil {
+            return systemerror(err.Error())
+        } else if receipientBalance, err := strconv.Atoi(string(recipientBalanceBytes)); err != nil {
+            return systemerror(err.Error())
+        } else {
+            recipientNewBalance = strconv.Itoa(receipientBalance + transferAmount)
+        }
+    
+        if err := stub.PutState(senderAccount, []byte(senderNewBalance)); err != nil {
+            return systemerror(err.Error())
+        }
+    
+        if err := stub.PutState(recipientAccount, []byte(recipientNewBalance)); err != nil {
+            return systemerror(err.Error())
+        }
+    
+        return shim.Success(nil)
+    }
+    
+    func main() {
+        _ = shim.Start(new(TokenChaincode))
+    }
+    
+    func errormsg(msg string) pb.Response {
+        return shim.Error("{\"error\":" + msg + "}")
+    }
+    
+    func systemerror(err string) pb.Response {
+        return errormsg(ERROR_SYSTEM + ":" + err)
+    }
+\end{lstlisting}
+
+\section{YCSB}
+\label{sec:append:contracts:ycsb}
+\begin{lstlisting}
+package main
+
+import (
+	"crypto/sha512"
+	"encoding/hex"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+    pb "github.com/hyperledger/fabric-protos-go/peer"
+)
+
+const ERROR_UNKNOWN_FUNC = "Unknown function"
+const ERROR_WRONG_ARGS = "Wrong arguments of function"
+const ERROR_SYSTEM = "System exception"
+const ERR_NOT_FOUND = "Could not find specified Key"
+const ERROR_PUT_STATE = "Failed to put state"
+
+var namespace = hexdigest("ycsb")[:6]
+
+type YCSBChaincode struct {
+}
+
+func (t *YCSBChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	return shim.Success(nil)
+}
+
+func (t *YCSBChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	function, args := stub.GetFunctionAndParameters()
+	switch function {
+	case "insert":
+		return t.Insert(stub, args)
+	case "update":
+		return t.Update(stub, args)
+	case "readmodifywrite":
+		return t.ReadModifyWrite(stub, args)
+	case "remove":
+		return t.Delete(stub, args)
+	case "query":
+		return t.Read(stub, args)
+	case "multirw":
+		return t.MultiRW(stub, args)
+	case "empty":
+		return t.Empty(stub, args)
+	default:
+		return errormsg(ERROR_UNKNOWN_FUNC + ": " + function)
+	}
+}
+
+func (t *YCSBChaincode) Empty(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	return shim.Success(nil)
+}
+
+func (t *YCSBChaincode) Insert(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " Insert")
+	}
+
+	err := stub.PutState(args[0], []byte(args[1]))
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *YCSBChaincode) Update(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " Update")
+	}
+
+	err := stub.PutState(args[0], []byte(args[1]))
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *YCSBChaincode) ReadModifyWrite(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " ReadModifyWrite")
+	}
+
+	valBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	err = stub.PutState(args[0], []byte(args[1]))
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(valBytes)
+}
+
+func (t *YCSBChaincode) Delete(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 1 { // should be [key]
+		return errormsg(ERROR_WRONG_ARGS + " Delete")
+	}
+
+	err := stub.PutState(args[0], []byte(""))
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *YCSBChaincode) Read(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	if len(args) != 1 { // should be [key]
+		return errormsg(ERROR_WRONG_ARGS + " Read")
+	}
+
+	valBytes, err := stub.GetState(args[0])
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(valBytes)
+}
+
+func (t *YCSBChaincode) MultiRW(stub shim.ChaincodeStubInterface, args []string) pb.Response {
+	arg_count, _ := strconv.Atoi(args[0])
+	for i := 1; i <= arg_count; i++ {
+		valBytes, _ := stub.GetState(args[i])
+		_ = stub.PutState(args[i], valBytes)
+	}
+	return shim.Success(nil)
+}
+
+
+func main() {
+	_ = shim.Start(new(YCSBChaincode))
+}
+
+func errormsg(msg string) pb.Response {
+	return shim.Error("{\"error\":" + msg + "}")
+}
+
+func systemerror(err string) pb.Response {
+	return errormsg(ERROR_SYSTEM + ":" + err)
+}
+
+func hexdigest(str string) string {
+	hash := sha512.New()
+	hash.Write([]byte(str))
+	hashBytes := hash.Sum(nil)
+	return strings.ToLower(hex.EncodeToString(hashBytes))
+}
+
+\end{lstlisting}
+
+\section{Smallbank}
+\label{sec:append:contracts:smallbank}
+\begin{lstlisting}
+package main
+
+import (
+	"crypto/sha512"
+	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	"strconv"
+	"strings"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+
+	pb "github.com/hyperledger/fabric-protos-go/peer"
+)
+
+const ERROR_UNKNOWN_FUNC = "Unknown function"
+const ERROR_WRONG_ARGS = "Wrong arguments of function"
+const ERROR_SYSTEM = "System exception"
+const ERR_NOT_FOUND = "Could not find specified account"
+const ERROR_PUT_STATE = "Failed to put state"
+
+var namespace = hexdigest("smallbank")[:6]
+
+type SmallbankChaincode struct {
+}
+
+func (t *SmallbankChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	// nothing to do
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	function, args := stub.GetFunctionAndParameters()
+	switch function {
+	case "create_account":
+		return t.CreateAccount(stub, args)
+	case "transact_savings":
+		return t.TransactSavings(stub, args)
+	case "deposit_checking":
+		return t.DepositChecking(stub, args)
+	case "send_payment":
+		return t.SendPayment(stub, args)
+	case "write_check":
+		return t.WriteCheck(stub, args)
+	case "amalgamate":
+		return t.Amalgamate(stub, args)
+	case "query":
+		return t.Query(stub, args)
+	default:
+		return errormsg(ERROR_UNKNOWN_FUNC + ": " + function)
+	}
+}
+
+type Account struct {
+	CustomId        string
+	CustomName      string
+	SavingsBalance  int
+	CheckingBalance int
+}
+
+func (t *SmallbankChaincode) CreateAccount(stub shim.ChaincodeStubInterface, 
+        args []string) pb.Response {
+	if len(args) != 4 { 
+		return errormsg(ERROR_WRONG_ARGS + " create_account")
+	}
+
+	checking, errcheck := strconv.Atoi(args[2])
+	if errcheck != nil {
+        return errormsg(ERROR_WRONG_ARGS)
+	}
+	saving, errsaving := strconv.Atoi(args[3])
+	if errsaving != nil {
+        return errormsg(ERROR_WRONG_ARGS)
+	}
+
+	account := &Account{
+		CustomId:        args[0],
+		CustomName:      args[1],
+		SavingsBalance:  saving,
+		CheckingBalance: checking}
+	err = saveAccount(stub, account)
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) DepositChecking(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " deposit_checking")
+	}
+	account, err := loadAccount(stub, args[1])
+	if err != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[1])
+	}
+	amount, _ := strconv.Atoi(args[0])
+	account.CheckingBalance += amount
+	err = saveAccount(stub, account)
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) WriteCheck(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " write_check")
+	}
+	account, err := loadAccount(stub, args[1])
+	if err != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[1])
+	}
+	amount, _ := strconv.Atoi(args[0])
+	account.CheckingBalance -= amount
+	err = saveAccount(stub, account)
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) TransactSavings(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 2 { // should be [amount,customer_id]
+		return errormsg(ERROR_WRONG_ARGS + " transaction_savings")
+	}
+	account, err := loadAccount(stub, args[1])
+	if err != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[1])
+	}
+    amount, _ := strconv.Atoi(args[0])
+
+	account.SavingsBalance += amount
+	err = saveAccount(stub, account)
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) SendPayment(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 3 { 
+		return errormsg(ERROR_WRONG_ARGS + " send_payment")
+	}
+	destAccount, err1 := loadAccount(stub, args[1])
+	sourceAccount, err2 := loadAccount(stub, args[2])
+	if err1 != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[1])
+	}
+
+	if err2 != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[2])
+	}
+
+	amount, _ := strconv.Atoi(args[0])
+	sourceAccount.CheckingBalance -= amount
+	destAccount.CheckingBalance += amount
+	err1 = saveAccount(stub, sourceAccount)
+	err2 = saveAccount(stub, destAccount)
+	if err1 != nil || err2 != nil {
+		return errormsg(ERROR_PUT_STATE)
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) Amalgamate(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	if len(args) != 2 { 
+		return errormsg(ERROR_WRONG_ARGS + " amalgamate")
+	}
+	destAccount, err1 := loadAccount(stub, args[0])
+	sourceAccount, err2 := loadAccount(stub, args[1])
+	if err1 != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[0])
+	}
+
+	if err2 != nil {
+		return errormsg(ERR_NOT_FOUND + " " + args[1])
+	}
+
+	destAccount.CheckingBalance += sourceAccount.SavingsBalance
+	sourceAccount.SavingsBalance = 0
+	err1 = saveAccount(stub, sourceAccount)
+	err2 = saveAccount(stub, destAccount)
+	if err1 != nil || err2 != nil {
+		return errormsg(ERROR_PUT_STATE)
+	}
+
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) Query(stub shim.ChaincodeStubInterface, args []string) 
+        pb.Response {
+	key := accountKey(args[0])
+	accountBytes, err := stub.GetState(key)
+	if err != nil {
+		return systemerror(err.Error())
+	}
+
+	return shim.Success(accountBytes)
+}
+
+func main() {
+	_ = shim.Start(new(SmallbankChaincode))
+}
+
+func errormsg(msg string) pb.Response {
+	return shim.Error("{\"error\":" + msg + "}")
+}
+
+func systemerror(err string) pb.Response {
+	return errormsg(ERROR_SYSTEM + ":" + err)
+}
+
+func hexdigest(str string) string {
+	hash := sha512.New()
+	hash.Write([]byte(str))
+	hashBytes := hash.Sum(nil)
+	return strings.ToLower(hex.EncodeToString(hashBytes))
+}
+
+func accountKey(id string) string {
+	// return namespace + hexdigest(id)[:64]
+	return namespace + id
+}
+
+func loadAccount(stub shim.ChaincodeStubInterface, id string) (*Account, error) {
+	key := accountKey(id)
+	accountBytes, err := stub.GetState(key)
+	if err != nil {
+		return nil, err
+	}
+	res := Account{}
+	err = json.Unmarshal(accountBytes, &res)
+	if err != nil {
+		return nil, err
+	}
+	return &res, nil
+}
+
+func saveAccount(stub shim.ChaincodeStubInterface, account *Account) error {
+	accountBytes, err := json.Marshal(account)
+	if err != nil {
+		return err
+	}
+	key := accountKey(account.CustomId)
+	return stub.PutState(key, accountBytes)
+}
+
+\end{lstlisting}
+
+\section{Smallbank ProvHelper}
+\label{sec:append:contracts:smallbank_prov}
+\begin{lstlisting}
+func (t *SmallbankChaincode) ProvHelper(stub shim.ChaincodeStubInterface, 
+        reads, writes map[string][]byte) map[string][]string {
+	dependency := make(map[string][]string)
+	function, args := stub.GetFunctionAndParameters()
+	if function == "send_payment" {
+		destAccount := accountKey(args[1])
+		srcAccount := accountKey(args[2])
+		dependency[destAccount] = []string{srcAccount}
+		return dependency
+	} else if function == "amalgamate" {
+		destAccount := accountKey(args[0])
+		srcAccount := accountKey(args[1])
+		dependency[destAccount] = []string{srcAccount}
+		return dependency
+	} else {
+		// other functions  do not involve any provenance-related relationship.
+		// Hence, do nothing.
+		return nil
+    }
+}
+\end{lstlisting}
+
+\section{Conditional Refund in Smallbank}
+\label{sec:append:contracts:cond_refund}
+\begin{lstlisting}
+func (t *SmallbankChaincode) ConditionalRefund(stub shim.ChaincodeStubInterface, 
+        args []string) pb.Response {
+	accId := accountKey(args[0])
+	var curBlkHeight, scannedBlkCount int
+	curBlkHeight, _ = strconv.Atoi(args[1])
+	scannedBlkCount, _ = strconv.Atoi(args[2])
+
+	lastBlkHeight := uint64(curBlkHeight - scannedBlkCount)
+	curBlk := uint64(curBlkHeight)
+	acc, _ := loadAccount(stub, accId)
+	postBal := acc.SavingsBalance
+	transactedAmount := 0
+	for lastBlkHeight <= curBlk {
+		if accountBytes, committedBlk, err := stub.Hist(accId, curBlk); err != nil {
+            // err implies there are no earlier version. 
+            // Hence just stop here and return.
+			break
+		} else {
+			res := Account{}
+			_ = json.Unmarshal([]byte(accountBytes), &res)
+			curBal := res.SavingsBalance
+			if curBal < postBal {
+				transactedAmount += postBal - curBal 
+			} else {
+				transactedAmount -= curBal - postBal
+			}
+			postBal = curBal
+			curBlk = committedBlk - 1
+		}
+	}
+	threshold := 100
+	if transactedAmount > threshold {
+		// Refund by 20%
+		return t.Refund(stub, accId, transactedAmount / 5) 
+	}
+	return shim.Success(nil)
+}
+
+func (t *SmallbankChaincode) Refund(stub shim.ChaincodeStubInterface, 
+        accId string, amount int) pb.Response {
+	acc, _ := loadAccount(stub, accId)
+	acc.SavingsBalance += amount
+	_ = saveAccount(stub, acc)
+	return shim.Success(nil)
+}
+\end{lstlisting}
+
+\section{Complex Workload}
+\label{sec:append:contracts:complex}
+\begin{lstlisting}
+package main
+
+import (
+	"fmt"
+	"strconv"
+	"time"
+
+	"github.com/hyperledger/fabric-chaincode-go/shim"
+	pb "github.com/hyperledger/fabric-protos-go/peer"
+)
+
+const EMPTY_VAL = "empty"
+
+type NewChaincode struct {
+}
+
+// Initialize the accounts
+func (t *NewChaincode) Init(stub shim.ChaincodeStubInterface) pb.Response {
+	_, args := stub.GetFunctionAndParameters()
+	accCount, _ := strconv.Atoi(args[0])
+
+	for i := 0; i < accCount; i++ {
+		acc := fmt.Sprintf("acc%d", i)
+		_ = stub.PutState(acc, []byte(EMPTY_VAL))
+	}
+	fmt.Printf("Initialized %d accounts\n", accCount)
+	return shim.Success(nil)
+}
+
+func (t *NewChaincode) Invoke(stub shim.ChaincodeStubInterface) pb.Response {
+	function, args := stub.GetFunctionAndParameters()
+
+	if function == "MultiRWWithInterval" {
+		return t.MultiRWWithInterval(stub, args)
+	}
+
+	return shim.Error("Unkown function name: " + function)
+}
+
+
+func (t *NewChaincode) MultiRWWithInterval(stub shim.ChaincodeStubInterface, 
+		args []string) pb.Response {
+	ind := 0
+	readIntervalMS, _ := strconv.Atoi(args[ind])
+
+	ind++
+	readCount, _ := strconv.Atoi(args[ind])	
+	ind++
+	for i := 0; i < readCount; i++ {
+		_, _ = stub.GetState(args[ind])
+		if i < readCount-1 {
+			time.Sleep(time.Duration(readIntervalMS) * time.Millisecond)
+		}
+		ind++
+	}
+	writeCount, _ := strconv.Atoi(args[ind])	
+	ind++
+	for i := 0; i < writeCount; i++ {
+		_ = stub.PutState(args[ind], []byte(EMPTY_VAL))
+		ind++
+	}
+	return shim.Success(nil)
+}
+
+func main() {
+	_ = shim.Start(new(NewChaincode))
+}
+
+\end{lstlisting}

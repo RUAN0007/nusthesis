@@ -90,10 +90,10 @@ In summary, we make the following contributions:
   its efficient query and small storage overhead. 
 \end{itemize}
 
-The remainder of the chapter is organized as follows. \Cref{sec:provenance:background} provides necessary blockchain preliminaries for the understanding. \Cref{sec:provenance:capture} describes our design for capturing provenance, and the interface
-exposed to smart contracts. \Cref{sec:provenance:storage} discusses how we store provenance, and
-\Cref{sec:provenance:index} describes our new index. \Cref{sec:provenance:implementation} presents our
-implementation. \Cref{sec:provenance:exp} reports the performance of {\fs} on provenance-related matters. 
+The remainder of the chapter is organized as follows. Chapter~\ref{sec:provenance:background} provides necessary blockchain preliminaries for the understanding. Chapter~\ref{sec:provenance:capture} describes our design for capturing provenance, and the interface
+exposed to smart contracts. Chapter~\ref{sec:provenance:storage} discusses how we store provenance, and
+Chapter~\ref{sec:provenance:index} describes our new index. Chapter~\ref{sec:provenance:implementation} presents our
+implementation. Chapter~\ref{sec:provenance:exp} reports the performance of {\fs} on provenance-related matters. 
 
 \section{Preliminary}
 \label{sec:provenance:background}
@@ -103,7 +103,7 @@ And we explain the design choices of state organization that affect index struct
 At last, we present an overview of {\fs}. 
 
 \textbf{Data model.} Different blockchains adopt different data models for their states. Bitcoin' states
-are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in \Cref{sec:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
+are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in Chapter~\ref{sec:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
 by smart contracts.  They adopt an account-based data model, in which each account has its own local states
 stored on the blockchain. A smart contract transaction can write arbitrary data to the storage. This flexible
 data model comes at the cost of integrity protection and verification of the account states. In this paper, we
@@ -702,7 +702,7 @@ Another benefit is that the performance of such recent-version queries does not 
 \textbf{Extending to permissionless blockchains. } 
 We note that DASL incurs storage overhead. The version query also incurs some computation cost, even though it
 is more efficient with DASL than without it. These costs may be small enough such that they do not
-affect the performance of a permissioned blockchain, as we demonstrate in \Cref{sec:provenance:exp}.  However,
+affect the performance of a permissioned blockchain, as we demonstrate in Chapter~\ref{sec:provenance:exp}.  However,
 they need to be carefully managed in a permissionless blockchain where any overhead directly translates to
 monetary cost to the miners. In particular, any additional cost to the miner triggers the Verifier
 Dilemma~\cite{luu2015demystifying} and compromises the incentive mechanism of the blockchain.  
@@ -853,12 +853,12 @@ invocation respectively. Both methods take as input an instance of \texttt{Chain
 supplies relevant context, such as access to the ledger states, to the smart contract. 
 
 We add the helper method, called \texttt{ProvHelper}, to the \texttt{Chaincode} interface. This method's signature,
-and how to write user-defined provenance rules with it, are explained in \Cref{sec:provenance:capture}. The
+and how to write user-defined provenance rules with it, are explained in Chapter~\ref{sec:provenance:capture}. The
 execution engine intercepts \texttt{PutState} and \texttt{GetStates} during execution to record the read set and the
 write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. Fig
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}
 and therefore previously-stored provenance is accessible to all contract methods. 
-
+Appendix~\ref{sec:append:contracts:stub} and~\ref{sec:append:contracts:token} attaches the code of the provenance APIs introduced in \texttt{ChaincodeStubInterface}, and the full-fledged chaincode for the \textit{Token} contract in Figure~\ref{code:prov:enhanced_contract}
 
 \section{Performance Evaluation}
 \label{sec:provenance:exp}
@@ -889,10 +889,12 @@ However, compared with our ForkBase in {\fs}, it does not protect the provenance
 Despite the storage differences, {\fsPr} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
 
 We perform three sets of experiments. First, we repeat the YCSB and Smallbank experiments to evaluate the performance implication with the provenance support. 
-Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{sec:twin:exp:replication:model}) to understand the exact overhead. 
+Specifically for Smallbank, we implement the \texttt{ProvHelper} to capture the monetary flow as the state dependency, as attached in Appendix~\ref{sec:append:contracts:smallbank_prov}.
+Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. 
+In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{sec:twin:exp:replication:model}) to understand the exact overhead. 
 In the remaining experiments, we place a specific analysis on the provenance query and space consumption of the storage engine. 
-Note that in the following paragraphs and charts throughout this chapter, we refer {\fsPr} as {\fsPrO} and {\fs} as {\fsO}. The additional suffix \textit{O} denote that both Fabric variants use the original transaction scheduler. 
-We vary the transaction scheduler in the next chapter. 
+Note that in the following paragraphs and charts throughout this chapter, we refer {\fsPr} as {\fsPrO} and {\fs} as {\fsO}. The additional suffix \textit{O} denote that both Fabric variants use the original concurrency control method,
+which will vary in the Chapter~\ref{ch:txn}. 
 
 \subsection{Peak Performance}
 \label{sec:provenance:exp:peak}
@@ -963,13 +965,14 @@ given the overall block validation delay is $723$ms in {\fsO}, this ratio is bel
 It explains why the total block validation delay in {\fsO} is within $14$\% and $4$\% more than Fabric and {\fsO}. 
 So that {\fsO} reports the negligible performance overhead, even though it additionally preserves the provenance with the integrity guarantee.
 
-The provenance-provided utility is abundant. In the Smallbank contract of {\fsPrO} and {\fsO}, we additionally encode a provenance-dependent code, which refunds an account with an amount computed from its recent transactions in latest blocks.
-This is similar to the \texttt{Refund} example in Figure~\ref{code:prov:enhanced_contract}
-Figure~\ref{chart:provenance:smallbank_util} compares the end-to-end invocation latency with Fabric, without the provenance support. 
-The utility to expose smart contracts with provenance is tremendous. 
+The provenance-provided utility is abundant. In the Smallbank contract, we additionally encode a provenance-dependent method \texttt{ConditionalRefund}, as attached in Appendix~\ref{sec:append:contracts:cond_refund}.
+Similar to the \texttt{Refund} example in Figure~\ref{code:prov:enhanced_contract},
+it refunds a bank account with an amount conditional on its involved transactions in recent blocks.
+We compare the end-to-end latency of the exact procedure in Fabric, without the provenance support.
+Fabric has to break the flow into two phases: first scan blocks for relevant transactions and then invoke the \texttt{Refund} with the self-computed amount.
+Figure~\ref{chart:provenance:smallbank_util} demonstrates tremendous utility to expose smart contracts with provenance.
 Both {\fsO} and {\fsPrO} are capable to consolidate the above provenance-dependent logic into a single invocation, which takes around 2s. 
-In contrast, Fabric has to break the flow into two phases: first scan blocks for relevant transactions and then invoke the contract to perform the refund with the self-computed parameter. 
-Worst still, the delay of the sequential block scanning increases with the number of requested recent blocks. 
+In contrast in Fabric, the delay of the sequential block scanning increases with the number of requested recent blocks. 
 Even though the block fetching can be done in parallel, 
 the separation of two phases is not only error-prone but also security-flawed, as explained in Chapter~\ref{sec:provenance:intro}.
 

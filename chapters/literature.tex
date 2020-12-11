@@ -72,7 +72,6 @@ Despite their implementation differences, the execution architecture of any bloc
     \end{subfigure}
     \caption{The Order-execute vs. Execute-order-validate architecture. }
     \label{diagram:literature:execution}
-    % \vspace{-1.0em}
 \end{figure}
 
 \subsection{Order-execute Architecture}
@@ -223,7 +222,7 @@ In their design, the strict network assumption comes into play when to reliably 
 Notably, Flexible BFT mixes two types of deterministic protocols together, so that clients can draw their own commit decisions at their discretion on the network condition~\cite{malkhi2019flexible}. 
 
 Randomness is another alternative route to break the Impossibilty, in order to reach agreement on the ledger. 
-For example, HonestBadgerBFT combines a variety of randomized agreement protocols~\cite{miller2016honey}. 
+For example, HoneyBadgerBFT combines a variety of randomized agreement protocols~\cite{miller2016honey}. 
 So that it achieves linear message complexity, as PoW in Bitcoin. 
 As the carry-on work, BEAT provides a diversity of randomized protocols that tailors for various application demands~\cite{duan2018beat}. 
 Such randomization takes in the form of the unpredictable network connectivity in~\cite{rocket2019scalable}.
@@ -270,7 +269,7 @@ This survey investigates a broader range of applications and quantifies their th
 Another popular application is the token management.
 Unlike the built-in cryptocurrency, the token is associated with external assets. 
 The assets may range from vouchers, IOU, copyrights, and tangible objects. 
-So that one may redeem the asset in the world, by showing the cryptographic proof of the token possession in the blockchain. 
+So that one may redeem the asset in the real world, by showing the cryptographic proof of the token possession in the blockchain. 
 For example, one may get a one-for-one exchange between Tether tokens and US dollars. 
 We observe most of these applications operate on Ethereum, especially to hinge on the official provided ERC20 token standard~\cite{wiki:ERC20}.
 In particular, ERC20 is a smart contract that defines a common list of rules on token operations.  

@@ -8,6 +8,7 @@
 
 \usepackage{arydshln}
 
+
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{csquotes}
@@ -26,6 +27,7 @@
 % \usepackage{fancyvrb}
 % \usepackage{bera}
 
+\newcommand{\na}{\textit{N.A.}\xspace}
 \newcommand{\fs}{\textit{FabricSharp}\xspace}
 \newcommand{\fsO}{\textit{Fabric\#-O}\xspace}
 \newcommand{\fsF}{\textit{Fabric\#-F}\xspace}
@@ -34,7 +36,7 @@
 \newcommand{\fsS}{\textit{Fabric\#-S}\xspace}
 
 \newcommand{\ff}{\textit{FastFabric}\xspace}
-\newcommand{\ffs}{\textit{FastFabricSharp}\xspace}
+% \newcommand{\ffs}{\textit{FastFabricSharp}\xspace}
 \newcommand{\fabricPlusplus}{\textit{Fabric++}}
 \newcommand{\fsPrO}{\textit{FabricProv-O}}
 \newcommand{\fsPr}{\textit{FabricProv}}
@@ -84,21 +86,12 @@
 \renewcommand{\chapterautorefname}{Chapter}
 
 \usepackage{listings}
-\renewcommand{\lstlistingname}{Code}
-\lstset{language=SQL, 
-    morekeywords={ONLINE, WITHIN},
-    frame=none,
-    float,
-    basicstyle=\ttfamily\normalsize,
-    keywordstyle=\bfseries,
-    numbers=none,
-    showstringspaces=false,
-    aboveskip=-2pt, %\smallskipamount
-    belowskip=-4pt, %\smallskipamount
-    xleftmargin=1em,
-    escapeinside={(*@}{@*)},
-    captionpos=b
-}
+\lstset{language=Go,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{blue}\ttfamily,
+  stringstyle=\color{red}\ttfamily,
+  commentstyle=\color{green}\ttfamily}
+
 
 \let\proof\relax
 \let\endproof\relax
@@ -158,7 +151,8 @@
 \newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 \newcolumntype{R}[1]{>{\raggedleft\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
 
-\usepackage{color, colortbl}
+% \usepackage{color, colortbl}
+\usepackage{colortbl}
 
 \usepackage[usenames,dvipsnames]{xcolor}
 \usepackage{soul}

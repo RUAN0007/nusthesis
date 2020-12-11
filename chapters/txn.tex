@@ -25,7 +25,7 @@ sharing, and in particular, we use Fabric as the underlying blockchain system.
 Fabric supports a new transaction execution architecture called
 execute-order-validate (EOV).
 %
-In this architecture, a transaction's lifecycle consists of three phases, as detailed in~\Cref{sec:literature:execution:execute-order-validate}. In the
+In this architecture, a transaction's lifecycle consists of three phases, as detailed in~Chapter~\ref{sec:literature:execution:execute-order-validate}. In the
 first phase, \textit{execution}, a client sends the transaction to a set of
 nodes, or peers, specified by an endorsement policy.
 %
@@ -94,7 +94,7 @@ techniques in databases with optimistic concurrency control (OCC) and apply them
 to enhance transaction processing in blockchains.
 %
 We formally analyze the behavior of the current implementations of Fabric, and discover that both
-achieve \textit{Strong Serializability} \cite{bailis2013highly} (as described in \Cref{sec:txn:serializabilityAnalysis}).
+achieve \textit{Strong Serializability} \cite{bailis2013highly} (as described in Chapter~\ref{sec:txn:serializabilityAnalysis}).
 %
 In fact, these implementations are more stringent than
 \textit{One-Copy Serializability} (or simply Serializability), as prescribed by the original Fabric protocol~\cite{androulaki2018hyperledger}.
@@ -111,20 +111,20 @@ In summary, our paper makes the following contributions:
 \begin{itemize}
 \item We theoretically analyze the resemblance of transaction processing in
   blockchains with EOV architecture and databases with optimistic concurrency
-  control (\Cref{sec:txn:resembalance}).
+  control (Chapter~\ref{sec:txn:resembalance}).
   %
   Based on this resemblance, we analyze the transactional behavior of
   state-of-the-art EOV blockchains, such as Fabric and {\fabricPlusplus}
-  (\Cref{sec:txn:serializabilityAnalysis}).
+  (Chapter~\ref{sec:txn:serializabilityAnalysis}).
   
 \item We propose a novel theorem to identify transactions that can never be
   reordered for serializability 
-  (\Cref{sec:txn:reorderabilityAnalysis}).
+  (Chapter~\ref{sec:txn:reorderabilityAnalysis}).
   %
   Based on this theorem, we propose efficient algorithms to early filter out
-  such transactions (\Cref{sec:txn:concurrencyControl}), 
+  such transactions (Chapter~\ref{sec:txn:concurrencyControl}), 
   with the serializability guarantee for the remaining after reordering.
-  We also discuss the security implications of our proposal (\Cref{sec:txn:securityanalysis}).
+  We also discuss the security implications of our proposal (Chapter~\ref{sec:txn:securityanalysis}).
   
 
 \item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
@@ -136,14 +136,14 @@ In summary, our paper makes the following contributions:
 
 The remaining of this paper is structured as follows.
 %
-\Cref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
+Chapter~\ref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
 %
-Our theoretical analysis follows in \Cref{sec:txn:theory}, ending with our
+Our theoretical analysis follows in Chapter~\ref{sec:txn:theory}, ending with our
 reordering algorithm.
 %
-\Cref{sec:txn:impl} describes the implementation of our approach.
+Chapter~\ref{sec:txn:impl} describes the implementation of our approach.
 %
-\Cref{sec:txn:exp} reports our experimental results.
+Chapter~\ref{sec:txn:exp} reports our experimental results.
 
 \section{Background}
 \label{sec:txn:background}
@@ -783,7 +783,7 @@ We describe the dependency order of concurrent transactions using the two lemmas
 \end{proof}
 
 Finally, we present a theorem on reordering transactions containing a dependency
-cycle. This theorem is utilized in \Cref{sec:txn:concurrencyControl} to
+cycle. This theorem is utilized in Chapter~\ref{sec:txn:concurrencyControl} to
 design our novel fine-grained concurrency control algorithm.
 
 \begin{theorem}
@@ -864,7 +864,7 @@ But both their commit and dependency order are already fixed.
 %
 Hence, the dependency graph remains acyclic after the restoration.
 
-We outline our fine-grained concurrency control in Algorithms \ref{alg:txn:simulation}, \ref{alg:txn:txn}, and \ref{alg:txn:blk}, while the implementation details are presented in \Cref{sec:txn:impl}.
+We outline our fine-grained concurrency control in Algorithms \ref{alg:txn:simulation}, \ref{alg:txn:txn}, and \ref{alg:txn:blk}, while the implementation details are presented in Chapter~\ref{sec:txn:impl}.
 %
 We use the notation $A \unioneq B$ to represent the self-assignment with union $A := A \cup B$.
 %
@@ -896,7 +896,7 @@ are updated by committed transactions during the simulation.
   \hspace*{3.4em} $b$ is the number of the block simulated on.}
   $b$ := fetch the number of the last block\;
   $readset, writeset$ := simulate the contract invocation on Block $b$
-  snapshot; \hfill {// \Cref{sec:txn:impl:snapshot_read}}
+  snapshot; \hfill {// Chapter~\ref{sec:txn:impl:snapshot_read}}
 \end{algorithm}
 
 
@@ -910,10 +910,10 @@ are updated by committed transactions during the simulation.
     and $readkeys$, $writekeys$ are accessed keys during simulation.}
   \KwOut{$reorderable$ property of $t$.}
   $dep$ := Compute $t$'s dependency except $c$-$ww$ among $P$ based on $G, b, readkeys,
-  writekeys$; \hfill {// \Cref{sec:txn:impl:dep}}\\
+  writekeys$; \hfill {// Chapter~\ref{sec:txn:impl:dep}}\\
   $reorderable := true$ if no cycle is detected in $G$ with respect to $dep$,
   or $false$ otherwise;
-  \hfill {// \Cref{sec:txn:impl:graph}}\\
+  \hfill {// Chapter~\ref{sec:txn:impl:graph}}\\
   \If{$reorderable$} {
     $P \unioneq \{t\}$\;
     $G.U \unioneq \{t\}$\;
@@ -929,7 +929,7 @@ are updated by committed transactions during the simulation.
   \KwOut{$s$ is the commit order of pending transactions.}
   $s$ := Topologically sort $P$ based on reachability in $G$\;
   $ww$ := Compute \scenario{c-ww} among $P$ with $s$\;
-  $G.V \unioneq ww$;  \hfill {// \Cref{sec:txn:impl:resintall}} \\
+  $G.V \unioneq ww$;  \hfill {// Chapter~\ref{sec:txn:impl:resintall}} \\
   $P := \emptyset$
 \end{algorithm}
 
@@ -1021,7 +1021,7 @@ In light of this, we present the details of designing the dependency graph and e
 
 Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
 %
-We then dedicate~\Cref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
+We then dedicate~Chapter~\ref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
 
 \subsection{Snapshot Read}
 \label{sec:txn:impl:snapshot_read}
@@ -1172,7 +1172,7 @@ $\scenario{anti-rw}(txn)$ is empty.
 %
 This is often the case under non-skewed workloads.
 %
-Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in \Cref{sec:txn:impl:optimization}.
+Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in Chapter~\ref{sec:txn:impl:optimization}.
 
 \begin{algorithm}
   \caption{Reachability update for transaction $txn$}
@@ -1347,7 +1347,7 @@ For security, all orderers must use the same value for $max\_span$.
 \label{sec:txn:impl:intervention}
 When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
 It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
-In addition, the historical query powered by DASL in ~\Cref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+In addition, the historical query powered by DASL in ~Chapter~\ref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
 
 \begin{figure}
   \centering
@@ -1365,7 +1365,7 @@ In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and co
 \texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
 Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
 Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
-In~\Cref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
+In~Chapter~\ref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
 However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
 To address this issue, we directly drop \texttt{Txn2}. 
 In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 
@@ -1388,7 +1388,7 @@ But we perform an additional experiment solely on ours.
 This is to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
 
 In the second experiment, we evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
-To be specific, all these baselines are built on top of ForkBase-powered {\fs} with different transaction concurrency methods.
+To be specific, all these baselines are built on top of ForkBase-powered {\fs} but with different transaction concurrency methods.
 Besides the aforementioned {\fsO} and {\fsF}, we introduce additional three variants: {\fsP}, {\fsL} and {\fsS}. 
 {\fsP} implements the reordering technique as described in Fabric++(\textbf{P}lus plus) \cite{sharma2019blurring}.
 {\fsS} follows the \textbf{S}tandard serializable OCC approach in ~\cite{CahillRF08}. 
@@ -1399,7 +1399,7 @@ In {\fsS}, we modify our Algorithm~\ref{alg:txn:txn} such that incoming transact
 dependency graph and apply its \textit{Sort-Based Greedy Algorithm} in Algorithm~\ref{alg:txn:blk} for reordering. 
 {\fsL} does not filter any transactions in Algorithm~\ref{alg:txn:txn}.
 
-The complex workload is adapted from Smallbank but subject to more configurations.
+The complex workload (the code attached in Appendix~\ref{sec:append:contracts:complex}) is adapted from Smallbank but subject to more configurations.
 In the workload, a transaction reads and writes 4 bank accounts, respectively, out of 10k accounts.
 We set 1\% of them as hot accounts.
 Each read has a certain probability to access the
@@ -1418,7 +1418,7 @@ Unless otherwise specified, all reported throughputs denote the effective throug
 
 \begin{table}
 	\centering
-	\caption{Experiment parameters}
+	\caption{Experiment parameters in the complex workload}
 	\label{tab:txn:parameter}
 	\begin{tabular}{@{}ll@{}}
 	\toprule
@@ -1582,9 +1582,9 @@ with higher write hot ratio.
 \end{figure}
 \textbf{Read Hot Ratio.}
 We increase the read hot ratio to generate more read-write conflicts in the workload. 
-As explained in Chapter~\ref{theory:unreorderable}, dependency cycles with 
+As explained in Theorem~\ref{theory:unreorderable}, dependency cycles with 
 these conflicts can never be reordered to become serializable. 
-Consistent to our explanation, we show in \Cref{chart:txn:readhot} that the throughput of all the systems, except {\fsS}, decreases at a similar rate. 
+Consistent to our explanation, we show in Figure~\ref{chart:txn:readhot} that the throughput of all the systems, except {\fsS}, decreases at a similar rate. 
 The throughput of {\fsS} is greater compared to Fabric and {\fsL} when 50\% of the read requests are on the hot accounts. 
 This is because {\fsS} imposes a more stringent condition for serializability compared to Fabric and {\fsL}.
 {\fsS} aborts transactions if they are forming two consecutive read-write conflicts with at least one \textit{anti-rw}, while the other systems, except {\fsF}, abort immediately when there is a single \textit{anti-rw}. 
