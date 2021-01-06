@@ -1,4 +1,4 @@
-\chapter{Twin Study}
+\chapter{Dichotomy and Fusion}
 \label{ch:twin}
 \section{Introduction}
 \label{sec:twin:intro}
@@ -961,8 +961,8 @@ constraints and may touch up to two records, but the record size is smaller.
 % For example, sufficient funds must be available for the payment transactions
 % to succeed
 To our astonishment, the experiments show that the performance difference
-between blockchains and distributed databases is small. For example, Faric and
-Quorum exhibit throughputs of $835$ and $655$ tps, respectively, while TiDB
+between blockchains and distributed databases is small. For example, Fabric and
+Quorum exhibit throughputs of $529$ and $655$ tps, respectively, while TiDB
 exhibits only $1031$ tps.
 The performance of Fabric and TiDB drops when switching from YCSB to Smallbank,
 while the performance of Quorum improves with a peak throughput under Smallbank
@@ -1043,7 +1043,7 @@ spent on getting the data.
     % Fabric(solo)       & 1484        & 1207        & 1015         & 729         & 400         \\
     Quorum             & 237        & 236        & 229         & 217         & 219         \\
     TiDB               & 5726       & 8301       & 8898        & 6235        & 5465        \\
-    Etcd               & 16492      & 16849      & 9123        & 7801        & 6076        \\ 
+	Etcd               & 19282      & 16453      & 11243        & 7801        & 6076        \\ 
 	TiKV               & 10369       & 7765       & 7236        & 5516        & 5195        \\
 	\bottomrule
     \end{tabular}

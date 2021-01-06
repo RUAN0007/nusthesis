@@ -8,7 +8,7 @@ import matplotlib as mpl
 # thruput = {kFabricLabel: 405, kQuorumLabel: 675, kCockDBLabel: 5953, kTiDBLabel: 7393}
 
 # Skewed
-thruput = {kFabricLabel: 835, kQuorumLabel: 655, kTiDBLabel: 1031}
+thruput = {kFabricLabel: 529, kQuorumLabel: 655, kTiDBLabel: 1031}
 delay = {kFabricLabel: 794, kQuorumLabel: 691, kCockDBLabel: 410, kTiDBLabel: 320}
 
 # labels = [kFabricLabel, kQuorumLabel, kCockDBLabel, kTiDBLabel]
