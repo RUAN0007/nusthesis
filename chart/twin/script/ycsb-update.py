@@ -8,7 +8,7 @@ import matplotlib as mpl
 labels = [kFabricLabel, kQuorumLabel,  kTiDBLabel, kEtcdLabel, kTikvLabel]
 
 thruput = {kFabricLabel: 1294, kQuorumLabel: 245, kCockDBLabel: 10101, 
-           kTiDBLabel: 5159, kEtcdLabel:16781, kTikvLabel:14117}
+           kTiDBLabel: 5159, kEtcdLabel:16781, kTikvLabel:13507}
 
 # query_thruput = {kFabricLabel: 8637, kQuorumLabel: 19166, kCockDBLabel: 34306, 
 #            kTiDBLabel: 71920, kEtcdLabel:282192, kTikvLabel:94050

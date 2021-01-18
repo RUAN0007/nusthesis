@@ -1042,12 +1042,30 @@ spent on getting the data.
     Fabric             & 1560        & 1288        & 1031         & 749         & 528         \\
     % Fabric(solo)       & 1484        & 1207        & 1015         & 729         & 400         \\
     Quorum             & 237        & 236        & 229         & 217         & 219         \\
-    TiDB               & 5726       & 8301       & 8898        & 6235        & 5465        \\
+    TiDB               & 5697       & 7884       & 7544        & 6239        & 5526        \\
 	Etcd               & 19282      & 16453      & 11243        & 7801        & 6076        \\ 
-	TiKV               & 10369       & 7765       & 7236        & 5516        & 5195        \\
+	% TiKV               & 10369       & 7765       & 7236        & 5516        & 5195        \\
 	\bottomrule
     \end{tabular}
     \label{tab:twin:scale}
+\end{table}
+
+\begin{table}[tp]
+    \centering
+    \caption{Throughput (in tps) when independently varying the number of TiDB servers and TiKV nodes in a cluster under full replication mode.}
+    % \vspace{-6pt}
+    \begin{tabular}{@{}c|rrrrr@{}}
+    \toprule
+    \backslashbox{TiKV}{TiDB} & \textbf{3} & \textbf{7} & \textbf{11} & \textbf{15} & \textbf{19} \\ \midrule
+	\textbf{3}	& 5697	& 8517	& 9116	& 8838	& 8690	\\
+	\textbf{7}	& 5951	& 7884	& 8539	& 8162	& 8246	\\
+	\textbf{11}	& 5847	& 6871	& 7544	& 6941	& 7429	\\
+	\textbf{15}	& 5121	& 5703	& 6306	& 6239	& 5618	\\
+	\textbf{19}	& 4198	& 5238	& 5477	& 5563	& 5526	\\
+	\bottomrule
+    \end{tabular}
+    \label{tab:tidb}
+    % \vspace{-12pt}
 \end{table}
 
 We increase the number of nodes to compare the scalability of shared log and
@@ -1082,9 +1100,19 @@ degrades with the number of nodes.
 We attribute this to the consensus protocol.
 The NewSQL database does not exhibit either a constant or decreasing performance
 trend.
-Instead, TiDB reaches its peak performance on 11 nodes.
-This is because of the interplay between the consensus overhead in TiKV and the
+Instead, TiDB reaches its peak performance on 7 nodes.
+This is because of the interplay between the TiKV storage and the
 transaction processing on TiDB servers.
+To study this interplay, we vary the number of TiDB servers and TiKV nodes independently and report the throughput in Table~\ref{tab:tidb}.
+The TiDB servers, due to their stateless nature, should exhibit a linear speedup with more number of nodes~\cite{pingcap}. 
+However, we observe that when the number of TiDB servers is low, they become the bottleneck since there in not enough processing capacity for the SQL statements. 
+But when the number of TiDB servers increases, TiKV becomes the bottleneck.
+We identify two distinct factors that affect the performance of TiKV.
+On the one hand, a larger consensus group in TiKV leads to a greater overhead under the full replication mode. 
+On the other hand, under full replication, there are more TiKV nodes that can serve the requests and thus alleviate hot spots~\cite{pingcap}.
+When fixing the number of TiDB servers, we notice a degrading performance along with more TiKV nodes.
+This implies that the consensus overhead outweighs the gain of hot spot alleviation in TiKV.
+
 Finally, we conclude that the transaction-based replication model has an obvious
 impact on the performance of blockchains, while replication approaches have plain
 effects on the performance of distributed databases.
