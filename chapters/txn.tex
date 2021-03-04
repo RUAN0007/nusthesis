@@ -42,6 +42,8 @@ blocks.
 This order is broadcast to all peers. In the third phase, \textit{validation},
 each peer validates the state changes from the endorsed transactions with
 respect to the endorsement policy and serializability.
+%
+For better clarity, Chapter~\ref{sec:txn:background} goes through an example in EOV architecture. 
 
 The new EOV architecture limits the execution details of a transaction to the
 endorsing peers to enhance confidentiality and exploit concurrency. But such
@@ -1384,8 +1386,7 @@ The YCSB workload inserts distinct records.
 Given its contention-free nature, we use YCSB to investigate the overhead of ours when the workload entails no conflicts. 
 In contrast, Smallbank simulates a realistic workload with the more skewness.
 For a fair comparison, we turn off the provenance capture in the Smallbank contract. 
-But we perform an additional experiment solely on ours.
-This is to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
+But we perform an additional experiment to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
 
 In the second experiment, we evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
 To be specific, all these baselines are built on top of ForkBase-powered {\fs} but with different transaction concurrency methods.
