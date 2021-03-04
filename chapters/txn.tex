@@ -18,7 +18,7 @@ private blockchain that supports \emph{concurrent} transactions
 \cite{androulaki2018hyperledger}.
 %
 A Fabric blockchain requires its members to enroll through a trusted membership service in order to interact with the blockchain.
-In this paper, we focus on permissioned blockchains as they are more suitable
+In this chapter, we focus on permissioned blockchains as they are more suitable
 for supporting applications such as supply-chain, healthcare and resource
 sharing, and in particular, we use Fabric as the underlying blockchain system.
 
@@ -41,11 +41,14 @@ blocks.
 %
 This order is broadcast to all peers. In the third phase, \textit{validation},
 each peer validates the state changes from the endorsed transactions with
-respect to the endorsement policy and serializability.
+respect to the endorsement policy and serializability. 
+%
+We will further elaborate the EOV architecture with an example in Chapter~\ref{sec:txn:background}. 
 
 The new EOV architecture limits the execution details of a transaction to the
 endorsing peers to enhance confidentiality and exploit concurrency. But such
 concurrency comes at the cost of aborting transactions that do not abide
+%
 serializability.
 %
 We have quantified this cost with respect to the Smallbank workload in Figure~\ref{chart:intro:basic:smallbank_skew}.
@@ -86,10 +89,13 @@ For example, {\fabricPlusplus}~\cite{sharma2019blurring} uses
 well-established concurrency techniques from databases to early abort
 transactions or reorder them to reconcile the potential conflicts.
 
-Our work corresponds to the second direction, as a major attempt to
+
+
+
+In this Chapter~\ref{ch:twin}, we propose a work corresponding to the second direction, as a major attempt to
 \textit{databasify} blockchains.
 %
-Here, we take a principled approach to learn from transactional analysis
+In this proposal, we first take a principled approach to learn from transactional analysis
 techniques in databases with optimistic concurrency control (OCC) and apply them
 to enhance transaction processing in blockchains.
 %
@@ -106,44 +112,48 @@ eliminates unnecessary abort due to in-ledger conflicts, with the serializabilit
 %
 Our approach does not change Fabric's architecture, therefore it is orthogonal to the aforementioned optimizations, such as FastFabric \cite{gorenflo2019fastfabric}. 
 
-In summary, our paper makes the following contributions:
-% \begin{itemize}[leftmargin=1.8em]
-\begin{itemize}
-\item We theoretically analyze the resemblance of transaction processing in
-  blockchains with EOV architecture and databases with optimistic concurrency
-  control (Chapter~\ref{sec:txn:resembalance}).
-  %
-  Based on this resemblance, we analyze the transactional behavior of
-  state-of-the-art EOV blockchains, such as Fabric and {\fabricPlusplus}
-  (Chapter~\ref{sec:txn:serializabilityAnalysis}).
+In the following, Chapter~\ref{sec:txn:theory} expands the above analysis in full details. 
+We will then draw out the plan to materialize it, and discuss the potential implementation challenges in Chapter~\ref{sec:txn:impl}.
+At last, Chapter~\ref{sec:txn:exp} describes experiments for the evaluation.
+
+% In summary, our paper makes the following contributions:
+% % \begin{itemize}[leftmargin=1.8em]
+% \begin{itemize}
+% \item We theoretically analyze the resemblance of transaction processing in
+%   blockchains with EOV architecture and databases with optimistic concurrency
+%   control (Chapter~\ref{sec:txn:resembalance}).
+%   %
+%   Based on this resemblance, we analyze the transactional behavior of
+%   state-of-the-art EOV blockchains, such as Fabric and {\fabricPlusplus}
+%   (Chapter~\ref{sec:txn:serializabilityAnalysis}).
   
-\item We propose a novel theorem to identify transactions that can never be
-  reordered for serializability 
-  (Chapter~\ref{sec:txn:reorderabilityAnalysis}).
-  %
-  Based on this theorem, we propose efficient algorithms to early filter out
-  such transactions (Chapter~\ref{sec:txn:concurrencyControl}), 
-  with the serializability guarantee for the remaining after reordering.
-  We also discuss the security implications of our proposal (Chapter~\ref{sec:txn:securityanalysis}).
+% \item We propose a novel theorem to identify transactions that can never be
+%   reordered for serializability 
+%   (Chapter~\ref{sec:txn:reorderabilityAnalysis}).
+%   %
+%   Based on this theorem, we propose efficient algorithms to early filter out
+%   such transactions (Chapter~\ref{sec:txn:concurrencyControl}), 
+%   with the serializability guarantee for the remaining after reordering.
+%   We also discuss the security implications of our proposal (Chapter~\ref{sec:txn:securityanalysis}).
   
 
-\item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
-  Fabric, {\fabricPlusplus}(simulated by our baseline {\fsP}), and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
-  %
-  The experimental results show that the remarkable speedup compared to the other systems.
-  %
-\end{itemize}
+% \item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
+%   Fabric, {\fabricPlusplus}(simulated by our baseline {\fsP}), and two other implementations based on database concurrency control techniques from one standard approach~\cite{CahillRF08} and a recent proposal by Ding et al~\cite{ding2018improving}.
+%   %
+%   The experimental results show that the remarkable speedup compared to the other systems.
+%   %
+% \end{itemize}
 
-The remaining of this paper is structured as follows.
-%
-Chapter~\ref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
-%
-Our theoretical analysis follows in Chapter~\ref{sec:txn:theory}, ending with our
-reordering algorithm.
-%
-Chapter~\ref{sec:txn:impl} describes the implementation of our approach.
-%
-Chapter~\ref{sec:txn:exp} reports our experimental results.
+% The remaining of this paper is structured as follows.
+% %
+% Chapter~\ref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
+% %
+% Our theoretical analysis follows in Chapter~\ref{sec:txn:theory}, ending with our
+% reordering algorithm.
+% %
+% Chapter~\ref{sec:txn:impl} describes the implementation of our approach.
+% %
+% Chapter~\ref{sec:txn:exp} reports our experimental results.
 
 \section{Background}
 \label{sec:txn:background}
@@ -896,7 +906,7 @@ are updated by committed transactions during the simulation.
   \hspace*{3.4em} $b$ is the number of the block simulated on.}
   $b$ := fetch the number of the last block\;
   $readset, writeset$ := simulate the contract invocation on Block $b$
-  snapshot; \hfill {// Chapter~\ref{sec:txn:impl:snapshot_read}}
+  snapshot; 
 \end{algorithm}
 
 
@@ -910,10 +920,10 @@ are updated by committed transactions during the simulation.
     and $readkeys$, $writekeys$ are accessed keys during simulation.}
   \KwOut{$reorderable$ property of $t$.}
   $dep$ := Compute $t$'s dependency except $c$-$ww$ among $P$ based on $G, b, readkeys,
-  writekeys$; \hfill {// Chapter~\ref{sec:txn:impl:dep}}\\
+  writekeys$; \\
   $reorderable := true$ if no cycle is detected in $G$ with respect to $dep$,
   or $false$ otherwise;
-  \hfill {// Chapter~\ref{sec:txn:impl:graph}}\\
+  \\
   \If{$reorderable$} {
     $P \unioneq \{t\}$\;
     $G.U \unioneq \{t\}$\;
@@ -929,7 +939,7 @@ are updated by committed transactions during the simulation.
   \KwOut{$s$ is the commit order of pending transactions.}
   $s$ := Topologically sort $P$ based on reachability in $G$\;
   $ww$ := Compute \scenario{c-ww} among $P$ with $s$\;
-  $G.V \unioneq ww$;  \hfill {// Chapter~\ref{sec:txn:impl:resintall}} \\
+  $G.V \unioneq ww$; \\
   $P := \emptyset$
 \end{algorithm}
 
@@ -1004,7 +1014,7 @@ It is because clients have already made a security commitment by publishing the 
 	\label{diagram:txn:impl:fabricx}
 \end{figure}
 
-\subsection{Overview}
+% \subsection{Overview}
 We illustrate in Figure~\ref{diagram:txn:impl:fabricx} the integration of our proposed fine-grained concurrency control on EOV blockchains. 
 %
 For simplicity, we only show a single orderer and a single peer in the EOV pipeline, but the algorithms are replicated on each node. 
@@ -1015,367 +1025,381 @@ In the ordering phase, we employ Algorithm~\ref{alg:txn:txn} to test the reorder
 %
 Algorithm~\ref{alg:txn:blk} performs the abort-free reordering immediately before pending transactions are batched into a block. 
 %
-We remark that Algorithm~\ref{alg:txn:txn} and Algorithm~\ref{alg:txn:blk} are far from implementation-friendly to system developers, as both employ an abstract dependency graph.
+We remark that Figure~\ref{diagram:txn:impl:fabricx} is far from implementation-friendly to system developers, i.e.,  Algorithm~\ref{alg:txn:txn} and Algorithm~\ref{alg:txn:blk} employ an abstract dependency graph.
 %
-In light of this, we present the details of designing the dependency graph and efficient operations on it.
+Hence, to tackle this challenge, we break down the implementation plan into the following steps: 
+\begin{itemize}
+  \item \textbf{Snapshot Read.} It achieves the snapshot mechanism used by Algorithm~\ref{alg:txn:simulation}.
+  \item \textbf{Dependency Resolution.} It implements on the dependency graph $G$ in Algorithm~\ref{alg:txn:txn}.
+  \item \textbf{Cycle Detection.} It works on $G$ to detect cycles and achieve serializability.
+  \item \textbf{Dependency Restoration.} It restores the computed \scenario{c-ww} dependencies in Algorithm~\ref{alg:txn:blk} to the dependency graph $G$.
+  \item \textbf{Dependency Graph Pruning.} It shrinks the size of $G$ to be acceptable, despite the append-only nature of blockchains. 
+\end{itemize}
+In the above, we only assume that a generic storage provides the latest state snapshot. 
+But ForkBase in {\fs} provides far richer features than this.
+Hence, we will discuss tailored techniques for {\fs} , i.e., how to make use of its ForkBase storage and make it compatible with the existing provenance support. 
 
-Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
-%
-We then dedicate~Chapter~\ref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
+% In light of this, we present the details of designing the dependency graph and efficient operations on it.
 
-\subsection{Snapshot Read}
-\label{sec:txn:impl:snapshot_read}
+% Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
+% %
+% We then dedicate~Chapter~\ref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
 
-We first describe the snapshot mechanism used by Algorithm~\ref{alg:txn:simulation}.
-%
-We rely on the storage snapshot mechanism to ensure each contract invocation is
-simulated against a consistent state.
-%
-Specifically, after a block is committed, we create a storage snapshot and associate
-it with the block number.
-%
-Each transaction, before its simulation, must acquire the number of the latest
-block, as shown in Algorithm~\ref{alg:txn:simulation}.
-%
-Staled snapshots without any simulation are periodically pruned.
-%
-This design allows more parallelism across contract simulation in the Execution
-phase and block commit in the Validation phase.
-%
-In contrast, vanilla Fabric uses a read-write lock to coordinate these two phases.
+% \subsection{Snapshot Read}
+% \label{sec:txn:impl:snapshot_read}
 
-
-\subsection{Dependency Resolution}
-\label{sec:txn:impl:dep}
-
-To compute the dependency graph in Algorithm~\ref{alg:txn:txn}, we introduce two
-multi-versioned storages in the orderers to identify committed transactions.
-%
-These storages are implemented in LevelDB and represent
-\textit{CommittedWriteTxns} (\textit{CW}) and \textit{CommittedReadTxns}
-(\textit{CR}), respectively.
-%
-Each key of \textit{CW} consists of the concatenation of the record key and the
-commit sequence of the transaction updating the value.
-%
-For example, if \texttt{Txn1} with commit sequence $(3,2)$ writes to key
-\texttt{A}, \textit{CW} has an entry \dbentry{A}{3}{2}{Txn1}.
-%
-Similarly, each key of \textit{CR} consists of the concatenation of the record key and
-the commit sequence of the transaction reading that key's latest value.
-%
-For instance, the entry \dbentry{A}{4}{1}{Txn7} indicates that \texttt{Txn7} is
-the first transaction in block 4 which reads the latest value of key \texttt{A}.
-%
-In both \textit{CW} and \textit{CR}, we place the record key prior to the commit
-sequence to efficiently support point query and range query.
-%
-For example, the query $CW$.$Before(key, seq)$ returns the last committed
-transaction updating $key$ with the commit sequence earlier than $seq$.
-%
-Similarly, $CW$.$Last(key)$ returns the last committed transaction updating
-$key$.
-%
-For the range query, $CW[key][seq:]$ returns all committed transactions from
-$seq$ onward that update $key$.
-
-We maintain two in-memory indices, $PendingWriteTxns$ ($PW$) and
-$PendingReadTxns$ ($PR$), to respectively store the keys for the write and read
-sets of pending transactions.
-%
-Consider a new transaction $txn$ that starts at $startTS$ with read keys $R$ and
-write keys $W$. All the dependencies of transaction $txn$ are computed as
-follows.
-
-\begin{center}
-  \def\arraystretch{1.3}
-  \begin{tabular}{lcl}
-    $\scenario{anti-rw}(txn)$
-    & $=$
-    & $\bigcup_{r \in R}^{} CW[r][startTS:] \cup PW[r]$
-    \\
-
-    $\scenario{rw}(txn)$
-    & $=$
-    & $\bigcup_{w \in W}^{} CR[w]  \cup PR[w]$
-    \\
-
-    $\scenario{n-wr}(txn)$
-    & $=$
-    & $\bigcup_{r \in R}^{} CW.Before(r, startTS)$
-    \\
-
-    $\scenario{ww}(txn)$
-    & $=$
-    & $\bigcup_{w \in W}^{} CW.Last(w)$
-    \\
-  \end{tabular}
-\end{center}
+% We first describe the snapshot mechanism used by Algorithm~\ref{alg:txn:simulation}.
+% %
+% We rely on the storage snapshot mechanism to ensure each contract invocation is
+% simulated against a consistent state.
+% %
+% Specifically, after a block is committed, we create a storage snapshot and associate
+% it with the block number.
+% %
+% Each transaction, before its simulation, must acquire the number of the latest
+% block, as shown in Algorithm~\ref{alg:txn:simulation}.
+% %
+% Staled snapshots without any simulation are periodically pruned.
+% %
+% This design allows more parallelism across contract simulation in the Execution
+% phase and block commit in the Validation phase.
+% %
+% In contrast, vanilla Fabric uses a read-write lock to coordinate these two phases.
 
 
-Note that we ignore \scenario{ww} dependencies between pending transactions and do not
-differentiate whether \scenario{ww} and \scenario{rw} are concurrent or not.
-%
-This is because non-concurrent transaction may be part of a cycle.
-%
-We then compute the predecessor transactions of $txn$ as $\scenario{ww}(txn)
-\cup \scenario{n-wr}(txn) \cup \scenario{rw}(txn)$, and successor transactions
-as $\scenario{anti-rw}(txn)$.
+% \subsection{Dependency Resolution}
+% \label{sec:txn:impl:dep}
 
-\subsection{Cycle Detection}
-\label{sec:txn:impl:graph}
+% To compute the dependency graph in Algorithm~\ref{alg:txn:txn}, we introduce two
+% multi-versioned storages in the orderers to identify committed transactions.
+% %
+% These storages are implemented in LevelDB and represent
+% \textit{CommittedWriteTxns} (\textit{CW}) and \textit{CommittedReadTxns}
+% (\textit{CR}), respectively.
+% %
+% Each key of \textit{CW} consists of the concatenation of the record key and the
+% commit sequence of the transaction updating the value.
+% %
+% For example, if \texttt{Txn1} with commit sequence $(3,2)$ writes to key
+% \texttt{A}, \textit{CW} has an entry \dbentry{A}{3}{2}{Txn1}.
+% %
+% Similarly, each key of \textit{CR} consists of the concatenation of the record key and
+% the commit sequence of the transaction reading that key's latest value.
+% %
+% For instance, the entry \dbentry{A}{4}{1}{Txn7} indicates that \texttt{Txn7} is
+% the first transaction in block 4 which reads the latest value of key \texttt{A}.
+% %
+% In both \textit{CW} and \textit{CR}, we place the record key prior to the commit
+% sequence to efficiently support point query and range query.
+% %
+% For example, the query $CW$.$Before(key, seq)$ returns the last committed
+% transaction updating $key$ with the commit sequence earlier than $seq$.
+% %
+% Similarly, $CW$.$Last(key)$ returns the last committed transaction updating
+% $key$.
+% %
+% For the range query, $CW[key][seq:]$ returns all committed transactions from
+% $seq$ onward that update $key$.
 
-We now discuss how we represent the dependency graph $G$ to detect cycles and
-achieve serializability.
-%
-We face two design choices.
-%
-On the one hand, we could maintain only the immediate linkage information for
-each transaction and then perform graph traversal for cycle detection.
-%
-On the other hand, we could maintain the entire reachability information among
-each pair of transactions.
-%
-But the latter approach shifts the overhead from computation to space
-consumption.
-%
-We achieve a sweet spot by maintaining the immediate successors of
-a transaction ($txn.succ$) and represent all transactions that can reach $txn$
-with a bloom filter, referred to as $txn.anti\_reachable$.
-%
-Cycle detection becomes straightforward by testing
-$p.anti\_reachable(s)$ for each pair $(p,s)$ consisting of a
-predecessor and a successor of $txn$.
+% We maintain two in-memory indices, $PendingWriteTxns$ ($PW$) and
+% $PendingReadTxns$ ($PR$), to respectively store the keys for the write and read
+% sets of pending transactions.
+% %
+% Consider a new transaction $txn$ that starts at $startTS$ with read keys $R$ and
+% write keys $W$. All the dependencies of transaction $txn$ are computed as
+% follows.
 
-We use bloom filters because they are memory efficient and can perform
-fast union.
-%
-Union is extensively used to update the reachability information for each
-transaction, as shown in Algorithm~\ref{alg:txn:reachability}.
-%
-Since a bloom filter internally relies on a bit vector, the set union can be
-fast computed via the bitwise OR operation.
-%
-However, bloom filters are known to report false positives~\cite{bloom1970space}.
-%
-If the filters report such false positives for a pair of adjacent transactions
-to $txn$, we preventively abort $txn$.
-%
-If they report negative for all pairs, then $txn$ does not belong to any
-cycle in $G$.
+% \begin{center}
+%   \def\arraystretch{1.3}
+%   \begin{tabular}{lcl}
+%     $\scenario{anti-rw}(txn)$
+%     & $=$
+%     & $\bigcup_{r \in R}^{} CW[r][startTS:] \cup PW[r]$
+%     \\
 
-Algorithm~\ref{alg:txn:reachability} entails the relatively expensive traversal of all
-reachable transactions from $txn$.
-%
-However, this cost is bearable, since the traversal is unnecessary when
-$\scenario{anti-rw}(txn)$ is empty.
-%
-This is often the case under non-skewed workloads.
-%
-Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in Chapter~\ref{sec:txn:impl:optimization}.
+%     $\scenario{rw}(txn)$
+%     & $=$
+%     & $\bigcup_{w \in W}^{} CR[w]  \cup PR[w]$
+%     \\
 
-\begin{algorithm}
-  \caption{Reachability update for transaction $txn$}
-  \label{alg:txn:reachability}
-  \KwData{$G$ is the transaction dependency graph}
-  \KwIn{$M$ is the number of next block to be committed, 
-    $pred$ is $txn$'s immediate predecessor transactions, and
-    $succ$ is $txn$'s immediate successor transactions.}
+%     $\scenario{n-wr}(txn)$
+%     & $=$
+%     & $\bigcup_{r \in R}^{} CW.Before(r, startTS)$
+%     \\
 
-  $txn.anti\_reachable$ := $\emptyset$\;
-  \For{$p$ \textup{in} $pred$} {
-      $p.succ \ \unioneq \{txn\}$\;
-      $txn.anti\_reachable \ \unioneq
-      p.anti\_reachable$\; }
-  \For{$s$ \textup{reachabale from} $succ$ \textup{in} $G$} {
-      $s.anti\_reachable \ \unioneq
-      txn.anti\_reachable$;\\
-      $s.age := M$;\label{alg:txn:age}}
-\end{algorithm}
-
-Algorithm~\ref{alg:txn:reachability} is the constant growth of the
-$anti\_reachable$ filter.
-%
-In practice, we observe that the false positive rate of a single bloom filter
-grows to an intolerable ratio.
-%
-To address this issue, we use two bloom filters with relay.
-%
-Each transaction is associated with one bloom filter capturing transactions
-committed after block $M$ and another bloom filter capturing transactions after
-block $N$.
-%
-Suppose block $C$ is the earliest block which contains a committed transaction
-in $G$.
-%
-We maintain $M < C < N$ and use the first bloom filter for testing reachability.
-%
-Whenever $C$ grows to $M < N < C$, the first bloom filter is emptied and it
-starts to collect transactions from the current block.
-%
-We then use the second filter for testing reachability.
-%
-In this manner, we restrict the number of transactions represented by a bloom
-filter within a certain block range so that the false positive rate remains
-acceptable. 
-%
-For safety, honest orderers must use the same $M$ and $N$ for exact replication.
+%     $\scenario{ww}(txn)$
+%     & $=$
+%     & $\bigcup_{w \in W}^{} CW.Last(w)$
+%     \\
+%   \end{tabular}
+% \end{center}
 
 
-\subsection{Dependency Restoration}
-\label{sec:txn:impl:resintall}
-Next, we present our method to install \scenario{ww} dependencies into the dependency
-graph $G$ based on the derived commit sequence, which is a topological order of
-the pending transactions $P$ according to the reachability in $G$.
-%
-One prominent issue is that the reachability of a transaction may be affected by
-multiple \scenario{ww} dependencies from various updated keys.
-%
-But we want the reachability modification to take place within a single
-iteration for efficiency.
-%
-Algorithm~\ref{alg:txn:restoration} outlines the major steps of the restoration of
-\scenario{ww} dependencies.
-%
-We further explain this algorithm using the example in Figure~\ref{diagram:txn:impl:restore}.
+% Note that we ignore \scenario{ww} dependencies between pending transactions and do not
+% differentiate whether \scenario{ww} and \scenario{rw} are concurrent or not.
+% %
+% This is because non-concurrent transaction may be part of a cycle.
+% %
+% We then compute the predecessor transactions of $txn$ as $\scenario{ww}(txn)
+% \cup \scenario{n-wr}(txn) \cup \scenario{rw}(txn)$, and successor transactions
+% as $\scenario{anti-rw}(txn)$.
 
-\begin{algorithm}
-  \caption{Restoration of \scenario{ww} within pending transactions based on
-    the computed commit sequence}
-    \label{alg:txn:restoration}
-    \KwData{$G$ is transaction dependency graph.}
-    \KwIn{$seq$ is committed sequence of pending transactions, 
-      $PW$ is the index that associates updated keys with pending
-      transactions.}
-    $head\_txns := \emptyset$\;
-    \For{($key, txns$) \textup{in} $PW$\label{alg:txn:iter_key}}
-      {
-        Sort $txns$ based on the relative order in $seq$;\\
-        $(txn1, txn2)$ := the first pair in $txns$ such that $txn1 \notin
-        txn2.anti\_reachable$;\label{alg:txn:pair}\\
-        $txn2.anti\_reachable \ \unioneq
-        txn1.anti\_reachable$;\\
-        $head\_txns \ \unioneq \{txn2\}$;
-      }
-    \For{$txn$ \textup{in the topologically-ordered
-         iteration of all txns reachable from} $head\_txns$
-         \label{alg:txn:iteration}}
-      {
-        \For{$t$ \textup{in} $txn.succ$}
-          {
-            $t.anti\_reachable \ \unioneq txn.anti\_reachable$;
-          }
-      }
-\end{algorithm}
+% \subsection{Cycle Detection}
+% \label{sec:txn:impl:graph}
 
-For each $key$ to be updated by pending transactions ($PW$), we topologically
-sort its associated transactions and select the first pair that is not yet
-connected in the reachability filter.
-%
-In such a pair, the second transaction can be reached from all the predecessors
-of the first transaction.
-%
-There can be a scenario where transactions in a pair are already connected in
-the reachability filter, which makes the restoration redundant.
-%
-For example, this happens with \texttt{Txn0} and \texttt{Txn3} in
-Figure~\ref{diagram:txn:impl:restore}.
-%
-For transactions that are not yet connected, we need to update their
-successors.
-%
-To do this efficiently, we keep the transactions in a set ($head\_txns$) and
-update their successors based on the topological order.
-%
-Thereby, we avoid updating the information multiple times during the iteration
-in line~\ref{alg:txn:iter_key}.
-%
-For example, \texttt{Txn8} in Figure~\ref{diagram:txn:impl:restore} is reachable through
-the update of both key \texttt{A} and \texttt{B}.
-%
-Using our algorithm, the reachability information is updated once.
+% We now discuss how we represent the dependency graph $G$ to detect cycles and
+% achieve serializability.
+% %
+% We face two design choices.
+% %
+% On the one hand, we could maintain only the immediate linkage information for
+% each transaction and then perform graph traversal for cycle detection.
+% %
+% On the other hand, we could maintain the entire reachability information among
+% each pair of transactions.
+% %
+% But the latter approach shifts the overhead from computation to space
+% consumption.
+% %
+% We achieve a sweet spot by maintaining the immediate successors of
+% a transaction ($txn.succ$) and represent all transactions that can reach $txn$
+% with a bloom filter, referred to as $txn.anti\_reachable$.
+% %
+% Cycle detection becomes straightforward by testing
+% $p.anti\_reachable(s)$ for each pair $(p,s)$ consisting of a
+% predecessor and a successor of $txn$.
 
-\begin{figure}
-  \centering
-	\includegraphics[width=0.87\textwidth]{diagram/txn/impl_dep_graph.pdf}
-  \caption{An example of a dependency graph with new \scenario{c-ww} dependencies}
-  \subcaption*{Blue dashed border indicates \textcolor{blue}{pending
-      transactions} with their commit sequence.
-      Blue solid line indicates \textcolor{blue}{new \scenario{ww} dependencies}
-    and the topologically-sorted iteration order.
-    We do not consider the \scenario{ww} dependency between Txn0 and Txn3
-    (marked with blue dotted line), as it is implicit.
-    \textcolor{red}{Txn1} in red is subject to
-    pruning due to staleness. The transaction age is in italic.}
-	\label{diagram:txn:impl:restore}
-\end{figure}
+% We use bloom filters because they are memory efficient and can perform
+% fast union.
+% %
+% Union is extensively used to update the reachability information for each
+% transaction, as shown in Algorithm~\ref{alg:txn:reachability}.
+% %
+% Since a bloom filter internally relies on a bit vector, the set union can be
+% fast computed via the bitwise OR operation.
+% %
+% However, bloom filters are known to report false positives~\cite{bloom1970space}.
+% %
+% If the filters report such false positives for a pair of adjacent transactions
+% to $txn$, we preventively abort $txn$.
+% %
+% If they report negative for all pairs, then $txn$ does not belong to any
+% cycle in $G$.
 
-\subsection{Dependency Graph Pruning}
-\label{sec:txn:impl:optimization}
-Since graph $G$ can grow quickly, we prune transactions that either (i) are simulated against very old snapshots or (ii) cannot affect pending transactions.
-%
-For the first case, we introduce a parameter called $max\_span$ to limit the block span\footnote{If a transaction is simulated against block $M$ and committed in block $M+1$, its block span is 1.} for
-a transaction.
-%
-If the number of the next block is $M$, we compute the \textit{snapshot
-  threshold} as $H = M - max\_span$.
-%
-Any transaction simulated against block $H$ or earlier is aborted.
-%
-For the second case, we define the \textit{age} of a transaction $txn$ to be the sequence
-number of the last committed block containing at least one transaction reachable
-from $txn$ in $G$.
-%
-When the snapshot threshold is greater than $txn$'s age, future transactions
-cannot be concurrent with any transaction that can reach $txn$.
-%
-In this case, the \scenario{anti-rw} dependency will not happen, and this rules
-out any unserializable schedule containing $txn$.
-%
-Therefore, $txn$ can be safely pruned from $G$.
-%
-We facilitate the pruning by arranging all transactions in $G$ into a priority
-queue weighted by age.
-%
-For new transaction to be committed in block $M$, we increase the age of the
-transactions reachable from it to $M$ during the traversal in
-Algorithm~\ref{alg:txn:reachability} (line~\ref{alg:txn:age}).
-%
-For security, all orderers must use the same value for $max\_span$.
+% Algorithm~\ref{alg:txn:reachability} entails the relatively expensive traversal of all
+% reachable transactions from $txn$.
+% %
+% However, this cost is bearable, since the traversal is unnecessary when
+% $\scenario{anti-rw}(txn)$ is empty.
+% %
+% This is often the case under non-skewed workloads.
+% %
+% Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in Chapter~\ref{sec:txn:impl:optimization}.
 
-\subsection{Intervention with data provenance}
-\label{sec:txn:impl:intervention}
-When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
-It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
-In addition, the historical query powered by DASL in ~Chapter~\ref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+% \begin{algorithm}
+%   \caption{Reachability update for transaction $txn$}
+%   \label{alg:txn:reachability}
+%   \KwData{$G$ is the transaction dependency graph}
+%   \KwIn{$M$ is the number of next block to be committed, 
+%     $pred$ is $txn$'s immediate predecessor transactions, and
+%     $succ$ is $txn$'s immediate successor transactions.}
 
-\begin{figure}
-  \centering
-	\includegraphics[width=0.87\textwidth]{diagram/txn/odd.pdf}
-  \caption{An example that leads to the incorrect forward query}
-	\label{diagram:txn:impl:sharp}
-\end{figure}
+%   $txn.anti\_reachable$ := $\emptyset$\;
+%   \For{$p$ \textup{in} $pred$} {
+%       $p.succ \ \unioneq \{txn\}$\;
+%       $txn.anti\_reachable \ \unioneq
+%       p.anti\_reachable$\; }
+%   \For{$s$ \textup{reachabale from} $succ$ \textup{in} $G$} {
+%       $s.anti\_reachable \ \unioneq
+%       txn.anti\_reachable$;\\
+%       $s.age := M$;\label{alg:txn:age}}
+% \end{algorithm}
 
-Our concurrency control relaxes from the Strong Serializability in Fabric to the Serializability in {\fs}.
-In other words, transactions committed later can now depend on earlier ones with \scenario{anti-rw}. 
-But this may lead to an incorrect forward query. 
-Figure~\ref{diagram:txn:impl:sharp} illustrates a concrete case.
-It juxtaposes both the state DAG, which draws the provenance dependency between state entries, and the transactional graph, which draws the dependencies between transactions. 
-In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and commits as the first transaction in block 5. Hence, it creates a new entry $S_{A,5}$ with the version 5.
-\texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
-Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
-Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
-In~Chapter~\ref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
-However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
-To address this issue, we directly drop \texttt{Txn2}. 
-In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 
-Notably, the abort only applies when \texttt{Txn1} is already committed in earlier blocks. 
-If \texttt{Txn1} and \texttt{Txn2} are both pending, our reordering procedure guarantees to place \texttt{Txn2} ahead and avoid the above scenario. 
+% Algorithm~\ref{alg:txn:reachability} is the constant growth of the
+% $anti\_reachable$ filter.
+% %
+% In practice, we observe that the false positive rate of a single bloom filter
+% grows to an intolerable ratio.
+% %
+% To address this issue, we use two bloom filters with relay.
+% %
+% Each transaction is associated with one bloom filter capturing transactions
+% committed after block $M$ and another bloom filter capturing transactions after
+% block $N$.
+% %
+% Suppose block $C$ is the earliest block which contains a committed transaction
+% in $G$.
+% %
+% We maintain $M < C < N$ and use the first bloom filter for testing reachability.
+% %
+% Whenever $C$ grows to $M < N < C$, the first bloom filter is emptied and it
+% starts to collect transactions from the current block.
+% %
+% We then use the second filter for testing reachability.
+% %
+% In this manner, we restrict the number of transactions represented by a bloom
+% filter within a certain block range so that the false positive rate remains
+% acceptable. 
+% %
+% For safety, honest orderers must use the same $M$ and $N$ for exact replication.
 
-\section{Experiments}
+
+% \subsection{Dependency Restoration}
+% \label{sec:txn:impl:resintall}
+% Next, we present our method to install \scenario{ww} dependencies into the dependency
+% graph $G$ based on the derived commit sequence, which is a topological order of
+% the pending transactions $P$ according to the reachability in $G$.
+% %
+% One prominent issue is that the reachability of a transaction may be affected by
+% multiple \scenario{ww} dependencies from various updated keys.
+% %
+% But we want the reachability modification to take place within a single
+% iteration for efficiency.
+% %
+% Algorithm~\ref{alg:txn:restoration} outlines the major steps of the restoration of
+% \scenario{ww} dependencies.
+% %
+% We further explain this algorithm using the example in Figure~\ref{diagram:txn:impl:restore}.
+
+% \begin{algorithm}
+%   \caption{Restoration of \scenario{ww} within pending transactions based on
+%     the computed commit sequence}
+%     \label{alg:txn:restoration}
+%     \KwData{$G$ is transaction dependency graph.}
+%     \KwIn{$seq$ is committed sequence of pending transactions, 
+%       $PW$ is the index that associates updated keys with pending
+%       transactions.}
+%     $head\_txns := \emptyset$\;
+%     \For{($key, txns$) \textup{in} $PW$\label{alg:txn:iter_key}}
+%       {
+%         Sort $txns$ based on the relative order in $seq$;\\
+%         $(txn1, txn2)$ := the first pair in $txns$ such that $txn1 \notin
+%         txn2.anti\_reachable$;\label{alg:txn:pair}\\
+%         $txn2.anti\_reachable \ \unioneq
+%         txn1.anti\_reachable$;\\
+%         $head\_txns \ \unioneq \{txn2\}$;
+%       }
+%     \For{$txn$ \textup{in the topologically-ordered
+%          iteration of all txns reachable from} $head\_txns$
+%          \label{alg:txn:iteration}}
+%       {
+%         \For{$t$ \textup{in} $txn.succ$}
+%           {
+%             $t.anti\_reachable \ \unioneq txn.anti\_reachable$;
+%           }
+%       }
+% \end{algorithm}
+
+% For each $key$ to be updated by pending transactions ($PW$), we topologically
+% sort its associated transactions and select the first pair that is not yet
+% connected in the reachability filter.
+% %
+% In such a pair, the second transaction can be reached from all the predecessors
+% of the first transaction.
+% %
+% There can be a scenario where transactions in a pair are already connected in
+% the reachability filter, which makes the restoration redundant.
+% %
+% For example, this happens with \texttt{Txn0} and \texttt{Txn3} in
+% Figure~\ref{diagram:txn:impl:restore}.
+% %
+% For transactions that are not yet connected, we need to update their
+% successors.
+% %
+% To do this efficiently, we keep the transactions in a set ($head\_txns$) and
+% update their successors based on the topological order.
+% %
+% Thereby, we avoid updating the information multiple times during the iteration
+% in line~\ref{alg:txn:iter_key}.
+% %
+% For example, \texttt{Txn8} in Figure~\ref{diagram:txn:impl:restore} is reachable through
+% the update of both key \texttt{A} and \texttt{B}.
+% %
+% Using our algorithm, the reachability information is updated once.
+
+% \begin{figure}
+%   \centering
+% 	\includegraphics[width=0.87\textwidth]{diagram/txn/impl_dep_graph.pdf}
+%   \caption{An example of a dependency graph with new \scenario{c-ww} dependencies}
+%   \subcaption*{Blue dashed border indicates \textcolor{blue}{pending
+%       transactions} with their commit sequence.
+%       Blue solid line indicates \textcolor{blue}{new \scenario{ww} dependencies}
+%     and the topologically-sorted iteration order.
+%     We do not consider the \scenario{ww} dependency between Txn0 and Txn3
+%     (marked with blue dotted line), as it is implicit.
+%     \textcolor{red}{Txn1} in red is subject to
+%     pruning due to staleness. The transaction age is in italic.}
+% 	\label{diagram:txn:impl:restore}
+% \end{figure}
+
+% \subsection{Dependency Graph Pruning}
+% \label{sec:txn:impl:optimization}
+% Since graph $G$ can grow quickly, we prune transactions that either (i) are simulated against very old snapshots or (ii) cannot affect pending transactions.
+% %
+% For the first case, we introduce a parameter called $max\_span$ to limit the block span\footnote{If a transaction is simulated against block $M$ and committed in block $M+1$, its block span is 1.} for
+% a transaction.
+% %
+% If the number of the next block is $M$, we compute the \textit{snapshot
+%   threshold} as $H = M - max\_span$.
+% %
+% Any transaction simulated against block $H$ or earlier is aborted.
+% %
+% For the second case, we define the \textit{age} of a transaction $txn$ to be the sequence
+% number of the last committed block containing at least one transaction reachable
+% from $txn$ in $G$.
+% %
+% When the snapshot threshold is greater than $txn$'s age, future transactions
+% cannot be concurrent with any transaction that can reach $txn$.
+% %
+% In this case, the \scenario{anti-rw} dependency will not happen, and this rules
+% out any unserializable schedule containing $txn$.
+% %
+% Therefore, $txn$ can be safely pruned from $G$.
+% %
+% We facilitate the pruning by arranging all transactions in $G$ into a priority
+% queue weighted by age.
+% %
+% For new transaction to be committed in block $M$, we increase the age of the
+% transactions reachable from it to $M$ during the traversal in
+% Algorithm~\ref{alg:txn:reachability} (line~\ref{alg:txn:age}).
+% %
+% For security, all orderers must use the same value for $max\_span$.
+
+% \subsection{Intervention with data provenance}
+% \label{sec:txn:impl:intervention}
+% When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
+% It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
+% In addition, the historical query powered by DASL in ~Chapter~\ref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+
+% \begin{figure}
+%   \centering
+% 	\includegraphics[width=0.87\textwidth]{diagram/txn/odd.pdf}
+%   \caption{An example that leads to the incorrect forward query}
+% 	\label{diagram:txn:impl:sharp}
+% \end{figure}
+
+% Our concurrency control relaxes from the Strong Serializability in Fabric to the Serializability in {\fs}.
+% In other words, transactions committed later can now depend on earlier ones with \scenario{anti-rw}. 
+% But this may lead to an incorrect forward query. 
+% Figure~\ref{diagram:txn:impl:sharp} illustrates a concrete case.
+% It juxtaposes both the state DAG, which draws the provenance dependency between state entries, and the transactional graph, which draws the dependencies between transactions. 
+% In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and commits as the first transaction in block 5. Hence, it creates a new entry $S_{A,5}$ with the version 5.
+% \texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
+% Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
+% Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
+% In~Chapter~\ref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
+% However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
+% To address this issue, we directly drop \texttt{Txn2}. 
+% In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 
+% Notably, the abort only applies when \texttt{Txn1} is already committed in earlier blocks. 
+% If \texttt{Txn1} and \texttt{Txn2} are both pending, our reordering procedure guarantees to place \texttt{Txn2} ahead and avoid the above scenario. 
+
+\section{Experimental Plan}
 \label{sec:txn:exp}
-\subsection{Baselines and Workloads}
-First, we compare our proposed fine-grained concurrency control with the original First-in-first-out one on both {\fs} and {\fsPr}. 
+We discuss the baselines and workloads as below. 
+
+% \subsection{Baselines and Workloads}
+First, we will compare our proposed fine-grained concurrency control with the original First-in-first-out one on both {\fs} and {\fsPr}. 
 In a nutshell, {\fs} relies on ForkBase to provide the multi-version storage, while {\fsPr} utilizes our enhanced LevelDB which is illustrated in Chapter~\ref{sec:provenance:exp:setup}. 
 Following the naming convention in Appendix~\ref{sec:append:variants}, those with our \textbf{F}ine-grained concurrency control are respectively denoted as {\fsF} and {\fsPrF}, and those with the \textbf{O}riginal are suffixed with \textit{O} instead of \textit{F}. 
 We also include the original Fabric in the comparison. 
@@ -1384,10 +1408,9 @@ The YCSB workload inserts distinct records.
 Given its contention-free nature, we use YCSB to investigate the overhead of ours when the workload entails no conflicts. 
 In contrast, Smallbank simulates a realistic workload with the more skewness.
 For a fair comparison, we turn off the provenance capture in the Smallbank contract. 
-But we perform an additional experiment solely on ours.
-This is to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
+But we perform an additional experiment to differentiate the intervention from data provenance.
 
-In the second experiment, we evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
+In the second experiment, we will evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
 To be specific, all these baselines are built on top of ForkBase-powered {\fs} but with different transaction concurrency methods.
 Besides the aforementioned {\fsO} and {\fsF}, we introduce additional three variants: {\fsP}, {\fsL} and {\fsS}. 
 {\fsP} implements the reordering technique as described in Fabric++(\textbf{P}lus plus) \cite{sharma2019blurring}.
@@ -1442,208 +1465,208 @@ Unless otherwise specified, all reported throughputs denote the effective throug
 	\end{tabular}
 \end{table}
 
-\subsection{Peak Performance}
+% \subsection{Peak Performance}
 
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.75\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/ycsb_thruput.pdf}
-      \caption{YCSB}
-      \label{chart:txn:ycsb_thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_skew.pdf}
-      \caption{Smallbank(Skewed) I}
-      \label{chart:txn:smallbank_skew}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_prov.pdf}
-      \caption{Smallbank(Skewed) II}
-      \label{chart:txn:smallbank_prov}
-    \end{subfigure}
-    \caption{Effective throughput}
-    \subcaption*{In (a)(b), the bar segments with the cross and the blank pattern respectively denote the speedup and overhead brought by our proposed approach compared to the original one. In (c), the bar segments with the stripped pattern denote the overhead when the Smallbank contract tracks state dependency(monetary flow). }
-    % \label{chart:provenance:util_overhead}
-\end{figure}
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.75\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/ycsb_thruput.pdf}
+%       \caption{YCSB}
+%       \label{chart:txn:ycsb_thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_skew.pdf}
+%       \caption{Smallbank(Skewed) I}
+%       \label{chart:txn:smallbank_skew}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/smallbank_prov.pdf}
+%       \caption{Smallbank(Skewed) II}
+%       \label{chart:txn:smallbank_prov}
+%     \end{subfigure}
+%     \caption{Effective throughput}
+%     \subcaption*{In (a)(b), the bar segments with the cross and the blank pattern respectively denote the speedup and overhead brought by our proposed approach compared to the original one. In (c), the bar segments with the stripped pattern denote the overhead when the Smallbank contract tracks state dependency(monetary flow). }
+%     % \label{chart:provenance:util_overhead}
+% \end{figure}
 
-Figure~\ref{chart:txn:ycsb_thruput} presents the effective throughput on the YCSB workload.
-Despite the storage, our concurrency control overhead poses negligible overhead 
-when transactions are without contention.
-In particular, when systems reach maximum volume at 1000 transactions per block, {\fsO} and {\fsF} achieve $1372$ and $1300$ tps, less than $5.5$\% on the throughput reduction. 
-This ratio is even smaller with LevelDB storage: $2.8$\%({\fsPrO}'s $1464$ tps v.s. {\fsPrF}'s $1462$ tps). 
-From Chapter~\ref{sec:txn:exp:complex}, we conclude that the major overhead of our approach is due to the reachability update, as explained in Chapter~\ref{sec:txn:impl:graph}. 
-This process traverses the dependency graph along edges between conflicted transactions. 
-However, given that each YCSB transaction does not conflict with others, this bottleneck is not exaggerated.
+% Figure~\ref{chart:txn:ycsb_thruput} presents the effective throughput on the YCSB workload.
+% Despite the storage, our concurrency control overhead poses negligible overhead 
+% when transactions are without contention.
+% In particular, when systems reach maximum volume at 1000 transactions per block, {\fsO} and {\fsF} achieve $1372$ and $1300$ tps, less than $5.5$\% on the throughput reduction. 
+% This ratio is even smaller with LevelDB storage: $2.8$\%({\fsPrO}'s $1464$ tps v.s. {\fsPrF}'s $1462$ tps). 
+% From Chapter~\ref{sec:txn:exp:complex}, we conclude that the major overhead of our approach is due to the reachability update, as explained in Chapter~\ref{sec:txn:impl:graph}. 
+% This process traverses the dependency graph along edges between conflicted transactions. 
+% However, given that each YCSB transaction does not conflict with others, this bottleneck is not exaggerated.
 
-The speedup brought by our approach is most prominent under the Smallbank workload. 
-The greatest improvement $48$\% achieves on {\fsPrF} when Zipfian coefficient $\theta=1$,
-On {\fsF}, the ratio is capped at $18$\%.
-Interestingly, we do not observe a constant trend of improvement along with the increasing skewness. 
-We attribute it to the interplay of the two following two factors. 
-On the one hand, the increasing skewness opens up the opportunity for the fine-grained concurrency management. 
-The aforementioned YCSB workload stands for an extreme case where no transactions need to save from the abort. 
-On the other hand, based on Theorem~\ref{theory:unreorderable}, transactions that could be serialized(reordered) are fundamentally restricted in a severely skewed workload. 
-And the overhead to recover them would outweigh the gains to reach this theoretical limit. 
+% The speedup brought by our approach is most prominent under the Smallbank workload. 
+% The greatest improvement $48$\% achieves on {\fsPrF} when Zipfian coefficient $\theta=1$,
+% On {\fsF}, the ratio is capped at $18$\%.
+% Interestingly, we do not observe a constant trend of improvement along with the increasing skewness. 
+% We attribute it to the interplay of the two following two factors. 
+% On the one hand, the increasing skewness opens up the opportunity for the fine-grained concurrency management. 
+% The aforementioned YCSB workload stands for an extreme case where no transactions need to save from the abort. 
+% On the other hand, based on Theorem~\ref{theory:unreorderable}, transactions that could be serialized(reordered) are fundamentally restricted in a severely skewed workload. 
+% And the overhead to recover them would outweigh the gains to reach this theoretical limit. 
 
-The above two experiments both disable the state dependency capture for the fair comparison on concurrency control. 
-In this experiment, we vary this factor but fix to our approach. 
-Figure~\ref{chart:txn:smallbank_prov} presents the results on {\fsPrF} and {\fsF}. 
-The unchanged performance of {\fsF} is enough to show the minimum intervention
-between the state dependency and our fine-grained transaction management. 
-In a nutshell, the scenario illustrated in Chapter~\ref{sec:txn:impl:intervention} is rare at least in Smallbank workload. 
-The straightforward abort approach in Chapter~\ref{sec:txn:impl:intervention} will not drastically degrade the performance. 
-To our astonishment, the state dependency imposes non-negligible effects on our reordering approach in {\fsPrF}.
-In particular, the throughput reduction rate reports $14$\% when $\theta=0$.
-By the careful inspection, this reduction is attributed to the overloaded usage on the LevelDB again. 
-With the state dependency tracking, more provenance information need to be persisted into LevelDB.
-As explained in Chapter~\ref{sec:provenance:exp:util}, this is the same instance to maintain transaction indices during block persistence. 
-{\fsF} does not suffer from this factor due to the separated usage of ForkBase. 
-This is also consistent with our observation on {\fsPrF} that 
-the overloaded usage gets cured under the greater workload skewness:
-simply because the amount of the captured provenance decrease with more transactions aborted. 
+% The above two experiments both disable the state dependency capture for the fair comparison on concurrency control. 
+% In this experiment, we vary this factor but fix to our approach. 
+% Figure~\ref{chart:txn:smallbank_prov} presents the results on {\fsPrF} and {\fsF}. 
+% The unchanged performance of {\fsF} is enough to show the minimum intervention
+% between the state dependency and our fine-grained transaction management. 
+% In a nutshell, the scenario illustrated in Chapter~\ref{sec:txn:impl:intervention} is rare at least in Smallbank workload. 
+% The straightforward abort approach in Chapter~\ref{sec:txn:impl:intervention} will not drastically degrade the performance. 
+% To our astonishment, the state dependency imposes non-negligible effects on our reordering approach in {\fsPrF}.
+% In particular, the throughput reduction rate reports $14$\% when $\theta=0$.
+% By the careful inspection, this reduction is attributed to the overloaded usage on the LevelDB again. 
+% With the state dependency tracking, more provenance information need to be persisted into LevelDB.
+% As explained in Chapter~\ref{sec:provenance:exp:util}, this is the same instance to maintain transaction indices during block persistence. 
+% {\fsF} does not suffer from this factor due to the separated usage of ForkBase. 
+% This is also consistent with our observation on {\fsPrF} that 
+% the overloaded usage gets cured under the greater workload skewness:
+% simply because the amount of the captured provenance decrease with more transactions aborted. 
 
-\subsection{Performance on Complex Workloads}
-\label{sec:txn:exp:complex}
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_thruput.pdf}
-      \caption{Effective Throughput}
-      \label{chart:txn:blksize:thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_abort.pdf}
-      \caption{Abort Rate}
-      \label{chart:txn:blksize:abort}
-    \end{subfigure}
-    \caption{Performance on the block size and request rate}
-    \subcaption*{Figure~\ref{chart:txn:blksize:thruput} highlights the optimal setups with the yellow marker. }
-    \label{chart:txn:blksize}
-\end{figure}
+% \subsection{Performance on Complex Workloads}
+% \label{sec:txn:exp:complex}
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_thruput.pdf}
+%       \caption{Effective Throughput}
+%       \label{chart:txn:blksize:thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_blksize_abort.pdf}
+%       \caption{Abort Rate}
+%       \label{chart:txn:blksize:abort}
+%     \end{subfigure}
+%     \caption{Performance on the block size and request rate}
+%     \subcaption*{Figure~\ref{chart:txn:blksize:thruput} highlights the optimal setups with the yellow marker. }
+%     \label{chart:txn:blksize}
+% \end{figure}
 
-\textbf{Block Size.}
-We first determine the optimal setup (in terms of the block size and the request rate) that leads to the highest throughput for each system, and use these sizes for the remainder of the experiments.
-Figure~\ref{chart:txn:blksize:thruput} shows that the highest throughput ($526$ tps) is achieved by {\fsF} when the block size is set to 200 transactions and the request rate at $600$ tps. 
-In contrast, Fabric, {\fsP}, {\fsS} and {\fsL} reach their peak performance, $394$, $379$, $301$, and $457$ tps, respectively, when a block (and the request rate) is limited to $400$ ($1000$), $200$ ($600$), $200$ ($600$), and $400$($1000$) transactions (tps), respectively. 
-Contrary to our expectation, {\fsP} can not scale beyond the setup with $600$ transactions per block and $1200$ tps request rate. 
-With careful inspection, we found that {\fsP} is stuck at Johnson's algorithm, which aims to detect cycles from strongly connected components. 
-The complexity of Johnson's algorithm is linear in the number of cycles. 
-When the workload is extremely skewed, it has many cycles in the transaction graph, thus, the reordering performance of {\fsP} is severely degraded. 
-Figure~\ref{chart:txn:blksize:abort} reports the fraction of aborted transactions in the ledger. 
-As expected, Fabric, {\fsP} and {\fsL} all show the greater proportion of aborted ones under larger blocks. 
-As established in Proposition~\ref{proposition:concurrency}, larger blocks induce more concurrency, exaggerating the transaction conflicts. 
-In contrast, {\fsS} and {\fsF} early abort transactions before forming the block. Hence their ledgers contain no invalid transactions which may waste the system volume. 
+% \textbf{Block Size.}
+% We first determine the optimal setup (in terms of the block size and the request rate) that leads to the highest throughput for each system, and use these sizes for the remainder of the experiments.
+% Figure~\ref{chart:txn:blksize:thruput} shows that the highest throughput ($526$ tps) is achieved by {\fsF} when the block size is set to 200 transactions and the request rate at $600$ tps. 
+% In contrast, Fabric, {\fsP}, {\fsS} and {\fsL} reach their peak performance, $394$, $379$, $301$, and $457$ tps, respectively, when a block (and the request rate) is limited to $400$ ($1000$), $200$ ($600$), $200$ ($600$), and $400$($1000$) transactions (tps), respectively. 
+% Contrary to our expectation, {\fsP} can not scale beyond the setup with $600$ transactions per block and $1200$ tps request rate. 
+% With careful inspection, we found that {\fsP} is stuck at Johnson's algorithm, which aims to detect cycles from strongly connected components. 
+% The complexity of Johnson's algorithm is linear in the number of cycles. 
+% When the workload is extremely skewed, it has many cycles in the transaction graph, thus, the reordering performance of {\fsP} is severely degraded. 
+% Figure~\ref{chart:txn:blksize:abort} reports the fraction of aborted transactions in the ledger. 
+% As expected, Fabric, {\fsP} and {\fsL} all show the greater proportion of aborted ones under larger blocks. 
+% As established in Proposition~\ref{proposition:concurrency}, larger blocks induce more concurrency, exaggerating the transaction conflicts. 
+% In contrast, {\fsS} and {\fsF} early abort transactions before forming the block. Hence their ledgers contain no invalid transactions which may waste the system volume. 
 
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_thruput.pdf}
-      \caption{Effective Throughput}
-      \label{chart:txn:writehot:thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_blk_delay.pdf}
-      \caption{Block Processing Delay (Algorithm~\ref{alg:txn:blk})}
-      \label{chart:txn:writehot:delay}
-    \end{subfigure}
-    \caption{Performance on the write hot ratio}
-    \label{chart:txn:writehot}
-\end{figure}
-\textbf{Write Hot Ratio.}
-To evaluate the effect of write-write conflicts, we concentrate more write operations into a fixed number of hot accounts.
-The throughput of {\fsF} remains almost the highest among all the systems, as shown in Figure~\ref{chart:txn:writehot:thruput}.
-As expected, the throughput of {\fsS} drops significantly due to its prevention on \textit{c-ww}. 
-We also observe in Figure~\ref{chart:txn:writehot:delay} that the reordering latency of {\fsP} is constantly large, 
-while this delay in {\fsL} is smaller and proportional to the increasing skewness.
-This is because {\fsL} iterates through the dependency graph of pending transactions in rounds. 
-In each round, its \textit{Sort-Based Greedy Algorithm} keeps pruning transactions until there are only transactions without dependencies.
-In contrast, {\fsP} computes all the cycles and determines the transactions to be aborted in batch mode. 
-Hence, its reordering procedure is less sensitive to workload skewness compared to {\fsL}. 
-Figure~\ref{chart:txn:writehot:delay} also shows that the reordering latency in {\fsF} (Algorithm~\ref{alg:txn:blk}) is low.
-This is because {\fsF} shifts most of the work (e.g., the dependency graph maintenance) to Algorithm~\ref{alg:txn:txn} on the transaction arrival. 
-We notice that a large ratio (more than $50$\%) of the reordering delay in
-{\fsF} is due to the restoration of \textit{ww} conflicts, and this ratio increases
-with higher write hot ratio.
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_thruput.pdf}
+%       \caption{Effective Throughput}
+%       \label{chart:txn:writehot:thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_writehot_blk_delay.pdf}
+%       \caption{Block Processing Delay (Algorithm~\ref{alg:txn:blk})}
+%       \label{chart:txn:writehot:delay}
+%     \end{subfigure}
+%     \caption{Performance on the write hot ratio}
+%     \label{chart:txn:writehot}
+% \end{figure}
+% \textbf{Write Hot Ratio.}
+% To evaluate the effect of write-write conflicts, we concentrate more write operations into a fixed number of hot accounts.
+% The throughput of {\fsF} remains almost the highest among all the systems, as shown in Figure~\ref{chart:txn:writehot:thruput}.
+% As expected, the throughput of {\fsS} drops significantly due to its prevention on \textit{c-ww}. 
+% We also observe in Figure~\ref{chart:txn:writehot:delay} that the reordering latency of {\fsP} is constantly large, 
+% while this delay in {\fsL} is smaller and proportional to the increasing skewness.
+% This is because {\fsL} iterates through the dependency graph of pending transactions in rounds. 
+% In each round, its \textit{Sort-Based Greedy Algorithm} keeps pruning transactions until there are only transactions without dependencies.
+% In contrast, {\fsP} computes all the cycles and determines the transactions to be aborted in batch mode. 
+% Hence, its reordering procedure is less sensitive to workload skewness compared to {\fsL}. 
+% Figure~\ref{chart:txn:writehot:delay} also shows that the reordering latency in {\fsF} (Algorithm~\ref{alg:txn:blk}) is low.
+% This is because {\fsF} shifts most of the work (e.g., the dependency graph maintenance) to Algorithm~\ref{alg:txn:txn} on the transaction arrival. 
+% We notice that a large ratio (more than $50$\%) of the reordering delay in
+% {\fsF} is due to the restoration of \textit{ww} conflicts, and this ratio increases
+% with higher write hot ratio.
 
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_thruput.pdf}
-      \caption{Effective Throughput}
-      \label{chart:txn:readhot:thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_txn_delay.pdf}
-      \caption{Block Processing Delay (Algorithm~\ref{alg:txn:txn})}
-      \label{chart:txn:readhot:delay}
-    \end{subfigure}
-    \caption{Performance on the read hot ratio}
-    \label{chart:txn:readhot}
-\end{figure}
-\textbf{Read Hot Ratio.}
-We increase the read hot ratio to generate more read-write conflicts in the workload. 
-As explained in Theorem~\ref{theory:unreorderable}, dependency cycles with 
-these conflicts can never be reordered to become serializable. 
-Consistent to our explanation, we show in Figure~\ref{chart:txn:readhot} that the throughput of all the systems, except {\fsS}, decreases at a similar rate. 
-The throughput of {\fsS} is greater compared to Fabric and {\fsL} when 50\% of the read requests are on the hot accounts. 
-This is because {\fsS} imposes a more stringent condition for serializability compared to Fabric and {\fsL}.
-{\fsS} aborts transactions if they are forming two consecutive read-write conflicts with at least one \textit{anti-rw}, while the other systems, except {\fsF}, abort immediately when there is a single \textit{anti-rw}. 
-Hence, {\fsS} can recover more serializable transactions especially under heavy read-write contention. 
-Figure~\ref{chart:txn:readhot:delay} shows the processing latency breakdown for an incoming transaction.
-As expected, the reachability update on the dependency graph takes the largest proportion of the delay in {\fsF}, as all the reachable transactions from the incoming one must be traversed.
-This overhead increases with more dependencies in the workload. 
-Compared to {\fsF}, the transaction processing delay in {\fsS} and {\fsP} is almost negligible.
-However, {\fsS} takes a bit longer than {\fsP}, as it needs to additionally identify conflicted transactions, instead of only indexing the transactions based on the accessed records as in {\fsP}. 
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_thruput.pdf}
+%       \caption{Effective Throughput}
+%       \label{chart:txn:readhot:thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_readhot_txn_delay.pdf}
+%       \caption{Block Processing Delay (Algorithm~\ref{alg:txn:txn})}
+%       \label{chart:txn:readhot:delay}
+%     \end{subfigure}
+%     \caption{Performance on the read hot ratio}
+%     \label{chart:txn:readhot}
+% \end{figure}
+% \textbf{Read Hot Ratio.}
+% We increase the read hot ratio to generate more read-write conflicts in the workload. 
+% As explained in Theorem~\ref{theory:unreorderable}, dependency cycles with 
+% these conflicts can never be reordered to become serializable. 
+% Consistent to our explanation, we show in Figure~\ref{chart:txn:readhot} that the throughput of all the systems, except {\fsS}, decreases at a similar rate. 
+% The throughput of {\fsS} is greater compared to Fabric and {\fsL} when 50\% of the read requests are on the hot accounts. 
+% This is because {\fsS} imposes a more stringent condition for serializability compared to Fabric and {\fsL}.
+% {\fsS} aborts transactions if they are forming two consecutive read-write conflicts with at least one \textit{anti-rw}, while the other systems, except {\fsF}, abort immediately when there is a single \textit{anti-rw}. 
+% Hence, {\fsS} can recover more serializable transactions especially under heavy read-write contention. 
+% Figure~\ref{chart:txn:readhot:delay} shows the processing latency breakdown for an incoming transaction.
+% As expected, the reachability update on the dependency graph takes the largest proportion of the delay in {\fsF}, as all the reachable transactions from the incoming one must be traversed.
+% This overhead increases with more dependencies in the workload. 
+% Compared to {\fsF}, the transaction processing delay in {\fsS} and {\fsP} is almost negligible.
+% However, {\fsS} takes a bit longer than {\fsP}, as it needs to additionally identify conflicted transactions, instead of only indexing the transactions based on the accessed records as in {\fsP}. 
 
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_thruput.pdf}
-      \caption{Effective Throughput}
-      \label{chart:txn:clientdelay:thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_stats.pdf}
-      \caption{{\fsF}'s Statistics}
-      \label{chart:txn:clientdelay:stat}
-    \end{subfigure}
-    \caption{Performance on the client delay}
-    \label{chart:txn:clientdelay}
-\end{figure}
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_thruput.pdf}
+%       \caption{Effective Throughput}
+%       \label{chart:txn:clientdelay:thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_clientdelay_stats.pdf}
+%       \caption{{\fsF}'s Statistics}
+%       \label{chart:txn:clientdelay:stat}
+%     \end{subfigure}
+%     \caption{Performance on the client delay}
+%     \label{chart:txn:clientdelay}
+% \end{figure}
 
-\textbf{Client Delay.}
-Next, we simulate the network transmission latency at the client side, in order to study its impact on a transaction's end-to-end processing.
-Using the \textit{client delay} parameter, we introduce a delay between the Execution and Ordering phases.
-As expected, a longer client delay increases the end-to-end latency and the block span of a transaction.
-In turn, this leads to lower throughput, as show in Figure~\ref{chart:txn:clientdelay:thruput}.
-Moreover, a larger block span leads to more concurrent transactions and more dependencies.
-As shown in Figure~\ref{chart:txn:clientdelay:stat}, {\fsF} traverses more transactions in the dependency graph to update their reachability (Algorithm~\ref{alg:txn:txn}) when the client delay is higher.
-Despite this, {\fsF} performs better than all the other systems.
+% \textbf{Client Delay.}
+% Next, we simulate the network transmission latency at the client side, in order to study its impact on a transaction's end-to-end processing.
+% Using the \textit{client delay} parameter, we introduce a delay between the Execution and Ordering phases.
+% As expected, a longer client delay increases the end-to-end latency and the block span of a transaction.
+% In turn, this leads to lower throughput, as show in Figure~\ref{chart:txn:clientdelay:thruput}.
+% Moreover, a larger block span leads to more concurrent transactions and more dependencies.
+% As shown in Figure~\ref{chart:txn:clientdelay:stat}, {\fsF} traverses more transactions in the dependency graph to update their reachability (Algorithm~\ref{alg:txn:txn}) when the client delay is higher.
+% Despite this, {\fsF} performs better than all the other systems.
 
-\textbf{Read Interval.}
-To simulate the scenario where a transaction incurs heavy computations, we increase the interval between consecutive reads during the transaction execution.
-Figure~\ref{chart:txn:readinterval:thruput} shows the throughputs, where {\fsF} again outperforms the others. 
-When a transaction takes longer to execute, there is a higher probability to read across blocks.
-{\fsP} prevents this scenario by aborting transactions that read across blocks even though some may be serializable. 
-This is evidenced by a larger proportion of transactions that are early aborted during the Execution phase, as shown in Figure~\ref{chart:txn:readinterval:abort}.
-{\fsS} consistently reads from a valid block snapshot and, hence, the effect of extending a transaction's execution results in a higher end-to-end latency.
-This leads to more concurrent transactions which, in turn, results in a higher abort rate for both \textit{c-ww} and the dangerous pattern in {\fsS}.
-Notably, the performance of {\fsO} drops drastically with longer transaction execution.
-We attribute this to the read-write lock used during the simulation and block commit which prevents parallelism.
-{\fsO} inherits this design from the original Fabric. 
+% \textbf{Read Interval.}
+% To simulate the scenario where a transaction incurs heavy computations, we increase the interval between consecutive reads during the transaction execution.
+% Figure~\ref{chart:txn:readinterval:thruput} shows the throughputs, where {\fsF} again outperforms the others. 
+% When a transaction takes longer to execute, there is a higher probability to read across blocks.
+% {\fsP} prevents this scenario by aborting transactions that read across blocks even though some may be serializable. 
+% This is evidenced by a larger proportion of transactions that are early aborted during the Execution phase, as shown in Figure~\ref{chart:txn:readinterval:abort}.
+% {\fsS} consistently reads from a valid block snapshot and, hence, the effect of extending a transaction's execution results in a higher end-to-end latency.
+% This leads to more concurrent transactions which, in turn, results in a higher abort rate for both \textit{c-ww} and the dangerous pattern in {\fsS}.
+% Notably, the performance of {\fsO} drops drastically with longer transaction execution.
+% We attribute this to the read-write lock used during the simulation and block commit which prevents parallelism.
+% {\fsO} inherits this design from the original Fabric. 
 
-\begin{figure}[t]
-	\centering
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_thruput.pdf}
-      \caption{Effective Throughput}
-      \label{chart:txn:readinterval:thruput}
-    \end{subfigure}
-    \begin{subfigure}{0.45\textwidth}
-      \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_abort.pdf}
-      \caption{Abort Rate}
-      \label{chart:txn:readinterval:abort}
-    \end{subfigure}
-    \caption{Performance on the read interval}
-    \label{chart:txn:readinterval}
-\end{figure}
+% \begin{figure}[t]
+% 	\centering
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_thruput.pdf}
+%       \caption{Effective Throughput}
+%       \label{chart:txn:readinterval:thruput}
+%     \end{subfigure}
+%     \begin{subfigure}{0.45\textwidth}
+%       \includegraphics[width=0.99\textwidth]{chart/txn/complex_readinterval_abort.pdf}
+%       \caption{Abort Rate}
+%       \label{chart:txn:readinterval:abort}
+%     \end{subfigure}
+%     \caption{Performance on the read interval}
+%     \label{chart:txn:readinterval}
+% \end{figure}

@@ -84,7 +84,7 @@ how our taxonomy is useful in practice by applying it to compare the performance
 of recent hybrid database-blockchain
 systems~\cite{BlockchainMeetsDatabase,peng2020falcondb,veritas,el2019blockchaindb,mcconaghy2016bigchaindb,schuhknecht2019chainifydb}.
 
-In summary, we make the following contributions in this paper:
+In summary, we make the following contributions in this chapter:
 \begin{itemize}
   \item We compare blockchains and distributed databases as two different types
   of distributed, transactional systems. We propose a new taxonomy that
@@ -148,8 +148,7 @@ ledger takes the form of a contract invocation.
 Transactions sequentially modify the system state based on their order in the
 ledger, determined by the consensus protocol. A read-only transaction can be
 carried out by any node, without undergoing the consensus and being included in
-the ledger. We only consider blockchains that support smart contracts in this
-paper, because earlier blockchains (without smart contracts) cannot support
+the ledger. We only consider blockchains that support smart contracts, because earlier blockchains (without smart contracts) cannot support
 database transaction workloads and thus cannot be compared with distributed
 databases.
 
@@ -212,7 +211,7 @@ semantics without sacrificing much scalability.
 NewSQL has drawn attention since Google introduced
 Spanner~\cite{corbett2013spanner}, the first NewSQL system. It was followed by a
 few database vendors, such as CockroachDB~\cite{web:cockroach} and
-TiDB~\cite{web:tidb}. In this paper, we consider both NoSQL and NewSQL systems.
+TiDB~\cite{web:tidb}. In this chapter, we consider both NoSQL and NewSQL systems.
 
 \begin{figure}[tp]
     \centering
@@ -750,7 +749,7 @@ restrictions but focuses on the tradeoff between availability and consistency.
 Similar to blockchains, etcd employs a single consensus instance to sequence all
 the requests.
 Without sharding, etcd fully replicates the data on each node.
-We also benchmarked CockroachDB~\cite{web:cockroach}, another NewSQL database. Since it exhibits similar performance trends as TiDB, we decide to omit it in this paper. 
+We also benchmarked CockroachDB~\cite{web:cockroach}, another NewSQL database. Since it exhibits similar performance trends as TiDB, we decide to omit it in the experiment.
 
 % \begin{figure}[tp] 
 % 	\centering

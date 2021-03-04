@@ -85,12 +85,12 @@ We now explain the three principles that our enhancement follows:
   \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis proposal, this principle can be reflected in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate Chapter~\ref{sec:txn:securityanalysis} on the security implication of the transaction reordering. 
   \item We adopt the modularized approach. We decouple a complex system into individual layers for the separate optimization. Modularization allows for the separation of concerns for the ease of reasoning. It also facilitates interoperability with independent optimization. 
   We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{diagram:intro:arch}. 
-  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
+  \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain. Building on an existing system not only reuses its well-examined components, but this feasibility by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
 \end{itemize}
 
 \section{Optimization Basis}
 \label{sec:intro:basis}
-We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this proposal. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
+We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this proposal. In later paragraphs, Fabric, without any version specification, all refers to this codebase version. 
 
 We now evaluate its throughput under out testbed and setup, which serves as the baseline. 
 The testbed consists of a local cluster of 96 nodes. Each node is equipped with E5-1650 3.5GHz CPU, 32GB RAM, and 2TB hard disk. The nodes are interconnected via 1Gbps Ethernet. 
@@ -143,7 +143,7 @@ We attach the YCSB and Smallbank contract codes in Appendix~\ref{sec:append:cont
     \label{chart:intro:basic}
 \end{figure}
 
-\section{Thesis Synopsis}
+\section{Synopsis}
 We structure the rest of this proposal as follows. Chapter~\ref{ch:literature} overviews the recent year progress on both permissioned and permissionless blockchains. The covered literature spans from the database, distributed computing, and security communities. For the modularized fashion, we organize their reviews according to the classified layers in Figure~\ref{diagram:intro:arch}. This chapter ends with our critical analysis in this area. 
 
 Chapter~\ref{ch:twin} (edited from~\cite{ruan2019blockchains}) proposes a taxonomy that unifies blockchains and distributed databases. 
@@ -158,11 +158,11 @@ Then we introduce how lineage information in blockchains are captured, stored, a
 The greatest contribution of our proposal is to extend the integrity property for the entire data evolution history. 
 After implementing it into {\fs}~(or Fabric\# for short), the empirical evaluation demonstrates the negligible performance and storage overhead with this additional feature. 
 
-Chapter~\ref{ch:txn} (edited from~\cite{ruan2020transactional}) demonstrates another optimization on the performance. 
-The work originates from our following subtle observation:
+Chapter~\ref{ch:txn} (edited from~\cite{ruan2020transactional}) proposes another optimization on the performance. 
+The work is inspired by our following subtle observation:
 the execute-order-validate architecture in permissioned blockchains may over-abort transactions under the Serializable isolation level. 
-Borrowed from the well-established transactional analysis from databases, we reason about the potential of transaction reordering to streamline the execution schedule. Based on the developed insight, then we adapt {\fs} to attain the theoretical limits. 
-And the improvement is empirically demonstrated with our remarkable speedup, compared with the vanilla Fabric and the other state-of-the-art. 
+Borrowed from the well-established transactional analysis from databases, we reason about the potential of transaction reordering to streamline the execution schedule. Based on the developed insight, then we will adapt {\fs} to attain the theoretical limits. 
+Then the improvement can be empirically demonstrated with our remarkable speedup, compared with the vanilla Fabric and the other state-of-the-art. 
 
 At last, we wrap up the proposal with the conclusion and future directions in Chapter~\ref{ch:conclu}. 
 In light of a variety of Fabric variants referenced and benchmarked in this proposal, we compile them all for the clarity in Appendix~\ref{sec:append:variants}. 

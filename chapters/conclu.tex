@@ -24,12 +24,10 @@ provenance queries are efficient and that the system incurs
 small storage and performance overhead.
 
 Last but not the least, we proposed a novel solution to efficiently reduce the transaction abort rate in execute-order-validate blockchains by applying transactional
-analysis from optimistic-concurrency-control databases. We first draw theoretical parallelism between both blockchains and databases. Then,
-we introduced a fine-grained concurrency control method and
-implemented it in {\fs} based on
-Fabric v2.2, respectively. 
-Our experimental analysis shows that {\fs} outperforms other blockchain systems, including the vanilla Fabric,
-and {\fabricPlusplus}. Unlike databases that achieve high throughput, the blockchains’ limited throughput due to factors related to security opens up opportunities for precise transaction management.
+analysis from optimistic-concurrency-control databases. We first draw theoretical parallelism between both blockchains and databases. Then, we introduced a fine-grained concurrency control method.
+In the later thesis, we will implement it in {\fs} and empirically evaluate its performance. 
+% Our experimental analysis shows that {\fs} outperforms other blockchain systems, including the vanilla Fabric,
+% and {\fabricPlusplus}. Unlike databases that achieve high throughput, the blockchains’ limited throughput due to factors related to security opens up opportunities for precise transaction management.
 
 \section{Future Directions}
 \subsection{Blockchain Interoperability}
