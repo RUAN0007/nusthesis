@@ -55,7 +55,7 @@ Transaction-Ordering attacks that cause substantial financial loss to the users~
 \label{code:prov:contract}
 \end{figure}
 
-In this paper, we design and implement a fine-grained, secure and efficient provenance system for blockchains,
+In this chapter, we design and implement a fine-grained, secure and efficient provenance system for blockchains,
 called {\fs}. In particular, we aim to enable a new class of smart contracts that can access provenance
 information at runtime. Although our goal is similar to that of existing works in adding provenance to
 databases~\cite{akoush2013hadoopprov,tian2016agri,psallidas2018smoke}, we face three unique challenges due to
@@ -106,7 +106,7 @@ At last, we present an overview of {\fs}.
 are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in Chapter~\ref{sec:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
 by smart contracts.  They adopt an account-based data model, in which each account has its own local states
 stored on the blockchain. A smart contract transaction can write arbitrary data to the storage. This flexible
-data model comes at the cost of integrity protection and verification of the account states. In this paper, we
+data model comes at the cost of integrity protection and verification of the account states. In this chapter, we
 focus on the account-based data model.
 
 \textbf{Block structure.} A block in the blockchain stores the transactions and the global states.
