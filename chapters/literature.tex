@@ -42,6 +42,7 @@ But it inevitably incurs more vulnerability from the additional complexity.
 For example, some malicious users might run an infinite loop in a transaction to waste system resources. 
 To defer such Denial-of-service Attack in the permissionless setting, all blockchains are designed with an incentive-compatible mechanism to prevent the abusive usage. 
 For example, Ethereum charges transaction senders with the transaction fee, in an amount proportional to the number and the complexity of contract operations~\cite{wood2014ethereum}.
+Recently, a number of research works show that how to quantify such complexity and charge accordingly is not that intuitive than previously thought~\cite{chen2017adaptive,web:txn_spam}. 
 Despite this, computational-heavy transactions may still render blockchains securely-flawed: some researchers reveal that rational block validators tend to skip their execution to gain an edge for the next block mining~\cite{luu2015demystifying}.
 It is because all the transaction fee is credited to the block miner. 
 
