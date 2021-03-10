@@ -1094,7 +1094,7 @@ Specifically, Quorum first pre-executes transactions at the tip of the ledger,
 before batching these transactions into a block for the consensus.
 Thus, the block proposal rate is affected by the ledger's sequentiality.
 
-Under the same Raft protocol, both NoSQL databases (etcd and TiKV) achieve
+Under the same Raft protocol, the NoSQL databases, etcd, achieves
 higher peak performance compared to the blockchains, but the performance
 degrades with the number of nodes.
 We attribute this to the consensus protocol.
@@ -1104,12 +1104,12 @@ Instead, TiDB reaches its peak performance on 7 nodes.
 This is because of the interplay between the TiKV storage and the
 transaction processing on TiDB servers.
 To study this interplay, we vary the number of TiDB servers and TiKV nodes independently and report the throughput in Table~\ref{tab:tidb}.
-The TiDB servers, due to their stateless nature, should exhibit a linear speedup with more number of nodes~\cite{pingcap}. 
+The TiDB servers, due to their stateless nature, should exhibit a linear speedup with more number of nodes. 
 However, we observe that when the number of TiDB servers is low, they become the bottleneck since there in not enough processing capacity for the SQL statements. 
 But when the number of TiDB servers increases, TiKV becomes the bottleneck.
 We identify two distinct factors that affect the performance of TiKV.
 On the one hand, a larger consensus group in TiKV leads to a greater overhead under the full replication mode. 
-On the other hand, under full replication, there are more TiKV nodes that can serve the requests and thus alleviate hot spots~\cite{pingcap}.
+On the other hand, under full replication, there are more TiKV nodes that can serve the requests and thus alleviate hot spots.
 When fixing the number of TiDB servers, we notice a degrading performance along with more TiKV nodes.
 This implies that the consensus overhead outweighs the gain of hot spot alleviation in TiKV.
 
