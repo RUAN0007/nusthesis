@@ -2,7 +2,7 @@
 \label{ch:prov}
 
 \section{Introduction}
-\label{sec:provenance:intro}
+\label{ch:provenance:intro}
 Blockchains are disrupting many industries, including
 finance~\cite{tapscott2017blockchain,nguyen2016blockchain}, supply
 chain~\cite{korpela2017digital,tian2016agri}, and healthcare~\cite{medilot}. These industries are exploiting
@@ -90,20 +90,20 @@ In summary, we make the following contributions:
   its efficient query and small storage overhead. 
 \end{itemize}
 
-The remainder of the chapter is organized as follows. Chapter~\ref{sec:provenance:background} provides necessary blockchain preliminaries for the understanding. Chapter~\ref{sec:provenance:capture} describes our design for capturing provenance, and the interface
-exposed to smart contracts. Chapter~\ref{sec:provenance:storage} discusses how we store provenance, and
-Chapter~\ref{sec:provenance:index} describes our new index. Chapter~\ref{sec:provenance:implementation} presents our
-implementation. Chapter~\ref{sec:provenance:exp} reports the performance of {\fs} on provenance-related matters. 
+The remainder of the chapter is organized as follows. Chapter~\ref{ch:provenance:background} provides necessary blockchain preliminaries for the understanding. Chapter~\ref{ch:provenance:capture} describes our design for capturing provenance, and the interface
+exposed to smart contracts. Chapter~\ref{ch:provenance:storage} discusses how we store provenance, and
+Chapter~\ref{ch:provenance:index} describes our new index. Chapter~\ref{ch:provenance:implementation} presents our
+implementation. Chapter~\ref{ch:provenance:exp} reports the performance of {\fs} on provenance-related matters. 
 
 \section{Preliminary}
-\label{sec:provenance:background}
+\label{ch:provenance:background}
 In this section, we present more background on blockchain systems.
 We especially focus on the block structure and the procedure to validate a block. 
 And we explain the design choices of state organization that affect index structure requirements.
 At last, we present an overview of {\fs}. 
 
 \textbf{Data model.} Different blockchains adopt different data models for their states. Bitcoin' states
-are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in Chapter~\ref{sec:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
+are unspent coins modeled as Unspent Transaction Outputs (UTXOs), as detailed in Chapter~\ref{ch:literature:datamodel}. More recent blockchains, namely Ethereum and Fabric, support general states that can be modified arbitrarily
 by smart contracts.  They adopt an account-based data model, in which each account has its own local states
 stored on the blockchain. A smart contract transaction can write arbitrary data to the storage. This flexible
 data model comes at the cost of integrity protection and verification of the account states. In this chapter, we
@@ -223,7 +223,7 @@ contract developer.
 
 
 \section{Fine-Grained Provenance}
-\label{sec:provenance:capture}
+\label{ch:provenance:capture}
 In this section, we describe our approach to capture provenance during smart contract execution. We present
 APIs that allow the contract to query provenance at runtime. 
 
@@ -384,7 +384,7 @@ transactions is with a suspected address.
 
 
 \section{Secure Provenance Storage} 
-\label{sec:provenance:storage}
+\label{ch:provenance:storage}
 In this section, we discuss how {\fs} enhances existing blockchain storage layer to provide efficient
 tracking and tamper evidence for the captured provenance. Our key insight is to reorganize the flat leaf
 nodes in the original Merkle tree into a Merkle DAG. We first describe the Merkle DAG structure, then discuss
@@ -496,7 +496,7 @@ the DAG from this hash to read the required version. Because the DAG is tamper e
 read version is guaranteed.
 
 \subsection{Support for Forward Tracking}
-\label{sec:provenance:storage:forward}
+\label{ch:provenance:storage:forward}
 One problem of the above DAG model is that it does not support forward tracking, because the hash pointers
 only reference {\em backward} dependencies. When a state is updated, these backward
 dependencies are permanently established, so that they belong to the immutable derivation history of the
@@ -531,7 +531,7 @@ F_{s_{k,v}} = \{hash (E_{s'}) | s_{k,v} \in dep(s')\}
 $s_{k,v'}$.  
 
 \section{Efficient Provenance Queries}
-\label{sec:provenance:index}
+\label{ch:provenance:index}
 The Merkle DAG structure supports efficient access to the latest state version, since the state index at block
 $b$ contains pointers to all the latest versions at this block. To read the latest version of $s$, one simply
 reads $\chi_b$, follows the index to the entry for $s$, and then reads the state value from the entry.
@@ -678,7 +678,7 @@ repeats the process (line \ref{alg:prov:append:head_begin} -
 level $L_5$, but then discards it because node $16$ will not be appended since it belongs to same
 interval of $[0,32)$ with node $1$. 
 
-\subsection{Discussion} \label{sec:provenance:model_discuss}
+\subsection{Discussion} \label{ch:provenance:model_discuss}
 \textbf{Integrating to Merkle DAG. } 
 The DASL is integrated to the Merkle DAG as follows. The node structure (Figure \ref{code:prov:node}) is stored in
 the state entry (Definition~\ref{def:entry}).  The node pointers are implemented entry hashes. The Merkle tree
@@ -702,7 +702,7 @@ Another benefit is that the performance of such recent-version queries does not 
 \textbf{Extending to permissionless blockchains. } 
 We note that DASL incurs storage overhead. The version query also incurs some computation cost, even though it
 is more efficient with DASL than without it. These costs may be small enough such that they do not
-affect the performance of a permissioned blockchain, as we demonstrate in Chapter~\ref{sec:provenance:exp}.  However,
+affect the performance of a permissioned blockchain, as we demonstrate in Chapter~\ref{ch:provenance:exp}.  However,
 they need to be carefully managed in a permissionless blockchain where any overhead directly translates to
 monetary cost to the miners. In particular, any additional cost to the miner triggers the Verifier
 Dilemma~\cite{luu2015demystifying} and compromises the incentive mechanism of the blockchain.  
@@ -724,7 +724,7 @@ fee. In particular, a query that requires more hops to find the requested versio
 fee. Users may empirically estimate the hops (as well as the cost) based on the above-derived theoretical upper bound. 
 
 \section{Implementation}
-\label{sec:provenance:implementation}
+\label{ch:provenance:implementation}
 \begin{figure}
   \centering
   \includegraphics[width=0.8\textwidth]{diagram/provenance/lineagechain.pdf}
@@ -853,17 +853,17 @@ invocation respectively. Both methods take as input an instance of \texttt{Chain
 supplies relevant context, such as access to the ledger states, to the smart contract. 
 
 We add the helper method, called \texttt{ProvHelper}, to the \texttt{Chaincode} interface. This method's signature,
-and how to write user-defined provenance rules with it, are explained in Chapter~\ref{sec:provenance:capture}. The
+and how to write user-defined provenance rules with it, are explained in Chapter~\ref{ch:provenance:capture}. The
 execution engine intercepts \texttt{PutState} and \texttt{GetStates} during execution to record the read set and the
 write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. Fig
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}
 and therefore previously-stored provenance is accessible to all contract methods. 
-Appendix~\ref{sec:append:contracts:stub} and~\ref{sec:append:contracts:token} attaches the code of the provenance APIs introduced in \texttt{ChaincodeStubInterface}, and the full-fledged chaincode for the \textit{Token} contract in Figure~\ref{code:prov:enhanced_contract}
+Appendix~\ref{ch:append:contracts:stub} and~\ref{ch:append:contracts:token} attaches the code of the provenance APIs introduced in \texttt{ChaincodeStubInterface}, and the full-fledged chaincode for the \textit{Token} contract in Figure~\ref{code:prov:enhanced_contract}
 
 \section{Performance Evaluation}
-\label{sec:provenance:exp}
+\label{ch:provenance:exp}
 \subsection{Baselines and Experimental Setup}
-\label{sec:provenance:exp:setup}
+\label{ch:provenance:exp:setup}
 
 We evaluate {\fs} against two baselines. 
 The first baseline is the original Fabric, without any provenance support.
@@ -889,19 +889,19 @@ However, compared with our ForkBase in {\fs}, it does not protect the provenance
 Despite the storage differences, {\fsPr} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
 
 We perform three sets of experiments. First, we repeat the YCSB and Smallbank experiments to evaluate the performance implication with the provenance support. 
-Specifically for Smallbank, we implement the \texttt{ProvHelper} to capture the monetary flow as the state dependency, as attached in Appendix~\ref{sec:append:contracts:smallbank_prov}.
+Specifically for Smallbank, we implement the \texttt{ProvHelper} to capture the monetary flow as the state dependency, as attached in Appendix~\ref{ch:append:contracts:smallbank_prov}.
 Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. 
-In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{sec:twin:exp:replication:model}) to understand the exact overhead. 
+In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{ch:twin:exp:replication:model}) to understand the exact overhead. 
 In the remaining experiments, we place a specific analysis on the provenance query and space consumption of the storage engine. 
 Note that in the following paragraphs and charts throughout this chapter, we refer {\fsPr} as {\fsPrO} and {\fs} as {\fsO}. The additional suffix \textit{O} denote that both Fabric variants use the original concurrency control method,
 which will vary in the Chapter~\ref{ch:txn}. 
 
 \subsection{Peak Performance}
-\label{sec:provenance:exp:peak}
+\label{ch:provenance:exp:peak}
 
-Figure~\ref{chart:provenance:basic} presents the effective throughput for YCSB and Smallbank at their respective optimal setup, as previous identified in Chapter~\ref{sec:intro:basis}. 
+Figure~\ref{chart:provenance:basic} presents the effective throughput for YCSB and Smallbank at their respective optimal setup, as previous identified in Chapter~\ref{ch:intro:basis}. 
 In the YCSB experiment, {\fsPrO} and {\fsO} track each value of for all historical versions of records, while the original Fabric only maintains the latest state. 
-For Smallbank, we implement the provenance helper method (which is detailed in Chapter~\ref{sec:provenance:capture}) to capture the monetary flow. 
+For Smallbank, we implement the provenance helper method (which is detailed in Chapter~\ref{ch:provenance:capture}) to capture the monetary flow. 
 So besides the historical versions, {\fsPrO} and {\fsO} also preserve the dependency information. 
 Despite all these provenance features, we observe from Figure~\ref{chart:provenance:basic} that the performance overhead is negligible. 
 To be specific, under 1000 transactions per block with the YCSB workload, Fabric, {\fsPrO} and {\fsO} respectively achieve $1521$, $1449$, and $1387$ tps. The discrepancy is within 10\%. 
@@ -910,7 +910,7 @@ Correspondingly, all the effective throughputs reduce to around 300 tps.
 However, under a similar performance, {\fsO} additionally guarantees the provenance integrity. 
 In a word, {\fsO} is more secure than {\fsPrO}. 
 Interestingly from Figure~\ref{chart:provenance:basic:ycsb}, we observe {\fsPrO}'s throughputs are constantly lower than other systems with smaller blocks. 
-We leave its answer to Chapter~\ref{sec:provenance:exp:util}, when we dissect the bottleneck. 
+We leave its answer to Chapter~\ref{ch:provenance:exp:util}, when we dissect the bottleneck. 
 
 \begin{figure}[tp]
 	\centering
@@ -930,7 +930,7 @@ We leave its answer to Chapter~\ref{sec:provenance:exp:util}, when we dissect th
 \end{figure}
 
 \subsection{Provenance Overhead and Utility}
-\label{sec:provenance:exp:util}
+\label{ch:provenance:exp:util}
 \begin{figure}[tp]
 	\centering
     \begin{subfigure}{0.45\textwidth}
@@ -948,12 +948,12 @@ We leave its answer to Chapter~\ref{sec:provenance:exp:util}, when we dissect th
     % \label{chart:provenance:util_overhead}
 \end{figure}
 Figure~\ref{chart:provenance:ycsb_breakdown} breaks down the latency of block validation into multiple phases, block persistence, state persistence, transaction verification and others. 
-As we have demonstrated in Chapter~\ref{sec:twin:exp:replication:model}, the sequential validation rate decides on the system capacity. 
+As we have demonstrated in Chapter~\ref{ch:twin:exp:replication:model}, the sequential validation rate decides on the system capacity. 
 Figure~\ref{chart:provenance:ycsb_breakdown} reveals a greater delay in {\fsPrO}, especially under small blocks. 
 In particular, we observe that {\fsPrO} takes $25$\% more time to persist blocks than Fabric and {\fsO}.
 By our careful inspection of the codebase, we realize that all Fabric variants construct an index on transactions when persisting a block. 
 The index is persisted into the same storage (LevelDB) engine, which also maintains the latest state in Fabric.
-However, that storage in {\fsPrO} incurs a heavier role: as explained in Chapter~\ref{sec:provenance:exp:setup}, it tracks all data provenance. 
+However, that storage in {\fsPrO} incurs a heavier role: as explained in Chapter~\ref{ch:provenance:exp:setup}, it tracks all data provenance. 
 The overloaded usage accounts for the increased delay to build the transaction index, which ultimately translates into the lower throughput in {\fsPrO}. 
 On the other hand,  {\fsO} delegates the provenance tracking responsibility separately to ForkBase. 
 It is why the block persistence in {\fsO} saves around $10$\% time compared with Fabric. 
@@ -965,7 +965,7 @@ given the overall block validation delay is $723$ms in {\fsO}, this ratio is bel
 It explains why the total block validation delay in {\fsO} is within $14$\% and $4$\% more than Fabric and {\fsO}. 
 So that {\fsO} reports the negligible performance overhead, even though it additionally preserves the provenance with the integrity guarantee.
 
-The provenance-provided utility is abundant. In the Smallbank contract, we additionally encode a provenance-dependent method \texttt{ConditionalRefund}, as attached in Appendix~\ref{sec:append:contracts:cond_refund}.
+The provenance-provided utility is abundant. In the Smallbank contract, we additionally encode a provenance-dependent method \texttt{ConditionalRefund}, as attached in Appendix~\ref{ch:append:contracts:cond_refund}.
 Similar to the \texttt{Refund} example in Figure~\ref{code:prov:enhanced_contract},
 it refunds a bank account with an amount conditional on its involved transactions in recent blocks.
 We compare the end-to-end latency of the exact procedure in Fabric, without the provenance support.
@@ -974,7 +974,7 @@ Figure~\ref{chart:provenance:smallbank_util} demonstrates tremendous utility to 
 Both {\fsO} and {\fsPrO} are capable to consolidate the above provenance-dependent logic into a single invocation, which takes around 2s. 
 In contrast in Fabric, the delay of the sequential block scanning increases with the number of requested recent blocks. 
 Even though the block fetching can be done in parallel, 
-the separation of two phases is not only error-prone but also security-flawed, as explained in Chapter~\ref{sec:provenance:intro}.
+the separation of two phases is not only error-prone but also security-flawed, as explained in Chapter~\ref{ch:provenance:intro}.
 
 \subsection{Provenance Historical Query}
 In the following experiments, we strip away the storage components from {\fsO} and {\fsPrO} for the specific analysis with the tailored workload. 
@@ -1101,7 +1101,7 @@ One can observe that the storage consumption grows linearly with the number of b
 The storage increase is not evident until the record size grows to 5000 bytes. 
 But the block content constantly accounts for the majority of the storage cost.
 In particular, despite the different settings, blocks occupy around $66$\% of the entire space. 
-The result further confirms the conclusion drawn in Chapter~\ref{sec:twin:exp:storage}: compared with the state storage, the ledger abstraction incurs the most storage overhead. 
+The result further confirms the conclusion drawn in Chapter~\ref{ch:twin:exp:storage}: compared with the state storage, the ledger abstraction incurs the most storage overhead. 
 But to our astonishment, we find that the storage consumption for data provenance is far less than expected, as shown in the negligible \texttt{Meta} bar. 
 Their storage ratios are all below $1$\% when a block contains 1000 transactions. 
 In the worst case with 100 transactions per block, the ratio is only $6.7$\%.

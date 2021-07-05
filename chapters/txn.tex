@@ -1,7 +1,7 @@
 \chapter{A Transactional Perspective on \\Execute-order-validate Blockchains}
 \label{ch:txn}
 \section{Introduction}
-\label{sec:txn:intro}
+\label{ch:txn:intro}
 From Chapter~\ref{ch:twin}, blockchains systems can be classified into \textit{permissionless}
 (\textit{public}), such as Bitcoin and Ethereum, and \textit{permissioned}
 (\textit{private}), such as Hyperledger Fabric~\cite{androulaki2018hyperledger}.
@@ -25,7 +25,7 @@ sharing, and in particular, we use Fabric as the underlying blockchain system.
 Fabric supports a new transaction execution architecture called
 execute-order-validate (EOV).
 %
-In this architecture, a transaction's lifecycle consists of three phases, as detailed in~Chapter~\ref{sec:literature:execution:execute-order-validate}. In the
+In this architecture, a transaction's lifecycle consists of three phases, as detailed in~Chapter~\ref{ch:literature:execution:execute-order-validate}. In the
 first phase, \textit{execution}, a client sends the transaction to a set of
 nodes, or peers, specified by an endorsement policy.
 %
@@ -43,7 +43,7 @@ This order is broadcast to all peers. In the third phase, \textit{validation},
 each peer validates the state changes from the endorsed transactions with
 respect to the endorsement policy and serializability.
 %
-For better clarity, Chapter~\ref{sec:txn:background} goes through an example in EOV architecture. 
+For better clarity, Chapter~\ref{ch:txn:background} goes through an example in EOV architecture. 
 
 The new EOV architecture limits the execution details of a transaction to the
 endorsing peers to enhance confidentiality and exploit concurrency. But such
@@ -96,7 +96,7 @@ techniques in databases with optimistic concurrency control (OCC) and apply them
 to enhance transaction processing in blockchains.
 %
 We formally analyze the behavior of the current implementations of Fabric, and discover that both
-achieve \textit{Strong Serializability} \cite{bailis2013highly} (as described in Chapter~\ref{sec:txn:serializabilityAnalysis}).
+achieve \textit{Strong Serializability} \cite{bailis2013highly} (as described in Chapter~\ref{ch:txn:serializabilityAnalysis}).
 %
 In fact, these implementations are more stringent than
 \textit{One-Copy Serializability} (or simply Serializability), as prescribed by the original Fabric protocol~\cite{androulaki2018hyperledger}.
@@ -113,20 +113,20 @@ In summary, this works makes the following contributions:
 \begin{itemize}
 \item We theoretically analyze the resemblance of transaction processing in
   blockchains with EOV architecture and databases with optimistic concurrency
-  control (Chapter~\ref{sec:txn:resembalance}).
+  control (Chapter~\ref{ch:txn:resembalance}).
   %
   Based on this resemblance, we analyze the transactional behavior of
   state-of-the-art EOV blockchains, such as Fabric and {\fabricPlusplus}
-  (Chapter~\ref{sec:txn:serializabilityAnalysis}).
+  (Chapter~\ref{ch:txn:serializabilityAnalysis}).
   
 \item We propose a novel theorem to identify transactions that can never be
   reordered for serializability 
-  (Chapter~\ref{sec:txn:reorderabilityAnalysis}).
+  (Chapter~\ref{ch:txn:reorderabilityAnalysis}).
   %
   Based on this theorem, we propose efficient algorithms to early filter out
-  such transactions (Chapter~\ref{sec:txn:concurrencyControl}), 
+  such transactions (Chapter~\ref{ch:txn:concurrencyControl}), 
   with the serializability guarantee for the remaining after reordering.
-  We also discuss the security implications of our proposal (Chapter~\ref{sec:txn:securityanalysis}).
+  We also discuss the security implications of our proposal (Chapter~\ref{ch:txn:securityanalysis}).
   
 
 \item We implement our proposed algorithms on top of {\fs} and extensively evaluate {\fs} by comparing it with the vanilla
@@ -138,17 +138,17 @@ In summary, this works makes the following contributions:
 
 The remaining of this chapter is structured as follows.
 %
-Chapter~\ref{sec:txn:background} provides background on EOV blockchains and OCC techniques. 
+Chapter~\ref{ch:txn:background} provides background on EOV blockchains and OCC techniques. 
 %
-Our theoretical analysis follows in Chapter~\ref{sec:txn:theory}, ending with our
+Our theoretical analysis follows in Chapter~\ref{ch:txn:theory}, ending with our
 reordering algorithm.
 %
-Chapter~\ref{sec:txn:impl} describes the implementation of our approach.
+Chapter~\ref{ch:txn:impl} describes the implementation of our approach.
 %
-Chapter~\ref{sec:txn:exp} reports our experimental results.
+Chapter~\ref{ch:txn:exp} reports our experimental results.
 
 \section{Background}
-\label{sec:txn:background}
+\label{ch:txn:background}
 \begin{figure*}[h!]
     \begin{subfigure}{0.71\textwidth}
       \centering
@@ -171,7 +171,7 @@ Chapter~\ref{sec:txn:exp} reports our experimental results.
 \end{figure*}
 
 \subsection{EOV~architecture~in~Fabric~and~{\fabricPlusplus}}
-\label{sec:txn:background_fabric}
+\label{ch:txn:background_fabric}
 
 Hyperledger Fabric~\cite{androulaki2018hyperledger} is a state-of-the-art
 permissioned blockchain that features a modular design based on the EOV architecture.
@@ -402,7 +402,7 @@ made to transform Snapshot Isolation to Serializable level
 \cite{fekete2005making, yabandeh2012critique, bornea2011one}.
 
 \section{Theoretical Analysis}
-\label{sec:txn:theory}
+\label{ch:txn:theory}
 
 In this section, we first describe the resemblance of transaction processing
 techniques in EOV blockchains and OCC databases.
@@ -415,7 +415,7 @@ serializable transactions in EOV blockchains,
 along with the discussion on its security implications.
 
 \subsection{Resemblance~in~Transaction~Processing}
-\label{sec:txn:resembalance}
+\label{ch:txn:resembalance}
 %
 Similar to database systems where the concept \textit{database snapshot} is used
 to describe a read-only, static view of a database~\cite{kung1981optimistic}, in blockchains, we can define the similar concept of \textit{blockchain snapshot} as follows.
@@ -582,7 +582,7 @@ Hence, its reordering effect is limited.
 
 
 \subsection{Serializability Analysis}
-\label{sec:txn:serializabilityAnalysis}
+\label{ch:txn:serializabilityAnalysis}
 
 \begin{figure*}
   \centering
@@ -675,7 +675,7 @@ Based on Theorem~\ref{theory:strict}, transactions in Fabric/{\fabricPlusplus} s
 
 
 \subsection{Reorderability Analysis}
-\label{sec:txn:reorderabilityAnalysis}
+\label{ch:txn:reorderabilityAnalysis}
 Under Serializability instead of Strong Serializability,
 we formally analyze the reorderability of transactions in EOV blockchains.
 %
@@ -785,7 +785,7 @@ We describe the dependency order of concurrent transactions using the two lemmas
 \end{proof}
 
 Finally, we present a theorem on reordering transactions containing a dependency
-cycle. This theorem is utilized in Chapter~\ref{sec:txn:concurrencyControl} to
+cycle. This theorem is utilized in Chapter~\ref{ch:txn:concurrencyControl} to
 design our novel fine-grained concurrency control algorithm.
 
 \begin{theorem}
@@ -833,7 +833,7 @@ However, a transaction schedule can be reordered to be serializable if there exi
 \end{figure}
 
 \subsection{Fine-grained Concurrency Control}
-\label{sec:txn:concurrencyControl}
+\label{ch:txn:concurrencyControl}
 
 Theorem~\ref{theory:unreorderable} states that a cyclic transaction schedule without
 \scenario{c-ww} among pending transactions can never be serializable despite reordering.
@@ -866,7 +866,7 @@ But both their commit and dependency order are already fixed.
 %
 Hence, the dependency graph remains acyclic after the restoration.
 
-We outline our fine-grained concurrency control in Algorithms \ref{alg:txn:simulation}, \ref{alg:txn:txn}, and \ref{alg:txn:blk}, while the implementation details are presented in Chapter~\ref{sec:txn:impl}.
+We outline our fine-grained concurrency control in Algorithms \ref{alg:txn:simulation}, \ref{alg:txn:txn}, and \ref{alg:txn:blk}, while the implementation details are presented in Chapter~\ref{ch:txn:impl}.
 %
 We use the notation $A \unioneq B$ to represent the self-assignment with union $A := A \cup B$.
 %
@@ -898,7 +898,7 @@ are updated by committed transactions during the simulation.
   \hspace*{3.4em} $b$ is the number of the block simulated on.}
   $b$ := fetch the number of the last block\;
   $readset, writeset$ := simulate the contract invocation on Block $b$
-  snapshot; \hfill {// Chapter~\ref{sec:txn:impl:snapshot_read}}
+  snapshot; \hfill {// Chapter~\ref{ch:txn:impl:snapshot_read}}
 \end{algorithm}
 
 
@@ -912,10 +912,10 @@ are updated by committed transactions during the simulation.
     and $readkeys$, $writekeys$ are accessed keys during simulation.}
   \KwOut{$reorderable$ property of $t$.}
   $dep$ := Compute $t$'s dependency except $c$-$ww$ among $P$ based on $G, b, readkeys,
-  writekeys$; \hfill {// Chapter~\ref{sec:txn:impl:dep}}\\
+  writekeys$; \hfill {// Chapter~\ref{ch:txn:impl:dep}}\\
   $reorderable := true$ if no cycle is detected in $G$ with respect to $dep$,
   or $false$ otherwise;
-  \hfill {// Chapter~\ref{sec:txn:impl:graph}}\\
+  \hfill {// Chapter~\ref{ch:txn:impl:graph}}\\
   \If{$reorderable$} {
     $P \unioneq \{t\}$\;
     $G.U \unioneq \{t\}$\;
@@ -931,12 +931,12 @@ are updated by committed transactions during the simulation.
   \KwOut{$s$ is the commit order of pending transactions.}
   $s$ := Topologically sort $P$ based on reachability in $G$\;
   $ww$ := Compute \scenario{c-ww} among $P$ with $s$\;
-  $G.V \unioneq ww$;  \hfill {// Chapter~\ref{sec:txn:impl:resintall}} \\
+  $G.V \unioneq ww$;  \hfill {// Chapter~\ref{ch:txn:impl:resintall}} \\
   $P := \emptyset$
 \end{algorithm}
 
 \subsection{Security Analysis}
-\label{sec:txn:securityanalysis}
+\label{ch:txn:securityanalysis}
 Our reordering algorithm serves as a part of the ordering process and needs to be replicated on each honest orderer to form the ledger after the consensus service has established the transaction order. 
 %
 We assume the safety and liveness of the original consensus service under its security model, either crash-failure or byzantine-failure.
@@ -997,7 +997,7 @@ It is because clients have already made a security commitment by publishing the 
 
 
 \section{Implementation}
-\label{sec:txn:impl}
+\label{ch:txn:impl}
 
 \begin{figure}
   \center
@@ -1023,10 +1023,10 @@ In light of this, we present the details of designing the dependency graph and e
 
 Even though our actual implementation extends on {\fs}, our below explanations are based upon the original LevelDB-powered Fabric for clarity. 
 %
-We then dedicate~Chapter~\ref{sec:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
+We then dedicate~Chapter~\ref{ch:txn:impl:intervention} to discuss specific techniques for {\fs} , i.e., how to make use of ForkBase storage and make it compatible with the existing provenance support. 
 
 \subsection{Snapshot Read}
-\label{sec:txn:impl:snapshot_read}
+\label{ch:txn:impl:snapshot_read}
 
 We first describe the snapshot mechanism used by Algorithm~\ref{alg:txn:simulation}.
 %
@@ -1048,7 +1048,7 @@ In contrast, vanilla Fabric uses a read-write lock to coordinate these two phase
 
 
 \subsection{Dependency Resolution}
-\label{sec:txn:impl:dep}
+\label{ch:txn:impl:dep}
 
 To compute the dependency graph in Algorithm~\ref{alg:txn:txn}, we introduce two
 multi-versioned storages in the orderers to identify committed transactions.
@@ -1125,7 +1125,7 @@ We then compute the predecessor transactions of $txn$ as $\scenario{ww}(txn)
 as $\scenario{anti-rw}(txn)$.
 
 \subsection{Cycle Detection}
-\label{sec:txn:impl:graph}
+\label{ch:txn:impl:graph}
 
 We now discuss how we represent the dependency graph $G$ to detect cycles and
 achieve serializability.
@@ -1174,7 +1174,7 @@ $\scenario{anti-rw}(txn)$ is empty.
 %
 This is often the case under non-skewed workloads.
 %
-Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in Chapter~\ref{sec:txn:impl:optimization}.
+Moreover, we reduce the cost of traversal by pruning the dependency graph, as described in Chapter~\ref{ch:txn:impl:optimization}.
 
 \begin{algorithm}
   \caption{Reachability update for transaction $txn$}
@@ -1225,7 +1225,7 @@ For safety, honest orderers must use the same $M$ and $N$ for exact replication.
 
 
 \subsection{Dependency Restoration}
-\label{sec:txn:impl:resintall}
+\label{ch:txn:impl:resintall}
 Next, we present our method to install \scenario{ww} dependencies into the dependency
 graph $G$ based on the derived commit sequence, which is a topological order of
 the pending transactions $P$ according to the reachability in $G$.
@@ -1313,7 +1313,7 @@ Using our algorithm, the reachability information is updated once.
 \end{figure}
 
 \subsection{Dependency Graph Pruning}
-\label{sec:txn:impl:optimization}
+\label{ch:txn:impl:optimization}
 Since graph $G$ can grow quickly, we prune transactions that either (i) are simulated against very old snapshots or (ii) cannot affect pending transactions.
 %
 For the first case, we introduce a parameter called $max\_span$ to limit the block span\footnote{If a transaction is simulated against block $M$ and committed in block $M+1$, its block span is 1.} for
@@ -1346,10 +1346,10 @@ Algorithm~\ref{alg:txn:reachability} (line~\ref{alg:txn:age}).
 For security, all orderers must use the same value for $max\_span$.
 
 \subsection{Intervention with data provenance}
-\label{sec:txn:impl:intervention}
+\label{ch:txn:impl:intervention}
 When comparing Figure~\ref{diagram:prov:arch} and~\ref{diagram:txn:impl:fabricx}, one may observe that the instrumentation for concurrency control is most orthogonal to the provenance support. 
 It is because the former mostly works on orderer nodes (or the consensus layer), which the latter leaves unchanged. 
-In addition, the historical query powered by DASL in ~Chapter~\ref{sec:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
+In addition, the historical query powered by DASL in ~Chapter~\ref{ch:provenance:index} can greatly facilitate the snapshot-based simulation in Algorithm~\ref{alg:txn:simulation}. 
 
 \begin{figure}
   \centering
@@ -1367,7 +1367,7 @@ In particular, \texttt{Txn1} simulates on block 2, updates key \texttt{A} and co
 \texttt{Txn2}, with the simulation on block 3, reads a staled entry of \texttt{A}, updates \texttt{B} and commits in block 6. 
 Most importantly, \texttt{Txn2} relates \texttt{A} as one of \texttt{B}'s provenance dependencies. 
 Hence the forward query on $S_{A,3}$ shall return $S_{B,6}$. 
-In~Chapter~\ref{sec:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
+In~Chapter~\ref{ch:provenance:index}, we assume once creating $S_{A,5}$, the entries dependent on $S_{A,3}$ becomes permanent. So we dump all the information of these entries to $S_{A,5}$. 
 However, due to the \scenario{anti-rw}, \texttt{Txn2} creates the dependent entry $S_{B,6}$ later than $S_{A,5}$.
 To address this issue, we directly drop \texttt{Txn2}. 
 In all, {\fs} will abort a transaction with \scenario{anti-rw} dependencies to earlier committed transactions and the conflicted keys in its captured provenance. 
@@ -1375,18 +1375,18 @@ Notably, the abort only applies when \texttt{Txn1} is already committed in earli
 If \texttt{Txn1} and \texttt{Txn2} are both pending, our reordering procedure guarantees to place \texttt{Txn2} ahead and avoid the above scenario. 
 
 \section{Experiments}
-\label{sec:txn:exp}
+\label{ch:txn:exp}
 \subsection{Baselines and Workloads}
 First, we compare our proposed fine-grained concurrency control with the original First-in-first-out one on both {\fs} and {\fsPr}. 
-In a nutshell, {\fs} relies on ForkBase to provide the multi-version storage, while {\fsPr} utilizes our enhanced LevelDB which is illustrated in Chapter~\ref{sec:provenance:exp:setup}. 
-Following the naming convention in Appendix~\ref{sec:append:variants}, those with our \textbf{F}ine-grained concurrency control are respectively denoted as {\fsF} and {\fsPrF}, and those with the \textbf{O}riginal are suffixed with \textit{O} instead of \textit{F}. 
+In a nutshell, {\fs} relies on ForkBase to provide the multi-version storage, while {\fsPr} utilizes our enhanced LevelDB which is illustrated in Chapter~\ref{ch:provenance:exp:setup}. 
+Following the naming convention in Appendix~\ref{ch:append:variants}, those with our \textbf{F}ine-grained concurrency control are respectively denoted as {\fsF} and {\fsPrF}, and those with the \textbf{O}riginal are suffixed with \textit{O} instead of \textit{F}. 
 We also include the original Fabric in the comparison. 
 On the above systems, we repeat the YCSB and Smallbank experiments. 
 The YCSB workload inserts distinct records. 
 Given its contention-free nature, we use YCSB to investigate the overhead of ours when the workload entails no conflicts. 
 In contrast, Smallbank simulates a realistic workload with the more skewness.
 For a fair comparison, we turn off the provenance capture in the Smallbank contract. 
-But we perform an additional experiment to differentiate the intervention from data provenance, as explained in Chapter~\ref{sec:txn:impl:intervention}. 
+But we perform an additional experiment to differentiate the intervention from data provenance, as explained in Chapter~\ref{ch:txn:impl:intervention}. 
 
 In the second experiment, we evaluate more system baselines on a complex workload introduced in~\cite{sharma2019blurring}. 
 To be specific, all these baselines are built on top of ForkBase-powered {\fs} but with different transaction concurrency methods.
@@ -1400,7 +1400,7 @@ In {\fsS}, we modify our Algorithm~\ref{alg:txn:txn} such that incoming transact
 dependency graph and apply its \textit{Sort-Based Greedy Algorithm} in Algorithm~\ref{alg:txn:blk} for reordering. 
 {\fsL} does not filter any transactions in Algorithm~\ref{alg:txn:txn}.
 
-The complex workload (the code attached in Appendix~\ref{sec:append:contracts:complex}) is adapted from Smallbank but subject to more configurations.
+The complex workload (the code attached in Appendix~\ref{ch:append:contracts:complex}) is adapted from Smallbank but subject to more configurations.
 In the workload, a transaction reads and writes 4 bank accounts, respectively, out of 10k accounts.
 We set 1\% of them as hot accounts.
 Each read has a certain probability to access the
@@ -1472,7 +1472,7 @@ Despite the storage, our concurrency control overhead poses negligible overhead
 when transactions are without contention.
 In particular, when systems reach maximum volume at 1000 transactions per block, {\fsO} and {\fsF} achieve $1372$ and $1300$ tps, less than $5.5$\% on the throughput reduction. 
 This ratio is even smaller with LevelDB storage: $2.8$\%({\fsPrO}'s $1464$ tps v.s. {\fsPrF}'s $1462$ tps). 
-From Chapter~\ref{sec:txn:exp:complex}, we conclude that the major overhead of our approach is due to the reachability update, as explained in Chapter~\ref{sec:txn:impl:graph}. 
+From Chapter~\ref{ch:txn:exp:complex}, we conclude that the major overhead of our approach is due to the reachability update, as explained in Chapter~\ref{ch:txn:impl:graph}. 
 This process traverses the dependency graph along edges between conflicted transactions. 
 However, given that each YCSB transaction does not conflict with others, this bottleneck is not exaggerated.
 
@@ -1491,20 +1491,20 @@ In this experiment, we vary this factor but fix to our approach.
 Figure~\ref{chart:txn:smallbank_prov} presents the results on {\fsPrF} and {\fsF}. 
 The unchanged performance of {\fsF} is enough to show the minimum intervention
 between the state dependency and our fine-grained transaction management. 
-In a nutshell, the scenario illustrated in Chapter~\ref{sec:txn:impl:intervention} is rare at least in Smallbank workload. 
-The straightforward abort approach in Chapter~\ref{sec:txn:impl:intervention} will not drastically degrade the performance. 
+In a nutshell, the scenario illustrated in Chapter~\ref{ch:txn:impl:intervention} is rare at least in Smallbank workload. 
+The straightforward abort approach in Chapter~\ref{ch:txn:impl:intervention} will not drastically degrade the performance. 
 To our astonishment, the state dependency imposes non-negligible effects on our reordering approach in {\fsPrF}.
 In particular, the throughput reduction rate reports $14$\% when $\theta=0$.
 By the careful inspection, this reduction is attributed to the overloaded usage on the LevelDB again. 
 With the state dependency tracking, more provenance information need to be persisted into LevelDB.
-As explained in Chapter~\ref{sec:provenance:exp:util}, this is the same instance to maintain transaction indices during block persistence. 
+As explained in Chapter~\ref{ch:provenance:exp:util}, this is the same instance to maintain transaction indices during block persistence. 
 {\fsF} does not suffer from this factor due to the separated usage of ForkBase. 
 This is also consistent with our observation on {\fsPrF} that 
 the overloaded usage gets cured under the greater workload skewness:
 simply because the amount of the captured provenance decrease with more transactions aborted. 
 
 \subsection{Performance on Complex Workloads}
-\label{sec:txn:exp:complex}
+\label{ch:txn:exp:complex}
 \begin{figure}[t]
 	\centering
     \begin{subfigure}{0.45\textwidth}

@@ -1,5 +1,5 @@
 \chapter{Fabric Variants}
-\label{sec:append:variants}
+\label{ch:append:variants}
 \begin{table}[h]
     \centering
     \caption{The naming conventions of all Fabric variants benchmarked}
@@ -21,8 +21,8 @@
 \end{table}
 Table~\ref{tab:append:variant} compiles all Fabric variants benchmarked in the thesis. 
 They can be classified into two dimensions, the storage engine and the concurrency control methods. 
-The three concurrency control methods colored in \textcolor{purple}{purple} required for the snapshot simulation described in Chapter~\ref{sec:txn:impl:snapshot_read}. The storage engines in \textcolor{blue}blue support the data provenance, while the original LevelDB only maintains the latest states.
-Chapter~\ref{sec:provenance:exp:setup} explains how we extend on LevelDB into LevelDBProv, which manages the historical data and the dependency (provenance).
+The three concurrency control methods colored in \textcolor{purple}{purple} required for the snapshot simulation described in Chapter~\ref{ch:txn:impl:snapshot_read}. The storage engines in \textcolor{blue}blue support the data provenance, while the original LevelDB only maintains the latest states.
+Chapter~\ref{ch:provenance:exp:setup} explains how we extend on LevelDB into LevelDBProv, which manages the historical data and the dependency (provenance).
 Apart from the above, 
 {\fabricPlusplus}~\cite{sharma2019blurring} is another Fabric variant purposed to optimize on the concurrency control. 
 {\fabricPlusplus} is implemented on Fabric v1.1. 

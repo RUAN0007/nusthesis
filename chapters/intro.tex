@@ -1,7 +1,7 @@
 %!TEX root = ../main.tex
 
 \chapter{Introduction}
-\label{sec:intro}
+\label{ch:intro}
 \section{Blockchain Overview}
 Blockchains shake the industry, academia, and the entire world with storms. 
 The swing of the butterfly that initiates the storm is an unidentified hacker named Satoshi Nakamoto, who authored the Bitcoin whitepaper in 2008~\cite{nakamoto2019bitcoin}. 
@@ -82,20 +82,20 @@ And we have also motivated such necessity by pinpointing the pain points for the
 We now explain the three principles that our enhancement follows:
 
 \begin{itemize}
-  \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis, this principle can be manifested in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate Chapter~\ref{sec:txn:securityanalysis} on the security implication of the transaction reordering. 
+  \item We break no security properties. We believe security lies at the core of blockchains. Although relaxing security assumptions is a standard engineering approach for the performance speedup, we do not find it scientific. A typical approach is to improve the system throughput by simply switching from byzantine tolerant consensus to crash failure tolerant. In our thesis, this principle can be manifested in the following two ways. Firstly, for the utility enhancement, we must preserve security on the added features. For instance, in Chapter~\ref{ch:prov}, we take special care to extend the tamper-evidence guarantee to the data provenance. On the other hand, any proposed procedures must be accompanied by their security analysis. This is why we dedicate Chapter~\ref{ch:txn:securityanalysis} on the security implication of the transaction reordering. 
   \item We adopt the modularized approach. We decouple a complex system into individual layers for the separate optimization. Modularization allows for the separation of concerns for the ease of reasoning. It also facilitates interoperability with independent optimization. 
   We follow the proposed architecture in BLOCKBENCH for our blockchain optimization in Chapter~\ref{ch:prov} and ~\ref{ch:txn}. In particular, we pinpoint our instrumentation with respect to each of four layers, as classified in Figure~\ref{diagram:intro:arch}. 
   \item Rather than building from the scratch, we ground our optimizations on Hyperledger Fabric v2.2, the most popular permissioned blockchain. Building on an existing system not only reuses its well-examined components, but this action by itself proves our practicality. Moreover, the results from a full-fledged system, instead of a prototype, are more convincing. And the evaluation is more meaningful when directly comparing with the vanilla baseline. 
 \end{itemize}
 
 \section{Optimization Basis}
-\label{sec:intro:basis}
+\label{ch:intro:basis}
 We incrementally apply our optimization on Hyperledger Fabric 2.2.0 into {\fs} and open source it~\cite{fsharp}. We fork its codebase with the commit hash \textit{2821cf}, the last commit on the branch \textit{release-2.2} when we start preparing this thesis. In later paragraphs, Fabric, without any version specification, all refers to this codebase snapshot. 
 
 We now evaluate its throughput under out testbed and setup, which serves as the baseline. 
 The testbed consists of a local cluster of 96 nodes. Each node is equipped with E5-1650 3.5GHz CPU, 32GB RAM, and 2TB hard disk. The nodes are interconnected via 1Gbps Ethernet. 
 We dedicate five nodes to run \textit{peer} processes and three nodes for \textit{orderer} processes. 
-(The distinction of \textit{peer} and \textit{orderer} processes can be found at~Chapter~\ref{sec:literature:execution:execute-order-validate}.  )
+(The distinction of \textit{peer} and \textit{orderer} processes can be found at~Chapter~\ref{ch:literature:execution:execute-order-validate}.  )
 We configure Raft as the consensus protocol and all inter-node communication are protected by TLS encryption. 
 Unless otherwise mentioned, all our following experiments in this thesis are conducted in the identical setup and the same testbed as this experiment.
 
@@ -112,14 +112,14 @@ It is because the block size introduces two interplay factors.
 On the one hand, a small block limits the system capacity.
 As shown in Figure~\ref{chart:intro:basic:smallbank_blk}, the raw throughput, which includes the aborted transactions, grows with the block size. 
 On the other hand, a large block implies that more transactions are concurrent. 
-As explained in Chapter~\ref{sec:txn:theory}, concurrency exaggerates the conflicts, which leaves more transactions aborted and reduces the effective throughput. 
+As explained in Chapter~\ref{ch:txn:theory}, concurrency exaggerates the conflicts, which leaves more transactions aborted and reduces the effective throughput. 
 This aligns with our observation that the abort rate also increases with the block size.
 The third experiment fixes the optimal setup for Smallbank, which is 600 transactions per block and 1200 tps request rate. 
 We vary the Zipfian coefficient $\theta$ to control the skewness and present the effective throughout in Figure~\ref{chart:intro:basic:smallbank_skew}. 
 One can observe that the Fabric's performance is susceptible to the request skewness, i.e., the greater $\theta$ leads to the lower throughput. 
 In particular, as illustrated by the blue bar, it only attains 331 tps for the effective throughput when $\theta=1.5$, around 43.7\% of the peak. 
 This set of experiments demonstrates the limited performance of Fabric and again calls for the speedup of permissioned blockchains. 
-We attach the YCSB and Smallbank contract codes in Appendix~\ref{sec:append:contracts:ycsb} and ~\ref{sec:append:contracts:smallbank}. 
+We attach the YCSB and Smallbank contract codes in Appendix~\ref{ch:append:contracts:ycsb} and ~\ref{ch:append:contracts:smallbank}. 
 
 \begin{figure}[tp]
 	\centering
@@ -165,5 +165,5 @@ Borrowed from the well-established transactional analysis from databases, we rea
 And the improvement is empirically demonstrated with our remarkable speedup, compared with the vanilla Fabric and the other state-of-the-art. 
 
 At last, we wrap up the thesis with the conclusion and future directions in Chapter~\ref{ch:conclu}. 
-In light of a variety of Fabric variants referenced and benchmarked in this thesis, we compile them all for the clarity in Appendix~\ref{sec:append:variants}. 
+In light of a variety of Fabric variants referenced and benchmarked in this thesis, we compile them all for the clarity in Appendix~\ref{ch:append:variants}. 
 

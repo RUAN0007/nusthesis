@@ -1,7 +1,7 @@
 \chapter{Dichotomy and Fusion}
 \label{ch:twin}
 \section{Introduction}
-\label{sec:twin:intro}
+\label{ch:twin:intro}
 
 The very first blockchain system, that is Bitcoin~\cite{nakamoto2019bitcoin}, is a decentralized ledger for
 recording cryptocurrency's transactions. The ledger consists of multiple blocks chained together with cryptographic
@@ -103,15 +103,15 @@ In summary, we make the following contributions in this work:
   systems.
 \end{itemize}
 
-Chapter~\ref{sec:twin:background} provides relevant background, followed by a qualitative comparisons on the above
-four dimensions in Chapter~\ref{sec:twin:taxonomy}. Chapter~\ref{sec:twin:setup} and Chapter~\ref{sec:twin:exp} discuss the experimental setup and
+Chapter~\ref{ch:twin:background} provides relevant background, followed by a qualitative comparisons on the above
+four dimensions in Chapter~\ref{ch:twin:taxonomy}. Chapter~\ref{ch:twin:setup} and Chapter~\ref{ch:twin:exp} discuss the experimental setup and
 results, respectively. 
 
 
 %!TEX root = ../main.tex
 
 \section{Background}
-\label{sec:twin:background}
+\label{ch:twin:background}
 
 In this section, we discuss relevant background on blockchains and distributed databases.
 Figure~\ref{diagram:twin:spectrum} shows a high-level comparison of these systems.
@@ -266,7 +266,7 @@ TiDB~\cite{web:tidb}. In this work, we consider both NoSQL and NewSQL systems.
 
 
 \section{Taxonomy}
-\label{sec:twin:taxonomy}
+\label{ch:twin:taxonomy}
 % In this section, we present a distributed system taxonomy that illustrates the important design choices made
 % by blockchains and distributed databases. We highlight how the differences are driven by the fact that these
 % systems aim to achieve different goals: security for blockchains, and performance for databases.  
@@ -334,7 +334,7 @@ system is expected to remain constant until the number of log consumers exceeds
 the capacity of the log producers~\cite{corfu}. 
  
 \subsubsection{Failure model}
-\label{sec:twin:taxonomy:replication:failure}
+\label{ch:twin:taxonomy:replication:failure}
 Replication protocols are complex because they need to maintain consistency
 under failure. Under the crash failure model, in which nodes only fail by
 crashing, the protocols need to tolerate hardware and software failures. Under
@@ -559,7 +559,7 @@ similarities and differences between blockchains and distributed databases. It
 also serves as a principled framework for understanding the recently emerging
 hybrid blockchain-database systems. In this section, we discuss how these
 systems fit into the design space. We provide a deeper analysis of their
-performance in Chapter~\ref{sec:twin:exp:hybrids}.
+performance in Chapter~\ref{ch:twin:exp:hybrids}.
 
 \textbf{Out-of-the-blockchain Databases.} One approach toward a hybrid design is
 to start with a blockchain (or a blockchain-like system) and build database
@@ -724,7 +724,7 @@ blockchains and some performance-oriented design choices with databases.
 \end{landscape}
 
 \section{Experimental Setup}
-\label{sec:twin:setup}
+\label{ch:twin:setup}
 \subsection{Systems}
 
 We select four representative systems: two permissioned blockchains, namely Quorum~\cite{web:quorum} and Hyperledger Fabric~\cite{web:fabric}, and two distributed databases, namely TiDB~\cite{web:tidb} and etcd~\cite{web:etcd}.
@@ -835,7 +835,7 @@ drivers for benchmarking blockchains and databases, they alone do not account fo
 reported in the following section. 
 
 \section{Result and Analysis}
-\label{sec:twin:exp}
+\label{ch:twin:exp}
 We first summarize the main findings, then provide the detailed experimental analysis. Based on these findings,
 we propose an empirical framework that compares the performance of recent hybrid blockchain-database systems.
 The framework not only explains the performance differences in existing systems, but it is also useful for
@@ -968,7 +968,7 @@ The performance of Fabric and TiDB drops when switching from YCSB to Smallbank,
 while the performance of Quorum improves with a peak throughput under Smallbank
 that is $2.5\times$ greater compared to YCSB.
 We attribute this improvement to the smaller record size of Smallbank.
-As we shall see in Chapter~\ref{sec:twin:exp:txn:record_size}, Quorum's performance
+As we shall see in Chapter~\ref{ch:twin:exp:txn:record_size}, Quorum's performance
 is vulnerable to transactions that access large records.
 Likewise, the request skewness accounts for the throughput drop reported by Fabric and TiDB. 
 
@@ -993,7 +993,7 @@ In this experiment, the workload updates only distinct records.
 By reducing the effects of concurrency, we focus on the implications of replication. 
 
 \subsubsection{Effect of replication model}
-\label{sec:twin:exp:replication:model}
+\label{ch:twin:exp:replication:model}
 To understand the impact of the replication model, we focus on Fabric and TiDB
 because they support different transaction lifecycles.
 Figure~\ref{chart:twin:update-breakdown} compares the latency of a transaction when the
@@ -1031,7 +1031,7 @@ spent on getting the data.
 
 
 \subsubsection{Effect of replication approach}
-\label{sec:twin:exp:replication:approach}
+\label{ch:twin:exp:replication:approach}
 
 \begin{table}[tp]
     \centering
@@ -1087,7 +1087,7 @@ Hence, more nodes lead to transactions with more signatures and, therefore,
 longer validation.
 Due to the sequentiality in transaction-based replication, this increase in
 validation time translates to the decrease in throughput, as we explained in
-Chapter~\ref{sec:twin:exp:replication:model}.
+Chapter~\ref{ch:twin:exp:replication:model}.
 On the other hand, Quorum underutilizes Raft, making its performance insensitive
 to the consensus group size.
 Specifically, Quorum first pre-executes transactions at the tip of the ledger,
@@ -1118,7 +1118,7 @@ impact on the performance of blockchains, while replication approaches have plai
 effects on the performance of distributed databases.
 
 \subsubsection{Effect of failure model}
-\label{sec:twin:exp:replication:consensus}
+\label{ch:twin:exp:replication:consensus}
 We compare the performance of Raft and Istanbul Byzantine Fault Tolerant (IBFT)
 consensus in Quorum to illustrate the impact of different failure models.
 Recall that Raft tolerates only crash failures, whereas IBFT can tolerate
@@ -1146,7 +1146,7 @@ When $f$ increases, the probability of such interruption increases accordingly,
 hence, this leads to larger variances in performance.
 
 \subsection{Concurrency} 
-\label{sec:twin:exp:concurrency}
+\label{ch:twin:exp:concurrency}
 In the following experiments, we twist the workload to understand the effects of
 concurrency on system performance.
 To reduce the effects of replication, the number of nodes is fixed to 5 and full
@@ -1268,7 +1268,7 @@ Under 10 operations per transaction, these two sources take up $14\%$ and $86\%$
 of all the aborts, respectively.
 
 \subsubsection{Effect of record size}
-\label{sec:twin:exp:txn:record_size}
+\label{ch:twin:exp:txn:record_size}
 
 \begin{figure}[tp]
 	\centering
@@ -1330,7 +1330,7 @@ But compared with blockchains, NewSQL databases with storage-based replication
 can harness more concurrency.
 
 \subsection{Storage}
-\label{sec:twin:exp:storage}
+\label{ch:twin:exp:storage}
 In this section, we analyze the storage overhead for the ledger abstraction and
 the authenticated data structures.
 
@@ -1362,7 +1362,7 @@ This result demonstrates that blockchains incur significantly higher storage
 costs than databases because of the underlying ledger abstraction.
 
 \subsubsection{Security overhead for tamper evidence}
-\label{sec:twin:exp:storage:tamper}
+\label{ch:twin:exp:storage:tamper}
 
 To quantify the overhead incurred by the integrity protection mechanism in
 blockchains, we compare the performance of Merkle Bucket Tree (MBT) from
@@ -1390,7 +1390,7 @@ and fan-out can go up to 32 and 16, respectively.
 This explains why MPT needs more space.
 
 \subsection{Sharding}
-\label{sec:twin:exp:shard}
+\label{ch:twin:exp:shard}
 
 \begin{figure}[tp]
 
@@ -1427,7 +1427,7 @@ Nonetheless, the gap between AHL and both the databases is large, due to the
 high cost of PBFT and other security overheads.
 
 \subsection{Performance of Hybrid Systems}
-\label{sec:twin:exp:hybrids}
+\label{ch:twin:exp:hybrids}
 \begin{figure}
 	\centering
 	\includegraphics[width=0.8\textwidth]{diagram/twin/performance_framework.pdf}
@@ -1450,12 +1450,12 @@ Figure~\ref{diagram:twin:perf_framework} presents our framework together with th
 reported performance of some hybrid systems.
 We note that the replication model is the deciding factor in determining the
 peak throughput.
-The results in Chapter~\ref{sec:twin:exp:replication:model} show that the replication
+The results in Chapter~\ref{ch:twin:exp:replication:model} show that the replication
 model affects concurrency.
 In particular, transaction-based replication exposes lower concurrency than
 storage-based replication, which results in lower throughput.
 The next factor that affects throughput is the failure model.
-As explained in Chapter~\ref{sec:twin:taxonomy:replication:failure}, CFT protocols
+As explained in Chapter~\ref{ch:twin:taxonomy:replication:failure}, CFT protocols
 are more efficient than BFT protocols due to their lower network overhead,
 therefore, systems using CFT are likely to have higher throughput.
 This is true especially when the CFT protocol is implemented as a shared log
@@ -1470,4 +1470,4 @@ For instance, Vertias exhibits better throughput than Chainify ($29k$ vs.
 $6.1k$) because it uses storage-based replication and CFT protocols.
 But its performance has a high variance because, under high contention, the
 throughput can decrease significantly, as explained in
-Chapter~\ref{sec:twin:exp:concurrency}.
+Chapter~\ref{ch:twin:exp:concurrency}.

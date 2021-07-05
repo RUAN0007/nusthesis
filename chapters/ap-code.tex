@@ -1,7 +1,7 @@
 \chapter{Contract Codes}
-\label{sec:append:contracts}
+\label{ch:append:contracts}
 \section{Stub Handler}
-\label{sec:append:contracts:stub}
+\label{ch:append:contracts:stub}
 
 
 \begin{lstlisting}
@@ -13,7 +13,7 @@ Forward(key string, blk uint64) ([]string, []uint64, []string, error)
 \end{lstlisting}
 
 \section{Token}
-\label{sec:append:contracts:token}
+\label{ch:append:contracts:token}
 
 \lstset{language=Go,
   basicstyle=\ttfamily\scriptsize,
@@ -292,7 +292,7 @@ package main
 \end{lstlisting}
 
 \section{YCSB}
-\label{sec:append:contracts:ycsb}
+\label{ch:append:contracts:ycsb}
 \begin{lstlisting}
 package main
 
@@ -452,7 +452,7 @@ func hexdigest(str string) string {
 \end{lstlisting}
 
 \section{Smallbank}
-\label{sec:append:contracts:smallbank}
+\label{ch:append:contracts:smallbank}
 \begin{lstlisting}
 package main
 
@@ -714,7 +714,7 @@ func saveAccount(stub shim.ChaincodeStubInterface, account *Account) error {
 \end{lstlisting}
 
 \section{Smallbank ProvHelper}
-\label{sec:append:contracts:smallbank_prov}
+\label{ch:append:contracts:smallbank_prov}
 \begin{lstlisting}
 func (t *SmallbankChaincode) ProvHelper(stub shim.ChaincodeStubInterface, 
         reads, writes map[string][]byte) map[string][]string {
@@ -739,7 +739,7 @@ func (t *SmallbankChaincode) ProvHelper(stub shim.ChaincodeStubInterface,
 \end{lstlisting}
 
 \section{Conditional Refund in Smallbank}
-\label{sec:append:contracts:cond_refund}
+\label{ch:append:contracts:cond_refund}
 \begin{lstlisting}
 func (t *SmallbankChaincode) ConditionalRefund(stub shim.ChaincodeStubInterface, 
         args []string) pb.Response {
@@ -789,7 +789,7 @@ func (t *SmallbankChaincode) Refund(stub shim.ChaincodeStubInterface,
 \end{lstlisting}
 
 \section{Complex Workload}
-\label{sec:append:contracts:complex}
+\label{ch:append:contracts:complex}
 \begin{lstlisting}
 package main
 

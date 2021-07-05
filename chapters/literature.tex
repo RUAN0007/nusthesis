@@ -7,7 +7,7 @@ In this chapter, we lay out the foundation of blockchains and explore a systemat
 We organize the review based on the abstract layers as classified in Figure~\ref{diagram:intro:arch}, before identifying the research gap. 
 
 \section{Data Model Layer}
-\label{sec:literature:datamodel}
+\label{ch:literature:datamodel}
 The data model in blochchains concerns on how to organize data that reflect the latest states, and model the ledger that records the historical transactions. 
 
 \subsection{State Organization}
@@ -76,7 +76,7 @@ Despite their implementation differences, the execution architecture of any bloc
 \end{figure}
 
 \subsection{Order-execute Architecture}
-\label{sec:literature:execution:order-execute}
+\label{ch:literature:execution:order-execute}
 In the Order-execute architecture, each peer serially executes transactions, based on the established order according to the ledger by the consensus. 
 Bitcoin as well as all cryptocurrency-based blockchain adopts this concurrency-free design, simply because the consensus, rather than the execution layer, decides on the system performance. 
 Moreover, sequentiality makes it easy to reason about the system behavior. 
@@ -94,7 +94,7 @@ Instead of speeding up the entire system, the goal of the concurrency is to faci
 Quantitative analysis of the transaction graph shows abundant concurrent chances in mainstream blockchains~\cite{reijsbergen2020exploiting,saraph2019empirical}. 
 
 \subsection{Execute-order-validate Architecture}
-\label{sec:literature:execution:execute-order-validate}
+\label{ch:literature:execution:execute-order-validate}
 Execute-order-validate architecture is proposed in Hyperledger Fabric v1.0~\cite{androulaki2018hyperledger}. 
 Rather than taking a monolithic approach, the system is designed with two types of blockchain nodes: peers which execute smart contracts and validate blocks, and orderers which order transactions. 
 A transaction pipeline is divided into three phases. 
