@@ -8,7 +8,14 @@ Only a few database researchers are aware of this trend.
 In this thesis, we focus on the enhancement and optimization of blockchains from the perspective of a data system.
 We not only demonstrate the vast opportunities in this novel area, but appeal to more system researchers that blockchains are far beyond cryptocurrencies. 
 
-First, we treat a blockchain also as a generic distributed system, and as such it shares some similarities with distributed database systems. Existing works that compare blockchains and distributed database systems focus mainly on high-level properties, such as security and throughput. They stop short of showing how the underlying design choices contribute to the overall differences. This work is to fill this important gap. To be particular, we perform a twin study of blockchains and distributed database systems as two types of transactional systems. We propose a taxonomy that illustrates the dichotomy across four dimensions, namely replication, concurrency, storage, and sharding. Within each dimension, we discuss how the design choices are driven by two goals: security for blockchains, and performance for distributed databases. To expose the impact of different design choices on the overall performance, we conduct an in-depth performance analysis of two blockchains, namely Quorum and Hyperledger Fabric, and two distributed databases, namely TiDB, and etcd. Lastly, we propose a framework for back-of-the-envelope performance forecast of blockchain-database hybrids.
+First, we treat a blockchain also as a generic distributed system, and as such it shares some similarities with distributed database systems. 
+Existing works that compare blockchains and distributed database systems focus mainly on high-level properties, such as security and throughput. 
+They stop short of showing how the underlying design choices contribute to the overall differences. This work is to fill this important gap. 
+To be particular, we perform a twin study of blockchains and distributed database systems as two types of transactional systems. 
+We propose a taxonomy that illustrates the dichotomy across four dimensions, namely replication, concurrency, storage, and sharding. 
+Within each dimension, we discuss how the design choices are driven by two goals: security for blockchains, and performance for distributed databases. 
+To expose the impact of different design choices on the overall performance, we conduct an in-depth performance analysis of two blockchains, namely Quorum and Hyperledger Fabric, and two distributed databases, namely TiDB, and etcd. 
+Lastly, we propose a framework for back-of-the-envelope performance forecast of blockchain-database hybrids.
 	
 Secondly, with a tamper-evident ledger for recording transactions that modify some global states, a blockchain system captures the entire
 evolution history of the states. The management of that
@@ -39,7 +46,7 @@ For evaluation, we implement our method on top of our {\fs}.
 We compare the performance of {\fs} with carefully-chosen baselines. 
 The results demonstrate that {\fs} achieves remarkably greater throughput compared to the other systems in nearly all experimental scenarios. 
 
-At last, borrowing the idea from databases again, we extend on permissioned blockchains with access-control view management. 
+Last but not the least, borrowing the idea from databases again, we extend on permissioned blockchains for access-control view management. 
 This is to cater for applications, where the access to sensitive information should be limited, that is, concealed from peers and users who do not have proper access permissions. 
 We present two types of views---{\texttt irrevocable\/} and {\texttt revocable}, according to whether access to sensitive information can or cannot be revoked. 
 We show how to implement the two types of view by using cryptographic hash functions and encryption keys, and we explain how to support Role-Based Access Control (RBAC). 
@@ -47,5 +54,6 @@ We show how to implement the two types of view by using cryptographic hash funct
 An implementation of the proposed methods and a comparison to cross-chain transactions show that the approach is viable. 
 Experiments with supply chain transactions illustrate the incurred costs of the different types of views, including latency, transaction rate and storage overhead. 
 
+In the end, we conclude with future works. 
+
 \end{abstract}
-	
