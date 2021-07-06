@@ -1400,7 +1400,9 @@ In {\fsS}, we modify our Algorithm~\ref{alg:txn:txn} such that incoming transact
 dependency graph and apply its \textit{Sort-Based Greedy Algorithm} in Algorithm~\ref{alg:txn:blk} for reordering. 
 {\fsL} does not filter any transactions in Algorithm~\ref{alg:txn:txn}.
 
-The complex workload (the code attached in Appendix~\ref{ch:append:contracts:complex}) is adapted from Smallbank but subject to more configurations.
+The complex workload 
+% (the code attached in Appendix~\ref{ch:append:contracts:complex}) 
+is adapted from Smallbank but subject to more configurations.
 In the workload, a transaction reads and writes 4 bank accounts, respectively, out of 10k accounts.
 We set 1\% of them as hot accounts.
 Each read has a certain probability to access the

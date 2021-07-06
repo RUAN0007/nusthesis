@@ -858,7 +858,7 @@ execution engine intercepts \texttt{PutState} and \texttt{GetStates} during exec
 write set. It invokes \texttt{ProvHelper} when the execution finishes. Then it piggybacks the computed dependency along with the transaction, later to be stored securely when the transaction commits. Fig
 The three new provenance APIs, namely \texttt{Hist}, \texttt{Backward} and \texttt{Forward}, are added to \texttt{ChaincodeStubInterface}
 and therefore previously-stored provenance is accessible to all contract methods. 
-Appendix~\ref{ch:append:contracts:stub} and~\ref{ch:append:contracts:token} attaches the code of the provenance APIs introduced in \texttt{ChaincodeStubInterface}, and the full-fledged chaincode for the \textit{Token} contract in Figure~\ref{code:prov:enhanced_contract}
+% Appendix~\ref{ch:append:contracts:stub} and~\ref{ch:append:contracts:token} attaches the code of the provenance APIs introduced in \texttt{ChaincodeStubInterface}, and the full-fledged chaincode for the \textit{Token} contract in Figure~\ref{code:prov:enhanced_contract}
 
 \section{Performance Evaluation}
 \label{ch:provenance:exp}
@@ -889,7 +889,8 @@ However, compared with our ForkBase in {\fs}, it does not protect the provenance
 Despite the storage differences, {\fsPr} is similar with {\fs}, i.e., both share the exact provenance capturer and query handlers. 
 
 We perform three sets of experiments. First, we repeat the YCSB and Smallbank experiments to evaluate the performance implication with the provenance support. 
-Specifically for Smallbank, we implement the \texttt{ProvHelper} to capture the monetary flow as the state dependency, as attached in Appendix~\ref{ch:append:contracts:smallbank_prov}.
+Specifically for Smallbank, we implement the \texttt{ProvHelper} to capture the monetary flow as the state dependency.
+% The code is attached in Appendix~\ref{ch:append:contracts:smallbank_prov}.
 Secondly, we demonstrate the provenance-provided utility with the Smallbank workload. 
 In the meantime, we dissect the Fabric bottleneck (the validation phase as identified in Chapter~\ref{ch:twin:exp:replication:model}) to understand the exact overhead. 
 In the remaining experiments, we place a specific analysis on the provenance query and space consumption of the storage engine. 
@@ -965,7 +966,8 @@ given the overall block validation delay is $723$ms in {\fsO}, this ratio is bel
 It explains why the total block validation delay in {\fsO} is within $14$\% and $4$\% more than Fabric and {\fsO}. 
 So that {\fsO} reports the negligible performance overhead, even though it additionally preserves the provenance with the integrity guarantee.
 
-The provenance-provided utility is abundant. In the Smallbank contract, we additionally encode a provenance-dependent method \texttt{ConditionalRefund}, as attached in Appendix~\ref{ch:append:contracts:cond_refund}.
+The provenance-provided utility is abundant. In the Smallbank contract, we additionally encode a provenance-dependent method \texttt{ConditionalRefund}.
+% The code is attached in Appendix~\ref{ch:append:contracts:cond_refund}.
 Similar to the \texttt{Refund} example in Figure~\ref{code:prov:enhanced_contract},
 it refunds a bank account with an amount conditional on its involved transactions in recent blocks.
 We compare the end-to-end latency of the exact procedure in Fabric, without the provenance support.
